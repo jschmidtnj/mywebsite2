@@ -1,0 +1,34 @@
+{
+  "name": "graphqlapi",
+  "version": "1.0.0",
+  "description": "graphql api for personal website",
+  "main": "lib/index.js",
+  "scripts": {
+    "lint": "tslint --project tsconfig.json --fix",
+    "precommit": "npm run lint",
+    "build": "tsc",
+    "gcp-build": "npm run build",
+    "start": "node lib/index.js",
+    "predeploy": "npm run precommit",
+    "deploy": "npm run precommit && gcloud app deploy",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jschmidtnj/mywebsite2.git"
+  },
+  "keywords": [
+    "graphql"
+  ],
+  "author": "Joshua Schmidt",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "apollo-server-express": "^2.4.8",
+    "body-parser": "^1.19.0",
+    "express": "^4.16.4",
+    "graphql": "^14.2.1",
+    "tslint": "^5.16.0",
+    "typescript": "^3.4.5"
+  }
+}

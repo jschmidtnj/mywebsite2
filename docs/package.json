@@ -1,0 +1,25 @@
+{
+  "name": "websitedocs",
+  "version": "1.0.0",
+  "description": "docs for personal website nuxt and graphql",
+  "scripts": {
+    "dev": "vuepress dev",
+    "precommit": "echo \"no precommit for docs\"",
+    "build": "vuepress build",
+    "deploy:linux": "./deploydocs.sh",
+    "deploy:windows": "deploydocs.sh",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "vuepress"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jschmidtnj/mywebsite2.git"
+  },
+  "author": "Joshua Schmidt",
+  "license": "MIT",
+  "dependencies": {
+    "vuepress": "^0.14.11"
+  }
+}

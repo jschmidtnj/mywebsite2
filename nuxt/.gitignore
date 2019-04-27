@@ -1,0 +1,5 @@
+# custom stuff
+.nuxt/
+.netlify/
+.env
+now.json

@@ -1,0 +1,37 @@
+{
+  "name": "mywebsite2",
+  "version": "1.0.0",
+  "description": "personal website using graphql and nuxt",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "precommit": "npm run precommit --prefix nuxt && npm run precommit --prefix graphql && npm run precommit --prefix docs && git add -A",
+    "init": "npm i && cd nuxt && npm i && cd ../graphql && npm i && cd ../docs && npm i && cd ..",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run precommit"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jschmidtnj/mywebsite2.git"
+  },
+  "keywords": [
+    "nuxt",
+    "graphql",
+    "vuepress"
+  ],
+  "author": "Joshua Schmidt",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jschmidtnj/mywebsite2/issues"
+  },
+  "homepage": "https://github.com/jschmidtnj/mywebsite2#readme",
+  "dependencies": {
+    "husky": "^2.1.0"
+  }
+}
