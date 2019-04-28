@@ -2,12 +2,12 @@
   <section class="container">
     <div>
       <logo />
-      <h1 class="title">
-        joshuawebsite
-      </h1>
-      <h2 class="subtitle">
-        personal website front-end nuxt
-      </h2>
+      <div>
+        User status:
+        <b-badge>{{ $auth.$state.loggedIn ? 'Logged In' : 'Guest' }}</b-badge>
+      </div>
+      <h1 class="title">joshuawebsite</h1>
+      <h2 class="subtitle">personal website front-end nuxt</h2>
       <div class="links">
         <a href="https://nuxtjs.org/" target="_blank" class="button--green"
           >Documentation</a
@@ -29,6 +29,25 @@ import Logo from '~/components/Logo.vue'
 export default {
   components: {
     Logo
+  },
+  mounted() {
+    /* eslint-disable */
+    this.$axios
+      .get('http://localhost:8080/graphql')
+      .then(() => {
+        console.log('get request success')
+      })
+      .catch(err => {
+        console.log(`get failed: ${err}`)
+      })
+    /*
+    this.$auth.loginWith('local', {
+      data: {
+        username: 'test',
+        password: 'test'
+      }
+    })
+    */
   }
 }
 </script>

@@ -33,12 +33,5 @@
       "@types/node",
       "@nuxt/vue-app"
     ]
-  },
-  "exclude": [
-    "functions",
-    "node_modules",
-    "dist",
-    "assets",
-    "**/*.js"
-  ]
+  }
 }

@@ -2,12 +2,14 @@ const pkg = require('./package')
 require('dotenv').config()
 
 const seodata = JSON.parse(process.env.SEOCONFIG)
+const authdata = JSON.parse(process.env.AUTHCONFIG)
 
 module.exports = {
   mode: 'universal',
 
   env: {
-    seoconfig: process.env.SEOCONFIG
+    seoconfig: process.env.SEOCONFIG,
+    authconfig: process.env.AUTHCONFIG
   },
 
   /*
@@ -70,7 +72,8 @@ module.exports = {
   plugins: [
     { src: '~/plugins/font-awesome', ssr: false },
     { src: '~/plugins/vuelidate', ssr: false },
-    { src: '~/plugins/localstorage', ssr: false }
+    { src: '~/plugins/vuex-persist', ssr: false },
+    { src: '~/plugins/axios', ssr: false }
   ],
 
   /*
@@ -88,6 +91,24 @@ module.exports = {
     '@nuxtjs/google-analytics',
     '@nuxtjs/auth'
   ],
+
+  /*
+   ** auth config
+   */
+  auth: {
+    strategies: {
+      google: {
+        client_id: authdata.google.client_id
+      }
+    },
+    redirect: {
+      callback: '/callback',
+      logout: '/login',
+      login: '/login',
+      home: '/account'
+    },
+    resetOnError: true
+  },
 
   /*
    ** google analytics config
