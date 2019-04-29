@@ -32,22 +32,19 @@ export default {
   },
   mounted() {
     /* eslint-disable */
+    const query = `{
+      hello
+    }`
     this.$axios
-      .get('http://localhost:8080/graphql')
-      .then(() => {
-        console.log('get request success')
+      .post('http://localhost:8080/graphql', {
+        query: query
+      })
+      .then(res => {
+        console.log(`got ${JSON.stringify(res.data.data)}`)
       })
       .catch(err => {
         console.log(`get failed: ${err}`)
       })
-    /*
-    this.$auth.loginWith('local', {
-      data: {
-        username: 'test',
-        password: 'test'
-      }
-    })
-    */
   }
 }
 </script>

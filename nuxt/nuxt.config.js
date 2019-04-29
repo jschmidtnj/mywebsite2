@@ -97,6 +97,24 @@ module.exports = {
    */
   auth: {
     strategies: {
+      local: {
+        endpoints: {
+          login: {
+            url: '/login',
+            method: 'post',
+            propertyName: 'token'
+          },
+          logout: {
+            url: '/logout',
+            method: 'post'
+          },
+          user: {
+            url: '/user',
+            method: 'get',
+            propertyName: 'user'
+          }
+        }
+      },
       google: {
         client_id: authdata.google.client_id
       }
@@ -136,6 +154,7 @@ module.exports = {
    */
   axios: {
     // See https://github.com/nuxt-community/axios-module#options
+    baseURL: 'http://localhost:8080'
   },
 
   /*

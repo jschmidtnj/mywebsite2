@@ -1,7 +1,8 @@
 <template>
   <div>
     <p>login</p>
-    <b-btn block @click="login">Login with Google</b-btn>
+    <b-btn block @click="logingoogle">Login with Google</b-btn>
+    <b-btn block @click="loginlocal">Login with local</b-btn>
   </div>
 </template>
 
@@ -12,10 +13,18 @@ export default Vue.extend({
   // @ts-ignore
   middleware: 'loginredirect',
   methods: {
-    login() {
+    logingoogle() {
       /* eslint-disable */
       this.$auth.loginWith('google').catch(e => {
         console.log(e)
+      })
+    },
+    loginlocal() {
+      this.$auth.loginWith('local', {
+        data: {
+          username: 'test',
+          password: 'test'
+        }
       })
     }
   }
