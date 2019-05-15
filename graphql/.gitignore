@@ -1,11 +1,15 @@
-# custom stuff
-config*
-.gcloudignore
+# config files
+.env
 
-## Compiled JavaScript files
-**/*.js
-**/*.js.map
-lib/
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
 
-## Typescript v1 declaration files
-typings/
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
