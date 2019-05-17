@@ -1,0 +1,53 @@
+{
+  "name": "mywebsite",
+  "version": "0.0.1",
+  "description": "portfolio application",
+  "productName": "Joshua Schmidt",
+  "cordovaId": "com.joshuaschmidt.app",
+  "author": "jschmidtnj <joshuanschmidt@gmail.com>",
+  "private": false,
+  "scripts": {
+    "dev": "quasar dev",
+    "build:spa": "quasar build -m spa",
+    "build:pwa": "quasar build -m pwa",
+    "build:ssr": "quasar build -m ssr",
+    "build:ios": "quasar build -m cordova -T ios -t ios",
+    "build:android": "quasar build -m cordova -T android -t mat",
+    "build:desktop": "quasar build -m electron",
+    "build:all": "npm run build:spa && npm run build:pwa && npm run build:ssr && npm run build:ios && npm run build:android && npm run build:desktop",
+    "lint": "eslint --ext .js,.vue src src-pwa src-ssr src-electron --fix",
+    "precommit": "npm run lint",
+    "test": "echo \"No test specified\" && exit 0"
+  },
+  "dependencies": {
+    "@quasar/extras": "^1.0.0",
+    "axios": "^0.18.0",
+    "quasar": "^1.0.0-beta.0",
+    "vue-i18n": "^7.3.3"
+  },
+  "devDependencies": {
+    "@quasar/app": "^1.0.0-beta.0",
+    "@vue/eslint-config-prettier": "^4.0.0",
+    "babel-eslint": "^10.0.1",
+    "devtron": "^1.4.0",
+    "electron": "^4.0.5",
+    "electron-debug": "^2.1.0",
+    "electron-devtools-installer": "^2.2.4",
+    "electron-packager": "^13.1.0",
+    "eslint": "^5.10.0",
+    "eslint-loader": "^2.1.1",
+    "eslint-plugin-vue": "^5.0.0",
+    "strip-ansi": "=3.0.1"
+  },
+  "engines": {
+    "node": ">= 8.9.0",
+    "npm": ">= 5.6.0",
+    "yarn": ">= 1.6.0"
+  },
+  "browserslist": [
+    "last 1 version, not dead, ie >= 11"
+  ],
+  "resolutions": {
+    "ajv": "6.8.1"
+  }
+}
