@@ -7,7 +7,7 @@
     "doc": "docs"
   },
   "scripts": {
-    "precommit": "npm run precommit --prefix quasar && npm run precommit --prefix graphql && npm run precommit --prefix docs && git add -A",
+    "precommit": "npm run precommit --prefix quasar && npm run precommit --prefix docs && git add -A",
     "init": "npm i && cd quasar && npm i && cd ../graphql && npm i && cd ../docs && npm i && cd ..",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

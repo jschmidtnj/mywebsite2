@@ -4,6 +4,29 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
+var accountsMock []User = []User{
+	User{
+		Id:       "1",
+		Username: "nraboy",
+		Password: "1234",
+	},
+	User{
+		Id:       "2",
+		Username: "mraboy",
+		Password: "5678",
+	},
+}
+
+var blogsMock []Blog = []Blog{
+	Blog{
+		Id:        "1",
+		Author:    "nraboy",
+		Title:     "Sample Article",
+		Content:   "This is a sample article written by Nic Raboy",
+		Pageviews: 1000,
+	},
+}
+
 func RootQuery() (*graphql.Object) {
 	return graphql.NewObject(graphql.ObjectConfig{
 		Name: "Query",
