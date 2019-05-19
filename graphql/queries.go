@@ -2,30 +2,9 @@ package main
 
 import (
 	"github.com/graphql-go/graphql"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-var accountsMock []User = []User{
-	User{
-		Id:       "1",
-		Username: "nraboy",
-		Password: "1234",
-	},
-	User{
-		Id:       "2",
-		Username: "mraboy",
-		Password: "5678",
-	},
-}
-
-var blogsMock []Blog = []Blog{
-	Blog{
-		Id:        "1",
-		Author:    "nraboy",
-		Title:     "Sample Article",
-		Content:   "This is a sample article written by Nic Raboy",
-		Pageviews: 1000,
-	},
-}
 
 func RootQuery() (*graphql.Object) {
 	return graphql.NewObject(graphql.ObjectConfig{
@@ -34,22 +13,57 @@ func RootQuery() (*graphql.Object) {
 			"account": &graphql.Field{
 				Type: AccountType,
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					account, err := ValidateJWT(params.Context.Value("token").(string))
+					account, err := ValidateLoggedIn(params.Context.Value("token").(string))
 					if err != nil {
 						return nil, err
 					}
-					for _, accountMock := range accountsMock {
-						if accountMock.Username == account.(User).Username {
-							return accountMock, nil
-						}
+					var user User
+					err = UserCollection.FindOne(CTX, bson.M{"email": account.(User).Email}).Decode(&user)
+					if (err != nil) {
+						return &User{}, nil
 					}
-					return &User{}, nil
+					return user, nil
 				},
 			},
 			"blogs": &graphql.Field{
 				Type: graphql.NewList(BlogType),
+				Args: graphql.FieldConfigArgument{
+                    "perpage": &graphql.ArgumentConfig{
+                        Type: graphql.Int,
+					},
+					"page": &graphql.ArgumentConfig{
+                        Type: graphql.Int,
+					},
+                },
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					return blogsMock, nil
+					var blogs []Blog
+					findOptions := options.FindOptions{}
+					findOptions.Sort = bson.D{
+						{"_id", -1},
+					}
+					perpage, success := params.Args["perpage"].(int64)
+					if (!success) {
+						return &[]Blog{}, nil
+					}
+					findOptions.Limit = &perpage
+					page, success := params.Args["page"].(int64)
+					if (!success) {
+						return &[]Blog{}, nil
+					}
+					findOptions.Skip = &page
+					cursor, err := BlogCollection.Find(CTX, nil, &findOptions)
+					if (err != nil) {
+						return &[]Blog{}, nil
+					}
+					for cursor.Next(CTX) {
+						var blog Blog
+						err = cursor.Decode(&blog)
+						if (err != nil) {
+							return &[]Blog{}, nil
+						}
+						blogs = append(blogs, blog)
+					}
+					return blogs, nil
 				},
 			},
 		},

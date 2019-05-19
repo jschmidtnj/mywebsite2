@@ -6,7 +6,7 @@ import (
 
 type User struct {
 	Id       string `json:"id"`
-	Username string `json:"username"`
+	Email string `json:"email"`
 	Password string `json:"password"`
 }
 
@@ -16,7 +16,7 @@ var AccountType *graphql.Object = graphql.NewObject(graphql.ObjectConfig{
 		"id": &graphql.Field{
 			Type: graphql.String,
 		},
-		"username": &graphql.Field{
+		"email": &graphql.Field{
 			Type: graphql.String,
 		},
 		"password": &graphql.Field{

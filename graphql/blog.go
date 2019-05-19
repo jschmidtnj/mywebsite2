@@ -30,7 +30,7 @@ var BlogType *graphql.Object = graphql.NewObject(graphql.ObjectConfig{
 		"pageviews": &graphql.Field{
 			Type: graphql.Int,
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				_, err := ValidateJWT(params.Context.Value("token").(string))
+				_, err := ValidateLoggedIn(params.Context.Value("token").(string))
 				if err != nil {
 					return nil, err
 				}

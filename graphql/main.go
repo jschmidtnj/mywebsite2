@@ -10,30 +10,21 @@ import (
 	"github.com/joho/godotenv"
 	"os"
 	"github.com/graphql-go/graphql"
-	jwt "github.com/dgrijalva/jwt-go"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	
 )
 
 var JwtSecret []byte
 
 var Client *mongo.Client
 
-func CreateToken(response http.ResponseWriter, request *http.Request) {
-	var user User
-	_ = json.NewDecoder(request.Body).Decode(&user)
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"username": user.Username,
-		"password": user.Password,
-	})
-	tokenString, error := token.SignedString(JwtSecret)
-	if error != nil {
-		fmt.Println(error)
-	}
-	response.Header().Set("content-type", "application/json")
-	response.Write([]byte(`{ "token": "` + tokenString + `" }`))
-}
+var CTX context.Context
+
+var Database string = "testing"
+
+var UserCollection *mongo.Collection
+
+var BlogCollection *mongo.Collection
 
 func main() {
 	err := godotenv.Load()
@@ -41,14 +32,24 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 	JwtSecret = []byte(os.Getenv("SECRET"))
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	// Client mongodb client
-	Client, _ = mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
+	CTX, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	cancel()
+	mongouri := os.Getenv("MONGOURI")
+	Client, err = mongo.Connect(CTX, options.Client().ApplyURI(mongouri))
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	UserCollection = Client.Database(Database).Collection("users")
+	BlogCollection = Client.Database(Database).Collection("blogs")
 	port := ":" + os.Getenv("PORT")
 	fmt.Println("Starting the application at " + port)
-	schema, _ := graphql.NewSchema(graphql.SchemaConfig{
+	schema, err := graphql.NewSchema(graphql.SchemaConfig{
 		Query: RootQuery(),
+		Mutation: RootMutation(),
 	})
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 	http.HandleFunc("/graphql", func(response http.ResponseWriter, request *http.Request) {
 		result := graphql.Do(graphql.Params{
 			Schema:        schema,
@@ -57,6 +58,7 @@ func main() {
 		})
 		json.NewEncoder(response).Encode(result)
 	})
-	http.HandleFunc("/login", CreateToken)
+	http.HandleFunc("/login", Login)
+	http.HandleFunc("/register", Register)
 	http.ListenAndServe(port, nil)
 }
