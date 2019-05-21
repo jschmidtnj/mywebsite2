@@ -3,9 +3,8 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"log"
+	"go.uber.org/zap"
 	"time"
 	"github.com/joho/godotenv"
 	"os"
@@ -26,10 +25,40 @@ var UserCollection *mongo.Collection
 
 var BlogCollection *mongo.Collection
 
+var Logger *zap.Logger
+
+func Hello(response http.ResponseWriter, request *http.Request) {
+	response.Header().Set("content-type", "application/json")
+	response.Write([]byte(`{"message":"Hello!"}`))
+}
+
 func main() {
-	err := godotenv.Load()
+	loggerconfig := []byte(`{
+		"level": "debug",
+		"encoding": "json",
+		"outputPaths": ["stdout", "./logs"],
+		"errorOutputPaths": ["stderr"],
+		"initialFields": {},
+		"encoderConfig": {
+		  "messageKey": "message",
+		  "levelKey": "level",
+		  "levelEncoder": "lowercase"
+		}
+  }`)
+  var zapconfig zap.Config
+  if err := json.Unmarshal(loggerconfig, &zapconfig); err != nil {
+      panic(err)
+  }
+  var err error
+  Logger, err = zapconfig.Build()
+  if err != nil {
+    panic(err)
+  }
+  defer Logger.Sync()
+  Logger.Info("logger created")
+	err = godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		Logger.Fatal("Error loading .env file")
 	}
 	JwtSecret = []byte(os.Getenv("SECRET"))
 	CTX, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -37,18 +66,18 @@ func main() {
 	mongouri := os.Getenv("MONGOURI")
 	Client, err = mongo.Connect(CTX, options.Client().ApplyURI(mongouri))
 	if err != nil {
-		log.Fatal(err.Error())
+		Logger.Fatal(err.Error())
 	}
 	UserCollection = Client.Database(Database).Collection("users")
 	BlogCollection = Client.Database(Database).Collection("blogs")
 	port := ":" + os.Getenv("PORT")
-	fmt.Println("Starting the application at " + port)
+	Logger.Info("Starting the application at " + port)
 	schema, err := graphql.NewSchema(graphql.SchemaConfig{
 		Query: RootQuery(),
 		Mutation: RootMutation(),
 	})
 	if err != nil {
-		log.Fatal(err.Error())
+		Logger.Fatal(err.Error())
 	}
 	http.HandleFunc("/graphql", func(response http.ResponseWriter, request *http.Request) {
 		result := graphql.Do(graphql.Params{
@@ -59,6 +88,7 @@ func main() {
 		json.NewEncoder(response).Encode(result)
 	})
 	http.HandleFunc("/login", Login)
-	http.HandleFunc("/register", Register)
+  http.HandleFunc("/register", Register)
+  http.HandleFunc("/hello", Hello)
 	http.ListenAndServe(port, nil)
 }

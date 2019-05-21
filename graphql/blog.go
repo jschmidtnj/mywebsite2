@@ -4,14 +4,6 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
-type Blog struct {
-	Id        string `json:"id"`
-	Title     string `json:"title"`
-	Content   string `json:"content"`
-	Author    string `json:"author"`
-	Pageviews int32  `json:"pageviews"`
-}
-
 var BlogType *graphql.Object = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Blog",
 	Fields: graphql.Fields{
@@ -30,11 +22,7 @@ var BlogType *graphql.Object = graphql.NewObject(graphql.ObjectConfig{
 		"pageviews": &graphql.Field{
 			Type: graphql.Int,
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				_, err := ValidateLoggedIn(params.Context.Value("token").(string))
-				if err != nil {
-					return nil, err
-				}
-				return params.Source.(Blog).Pageviews, nil
+				return 0, nil
 			},
 		},
 	},

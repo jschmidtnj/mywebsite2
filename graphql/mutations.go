@@ -6,10 +6,6 @@ import (
 	"errors"
 )
 
-func handleErrorBlog(err error) (interface{}, error) {
-	return &Blog{}, nil
-}
-
 func RootMutation() (*graphql.Object) {
 	return graphql.NewObject(graphql.ObjectConfig{
 		Name: "Mutation",
@@ -31,31 +27,26 @@ func RootMutation() (*graphql.Object) {
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 					title, success := params.Args["title"].(string)
 					if (!success) {
-						return handleErrorBlog(errors.New("no title found"))
+						return nil, errors.New("no title found")
 					}
 					content, success := params.Args["content"].(string)
 					if (!success) {
-						return handleErrorBlog(errors.New("no content found"))
+						return nil, errors.New("no content found")
 					}
 					author, success := params.Args["author"].(string)
 					if (!success) {
-						return handleErrorBlog(errors.New("no author found"))
+						return nil, errors.New("no author found")
 					}
-					insertRes, err := BlogCollection.InsertOne(CTX, bson.M{
+					blogdata := bson.M{
 						"title": title,
 						"content": content,
 						"author": author,
-					})
+					}
+					_, err := BlogCollection.InsertOne(CTX, blogdata)
 					if (err != nil) {
-						return handleErrorBlog(err)
+						return nil, err
 					}
-					blog := Blog{
-						Title: title,
-						Content: content,
-						Author: author,
-						Id: insertRes.InsertedID.(string),
-					}
-					return &blog, nil
+					return blogdata, nil
 				},
 			},
 		},

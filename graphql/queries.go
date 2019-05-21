@@ -4,6 +4,7 @@ import (
 	"github.com/graphql-go/graphql"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"errors"
 )
 
 func RootQuery() (*graphql.Object) {
@@ -17,12 +18,18 @@ func RootQuery() (*graphql.Object) {
 					if err != nil {
 						return nil, err
 					}
-					var user User
-					err = UserCollection.FindOne(CTX, bson.M{"email": account.(User).Email}).Decode(&user)
+					accountdata := account.(map[string]interface{})
+					cursor, err := UserCollection.Find(CTX, bson.M{"email": accountdata["email"]})
 					if (err != nil) {
-						return &User{}, nil
+						return nil, err
 					}
-					return user, nil
+					defer cursor.Close(CTX)
+					userDataPrimitive := &bson.D{}
+					err = cursor.Decode(userDataPrimitive)
+					if (err != nil) {
+						return nil, err
+					}
+					return userDataPrimitive, nil
 				},
 			},
 			"blogs": &graphql.Field{
@@ -36,32 +43,32 @@ func RootQuery() (*graphql.Object) {
 					},
                 },
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					var blogs []Blog
 					findOptions := options.FindOptions{}
 					findOptions.Sort = bson.D{
 						{"_id", -1},
 					}
 					perpage, success := params.Args["perpage"].(int64)
 					if (!success) {
-						return &[]Blog{}, nil
+						return nil, errors.New("no perpage argument found")
 					}
 					findOptions.Limit = &perpage
 					page, success := params.Args["page"].(int64)
 					if (!success) {
-						return &[]Blog{}, nil
+						return nil, errors.New("no page argument found")
 					}
 					findOptions.Skip = &page
 					cursor, err := BlogCollection.Find(CTX, nil, &findOptions)
 					if (err != nil) {
-						return &[]Blog{}, nil
+						return nil, err
 					}
+					var blogs []*bson.D
 					for cursor.Next(CTX) {
-						var blog Blog
-						err = cursor.Decode(&blog)
+						blogPrimitive := &bson.D{}
+						err = cursor.Decode(&blogPrimitive)
 						if (err != nil) {
-							return &[]Blog{}, nil
+							return nil, err
 						}
-						blogs = append(blogs, blog)
+						blogs = append(blogs, blogPrimitive)
 					}
 					return blogs, nil
 				},
