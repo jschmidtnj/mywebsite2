@@ -19,6 +19,9 @@ func RootQuery() (*graphql.Object) {
 						return nil, err
 					}
 					accountdata := account.(map[string]interface{})
+					if (accountdata["email"] == nil) {
+						return nil, errors.New("email not found in token")
+					}
 					cursor, err := UserCollection.Find(CTX, bson.M{"email": accountdata["email"]})
 					if (err != nil) {
 						return nil, err

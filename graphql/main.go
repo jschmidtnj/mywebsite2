@@ -10,10 +10,17 @@ import (
 	"os"
 	"github.com/graphql-go/graphql"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+  "go.mongodb.org/mongo-driver/mongo/options"
+  "strconv"
 )
 
 var JwtSecret []byte
+
+var TokenExpiration int
+
+var SendgridApiKey string
+
+var WebsiteUrl string
 
 var Client *mongo.Client
 
@@ -60,7 +67,13 @@ func main() {
 	if err != nil {
 		Logger.Fatal("Error loading .env file")
 	}
-	JwtSecret = []byte(os.Getenv("SECRET"))
+  JwtSecret = []byte(os.Getenv("SECRET"))
+  TokenExpiration, err = strconv.Atoi(os.Getenv("TOKENEXPIRATION"))
+  if (err != nil) {
+    Logger.Fatal(err.Error())
+  }
+  SendgridApiKey = os.Getenv("SENDGRIDAPIKEY")
+  WebsiteUrl = os.Getenv("WEBSITEURL")
 	CTX, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	cancel()
 	mongouri := os.Getenv("MONGOURI")

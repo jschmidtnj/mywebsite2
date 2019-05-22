@@ -1,3 +1,5 @@
 # custom stuff
 dist/
 mywebsite2/
+node_modules/
+.quasar/

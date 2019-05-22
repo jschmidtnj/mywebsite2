@@ -8,7 +8,7 @@
   },
   "scripts": {
     "precommit": "npm run precommit --prefix quasar && npm run precommit --prefix docs && git add -A",
-    "init": "npm i && cd quasar && npm i && cd ../graphql && npm i && cd ../docs && npm i && cd ..",
+    "init": "npm i && cd quasar && yarn install && cd ../docs && npm i && cd ..",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "husky": {

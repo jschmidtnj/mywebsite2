@@ -1,0 +1,14 @@
+<mjml>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-text>
+          <p style="display:inline-block;">Thank you for subscribing to the </p>
+          <div style="display:inline-block;" id="newsletter"></div>
+          <p style="display:inline-block;"> newsletter at <a href="https://joshuaschmidt.tech">joshuaschmidt.tech</a>.</p>
+          <a href="#" id="unsubscribe">Unsubscribe</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
