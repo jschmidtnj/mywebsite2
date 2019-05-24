@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "lint": "tslint --project tsconfig.json --fix",
+    "precommit": "npm run lint",
     "build": "tsc",
     "gcp-build": "npm run build",
     "start": "node lib/index.js",

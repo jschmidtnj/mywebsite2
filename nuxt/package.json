@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "personal website front-end nuxt",
   "author": "Joshua Schmidt",
+  "license": "MIT",
   "private": false,
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon server/index.js --watch server",
