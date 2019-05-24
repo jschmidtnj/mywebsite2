@@ -1,0 +1,6 @@
+# ignore these folders
+functions/
+node_modules/
+dist/
+assets/
+static/

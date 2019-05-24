@@ -1,0 +1,31 @@
+{
+  "name": "mywebsite2",
+  "version": 2,
+  "builds": [
+    {
+      "src": "nuxt.config.js",
+      "use": "@nuxtjs/now-builder",
+      "config": {
+        "serverFiles": []
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/_nuxt/.+",
+      "headers": {
+        "cache-control": "s-maxage=31536000"
+      }
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/"
+    }
+  ],
+  "build": {
+    "env": {
+      "SEOCONFIG": "{\"url\":\"https://url.com\",\"twitterhandle\":\"handle\",\"googleanalyticstrackingid\":\"UA-id-1\"}",
+      "AUTHCONFIG": "{\"google\":{\"client_id\":\"id\"}}"
+    }
+  }
+}

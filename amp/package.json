@@ -1,0 +1,29 @@
+{
+  "name": "amp",
+  "description": "amp app",
+  "license": "MIT",
+  "scripts": {
+    "lint": "tslint --project tsconfig.json --fix",
+    "build": "tsc",
+    "gcp-build": "npm run build",
+    "start": "node lib/index.js",
+    "deploy": "gcloud app deploy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jschmidtnj/mywebsite2.git"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "body-parser": "^1.18.3",
+    "cookie-parser": "^1.4.4",
+    "cors": "^2.8.5",
+    "express": "^4.16.4"
+  },
+  "devDependencies": {
+    "tslint": "~5.8.0",
+    "typescript": "~3.3.1"
+  },
+  "private": false
+}
