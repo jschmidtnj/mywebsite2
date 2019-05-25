@@ -4,7 +4,6 @@
 lib/
 node_modues/
 config*
-.gcloudignore
 
 # Typescript v1 declaration files
 typings/

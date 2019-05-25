@@ -1,2 +1,2 @@
 runtime: nodejs10
-service: default # change to cron if adding other app engine stuff
+service: amp # change to amp if adding other app engine stuff, or default for main app

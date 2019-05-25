@@ -1,19 +1,20 @@
 import express = require('express')
 import bodyParser = require('body-parser')
 import { codes, config } from './config'
+import blogtemplate from './blogtemplate'
 import axios from 'axios'
 
-const cronApp = express()
+const ampApp = express()
 
-cronApp.use(
+ampApp.use(
   bodyParser.urlencoded({
     extended: false
   })
 )
 
-cronApp.use(bodyParser.json())
+ampApp.use(bodyParser.json())
 
-cronApp.get('/hello', (req, res) => {
+ampApp.get('/hello', (req, res) => {
   res
     .json({
       message: `Hello!`,
@@ -22,6 +23,11 @@ cronApp.get('/hello', (req, res) => {
     .status(codes.success)
 })
 
+ampApp.get('/blogtemplate', (req, res) => {
+  res.send(blogtemplate)
+    .status(codes.success)
+})
+
 const PORT = process.env.PORT || config.port
 
-cronApp.listen(PORT, () => console.log(`cron app is listening on port ${PORT} 🚀`))
+ampApp.listen(PORT, () => console.log(`amp app is listening on port ${PORT} 🚀`))
