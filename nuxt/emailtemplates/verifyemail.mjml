@@ -1,0 +1,12 @@
+<mjml>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-text>
+          <p>Thank you for creating an account at <a href="https://joshuaschmidt.tech">joshuaschmidt.tech.</a></p>
+          <a href="#" id="verify">Verify Email Here</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

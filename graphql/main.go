@@ -40,10 +40,11 @@ func Hello(response http.ResponseWriter, request *http.Request) {
 }
 
 func main() {
+	// "./logs"
 	loggerconfig := []byte(`{
 		"level": "debug",
 		"encoding": "json",
-		"outputPaths": ["stdout", "./logs"],
+		"outputPaths": ["stdout"],
 		"errorOutputPaths": ["stderr"],
 		"initialFields": {},
 		"encoderConfig": {
@@ -100,6 +101,7 @@ func main() {
 		})
 		json.NewEncoder(response).Encode(result)
 	})
+	http.HandleFunc("/sendTestEmail", SendTestEmail)
 	http.HandleFunc("/login", Login)
   http.HandleFunc("/register", Register)
   http.HandleFunc("/hello", Hello)

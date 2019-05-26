@@ -6,6 +6,7 @@ dist/
 .nuxt/
 node_modules/
 static/sw.js
+static/emailtemplates/*.html
 
 # sensitive stuff
 .env

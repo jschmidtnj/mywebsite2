@@ -15,54 +15,47 @@ import (
   "strconv"
 )
 
-func handleErrorAuth(message string, statuscode int, response http.ResponseWriter) {
-	// Logger.Error(message)
-	response.Header().Set("content-type", "application/json")
-	response.WriteHeader(statuscode)
-	response.Write([]byte(`{"message":"` + message + `"}`))
-}
-
 func Register(response http.ResponseWriter, request *http.Request) {
 	if (request.Method != http.MethodPost) {
-		handleErrorAuth("register http method not POST", http.StatusBadRequest, response)
+		handleError("register http method not POST", http.StatusBadRequest, response)
 		return
 	}
 	var registerdata map[string]interface{}
 	body, err := ioutil.ReadAll(request.Body)
 	if (err != nil) {
-		handleErrorAuth("error getting request body: " + err.Error(), http.StatusBadRequest, response)
+		handleError("error getting request body: " + err.Error(), http.StatusBadRequest, response)
 		return
 	}
-    err = json.Unmarshal(body, &registerdata)
+  err = json.Unmarshal(body, &registerdata)
 	if (err != nil) {
-		handleErrorAuth("error parsing request body: " + err.Error(), http.StatusBadRequest, response)
+		handleError("error parsing request body: " + err.Error(), http.StatusBadRequest, response)
 		return
 	}
 	if (!(registerdata["password"] != nil && registerdata["email"] != nil)) {
-		handleErrorAuth("no email or password provided", http.StatusBadRequest, response)
+		handleError("no email or password provided", http.StatusBadRequest, response)
 		return
 	}
 	countemail, err := UserCollection.CountDocuments(CTX, bson.M{"email": registerdata["email"]})
 	if (err != nil) {
-		handleErrorAuth("error counting users with same email: " + err.Error(), http.StatusBadRequest, response)
+		handleError("error counting users with same email: " + err.Error(), http.StatusBadRequest, response)
 		return
 	}
 	if (countemail > 0) {
-		handleErrorAuth("email is already taken", http.StatusBadRequest, response)
+		handleError("email is already taken", http.StatusBadRequest, response)
 		return
   }
 	passwordhashed, err := bcrypt.GenerateFromPassword([]byte(registerdata["password"].(string)), 14)
 	if (err != nil) {
-		handleErrorAuth("error hashing password: " + err.Error(), http.StatusBadRequest, response)
+		handleError("error hashing password: " + err.Error(), http.StatusBadRequest, response)
 		return
   }
   email := registerdata["email"].(string)
   emailres, err := SendEmailVerification(email)
   if (err != nil) {
-    handleErrorAuth("error sending email verification: " + err.Error(), http.StatusBadRequest, response)
+    handleError("error sending email verification: " + err.Error(), http.StatusBadRequest, response)
 		return
   } else if (emailres.StatusCode != 202) {
-    handleErrorAuth("error sending email verification: got status code " + strconv.Itoa(emailres.StatusCode), http.StatusBadRequest, response)
+    handleError("error sending email verification: got status code " + strconv.Itoa(emailres.StatusCode), http.StatusBadRequest, response)
 		return
   }
 	res, err := UserCollection.InsertOne(CTX, bson.M{
@@ -72,7 +65,7 @@ func Register(response http.ResponseWriter, request *http.Request) {
 		"type": "user",
 	})
 	if (err != nil) {
-		handleErrorAuth("error inserting user to database: " + err.Error(), http.StatusBadRequest, response)
+		handleError("error inserting user to database: " + err.Error(), http.StatusBadRequest, response)
 		return
 	}
 	id := res.InsertedID.(primitive.ObjectID).Hex()
@@ -86,27 +79,27 @@ func Register(response http.ResponseWriter, request *http.Request) {
 
 func Login(response http.ResponseWriter, request *http.Request) {
 	if (request.Method != http.MethodPut) {
-		handleErrorAuth("login http method not PUT", http.StatusBadRequest, response)
+		handleError("login http method not PUT", http.StatusBadRequest, response)
 		return
 	}
 	var logindata map[string]interface{}
 	body, err := ioutil.ReadAll(request.Body)
 	if (err != nil) {
-		handleErrorAuth("error getting request body: " + err.Error(), http.StatusBadRequest, response)
+		handleError("error getting request body: " + err.Error(), http.StatusBadRequest, response)
 		return
 	}
   err = json.Unmarshal(body, &logindata)
 	if (err != nil) {
-		handleErrorAuth("error parsing request body: " + err.Error(), http.StatusBadRequest, response)
+		handleError("error parsing request body: " + err.Error(), http.StatusBadRequest, response)
 		return
 	}
 	if (logindata["email"] == nil || logindata["password"] == nil) {
-		handleErrorAuth("no email or password provided", http.StatusBadRequest, response)
+		handleError("no email or password provided", http.StatusBadRequest, response)
 		return
 	}
 	cursor, err := UserCollection.Find(CTX, bson.M{"email": logindata["email"]})
 	if (err != nil) {
-		handleErrorAuth("error finding user: " + err.Error(), http.StatusUnauthorized, response)
+		handleError("error finding user: " + err.Error(), http.StatusUnauthorized, response)
 		return
 	}
   defer cursor.Close(CTX)
@@ -114,17 +107,17 @@ func Login(response http.ResponseWriter, request *http.Request) {
     userDataPrimitive := &bson.D{}
     err = cursor.Decode(userDataPrimitive)
     if (err != nil) {
-      handleErrorAuth("error decoding user data: " + err.Error(), http.StatusBadRequest, response)
+      handleError("error decoding user data: " + err.Error(), http.StatusBadRequest, response)
       return
     }
     userData := userDataPrimitive.Map()
     if (!(userData["emailverified"] != nil && userData["emailverified"].(bool))) {
-      handleErrorAuth("email not verified", http.StatusUnauthorized, response)
+      handleError("email not verified", http.StatusUnauthorized, response)
       return
     }
     err = bcrypt.CompareHashAndPassword([]byte(userData["password"].(string)), []byte(logindata["password"].(string)))
     if (err != nil) {
-      handleErrorAuth("invalid password: " + err.Error(), http.StatusUnauthorized, response)
+      handleError("invalid password: " + err.Error(), http.StatusUnauthorized, response)
       return
     }
     id := userData["_id"].(primitive.ObjectID).Hex()
@@ -140,7 +133,7 @@ func Login(response http.ResponseWriter, request *http.Request) {
     })
     tokenString, err := token.SignedString(JwtSecret)
     if (err != nil) {
-      handleErrorAuth("error creating token: " + err.Error(), http.StatusBadRequest, response)
+      handleError("error creating token: " + err.Error(), http.StatusBadRequest, response)
       return
     }
     Logger.Info("User login",
