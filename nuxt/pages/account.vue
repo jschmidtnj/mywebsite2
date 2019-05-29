@@ -1,6 +1,7 @@
 <template>
   <div>
     <p>Secure Page</p>
+    <p>user: {{ $auth.user }}</p>
     <b-btn block @click="$auth.logout()">Logout</b-btn>
   </div>
 </template>

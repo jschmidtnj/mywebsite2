@@ -23,8 +23,8 @@ var sendgridApiPath string = "/v3"
 func SendEmailVerification(email string) (*rest.Response, error) {
 	expirationTime := time.Now().Add(time.Duration(TokenExpiration) * time.Hour)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-	"email": email,
-	"verify": true,
+		"email": email,
+		"verify": true,
 		"StandardClaims": jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 			Issuer: "Joshua Schmidt",
@@ -46,7 +46,7 @@ func SendEmailVerification(email string) (*rest.Response, error) {
 	if (err != nil) {
 		return nil, err
 	}
-	doc.Find("#verify").SetAttr("href", WebsiteUrl + "/signin?token=" + tokenString)
+	doc.Find("#verify").SetAttr("href", WebsiteUrl + "/signin?verify=true?token=" + tokenString)
 	template, err := doc.Html()
 	request := sendgrid.GetRequest(SendgridApiKey, sendgridApiPath + "/mail/send", sendgridApiUrl)
 	request.Method = "POST"
@@ -92,7 +92,121 @@ func SendEmailVerification(email string) (*rest.Response, error) {
 	return response, err
 }
 
+func SendPasswordResetEmail(response http.ResponseWriter, request *http.Request) {
+	if !ManageCors(response, request) {
+		return
+	}
+	if (request.Method != http.MethodPut) {
+		handleError("reset http method not PUT", http.StatusBadRequest, response)
+		return
+	}
+	var resetdata map[string]interface{}
+	emaildatabody, err := ioutil.ReadAll(request.Body)
+	if (err != nil) {
+		handleError("error getting request body: " + err.Error(), http.StatusBadRequest, response)
+		return
+	}
+  err = json.Unmarshal(emaildatabody, &resetdata)
+	if (err != nil) {
+		handleError("error parsing request body: " + err.Error(), http.StatusBadRequest, response)
+		return
+	}
+	if (resetdata["email"] == nil) {
+		handleError("no email provided", http.StatusBadRequest, response)
+		return
+	}
+	expirationTime := time.Now().Add(time.Duration(TokenExpiration) * time.Hour)
+	var email string = resetdata["email"].(string)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"email": email,
+		"reset": true,
+		"StandardClaims": jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+			Issuer: "Joshua Schmidt",
+		},
+	})
+	tokenString, err := token.SignedString(JwtSecret)
+	if (err != nil) {
+		handleError(err.Error(), http.StatusBadRequest, response)
+		return
+	}
+	res, err := http.Get(WebsiteUrl + "/emailtemplates/passwordreset.html")
+	if (err != nil) {
+		handleError(err.Error(), http.StatusBadRequest, response)
+		return
+	}
+	defer res.Body.Close()
+	if (res.StatusCode != 200) {
+		handleError("could not get email template", http.StatusBadRequest, response)
+		return
+	}
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	if (err != nil) {
+		handleError(err.Error(), http.StatusBadRequest, response)
+		return
+	}
+	doc.Find("#reset").SetAttr("href", WebsiteUrl + "/signin?verify=true?token=" + tokenString)
+	template, err := doc.Html()
+	req := sendgrid.GetRequest(SendgridApiKey, sendgridApiPath + "/mail/send", sendgridApiUrl)
+	req.Method = "POST"
+	body := `
+	{
+		"personalizations": [
+			{
+				"to": [
+					{
+						"email": "%s"
+					}
+				],
+				"subject": "Reset Password"
+			}
+		],
+		"from": {
+			"email": "%s"
+		},
+		"content": [
+			{
+				"type": "text/html",
+				"value": ""
+			}
+		]
+	}
+	`
+	body = fmt.Sprintf(body, email, sendEmail)
+	if (err != nil) {
+		handleError(err.Error(), http.StatusBadRequest, response)
+		return
+	}
+	var bodyJson map[string]interface{}
+	err = json.Unmarshal([]byte(body), &bodyJson)
+	if (err != nil) {
+		handleError(err.Error(), http.StatusBadRequest, response)
+		return
+	}
+	bodyJson["content"].([]interface{})[0].(map[string]interface{})["value"] = template
+	bodyBytes, err := json.Marshal(bodyJson)
+	if (err != nil) {
+		handleError(err.Error(), http.StatusBadRequest, response)
+		return
+	}
+	req.Body = bodyBytes
+	res1, err := sendgrid.API(req)
+	if (err != nil) {
+		handleError(err.Error(), http.StatusBadRequest, response)
+		return
+	}
+	if (res1.StatusCode != 202) {
+		handleError("invalid response code from email: " + strconv.Itoa(res1.StatusCode) + ", body: " + res1.Body, http.StatusBadRequest, response)
+		return
+	}
+	response.Header().Set("content-type", "application/json")
+	response.Write([]byte(`{"message":"reset email sent"}`))
+}
+
 func SendTestEmail(response http.ResponseWriter, request *http.Request) {
+	if !ManageCors(response, request) {
+		return
+	}
 	if (request.Method != http.MethodPost) {
 		handleError("register http method not POST", http.StatusBadRequest, response)
 		return

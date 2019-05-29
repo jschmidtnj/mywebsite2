@@ -11,7 +11,8 @@ import (
 	"github.com/graphql-go/graphql"
 	"go.mongodb.org/mongo-driver/mongo"
   "go.mongodb.org/mongo-driver/mongo/options"
-  "strconv"
+	"strconv"
+	"strings"
 )
 
 var JwtSecret []byte
@@ -35,6 +36,9 @@ var BlogCollection *mongo.Collection
 var Logger *zap.Logger
 
 func Hello(response http.ResponseWriter, request *http.Request) {
+	if !ManageCors(response, request) {
+		return
+	}
 	response.Header().Set("content-type", "application/json")
 	response.Write([]byte(`{"message":"Hello!"}`))
 }
@@ -94,16 +98,44 @@ func main() {
 		Logger.Fatal(err.Error())
 	}
 	http.HandleFunc("/graphql", func(response http.ResponseWriter, request *http.Request) {
+		if !ManageCors(response, request) {
+			return
+		}
 		result := graphql.Do(graphql.Params{
 			Schema:        schema,
 			RequestString: request.URL.Query().Get("query"),
-			Context:       context.WithValue(context.Background(), "token", request.URL.Query().Get("token")),
+			Context:       context.WithValue(context.Background(), "token", GetAuthToken(request)),
 		})
 		json.NewEncoder(response).Encode(result)
 	})
 	http.HandleFunc("/sendTestEmail", SendTestEmail)
-	http.HandleFunc("/login", Login)
-  http.HandleFunc("/register", Register)
+	http.HandleFunc("/loginEmailPassword", LoginEmailPassword)
+	http.HandleFunc("/logoutEmailPassword", LogoutEmailPassword)
+	http.HandleFunc("/register", Register)
+	http.HandleFunc("/verify", VerifyEmail)
+	http.HandleFunc("/sendResetEmail", SendPasswordResetEmail)
+	http.HandleFunc("/reset", ResetPassword)
   http.HandleFunc("/hello", Hello)
 	http.ListenAndServe(port, nil)
+}
+
+func GetAuthToken(request *http.Request) string {
+	authToken := request.Header.Get("Authorization")
+	splitToken := strings.Split(authToken, "Bearer ")
+	if (splitToken != nil && len(splitToken) > 1) {
+		authToken = splitToken[1]
+	}
+	return authToken
+}
+
+func ManageCors(w http.ResponseWriter, r *http.Request) bool {
+  w.Header().Set("Access-Control-Allow-Origin", "*")
+  w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+  w.Header().Set("Access-Control-Allow-Headers", "*")
+  if r.Method == "OPTIONS" {
+    w.Header().Set("Access-Control-Max-Age", "86400")
+		w.WriteHeader(http.StatusOK)
+		return false
+	}
+	return true
 }

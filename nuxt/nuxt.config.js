@@ -3,6 +3,7 @@ require('dotenv').config()
 
 const seodata = JSON.parse(process.env.SEOCONFIG)
 const authdata = JSON.parse(process.env.AUTHCONFIG)
+const apiurl = process.env.APIURL
 
 module.exports = {
   mode: 'universal',
@@ -100,18 +101,21 @@ module.exports = {
       local: {
         endpoints: {
           login: {
-            url: '/login',
-            method: 'post',
+            url: '/loginEmailPassword',
+            method: 'put',
             propertyName: 'token'
           },
-          logout: {
-            url: '/logout',
-            method: 'post'
-          },
           user: {
-            url: '/user',
+            url: '/graphql',
             method: 'get',
-            propertyName: 'user'
+            params: {
+              query: '{account{id email}}'
+            },
+            propertyName: 'data.account'
+          },
+          logout: {
+            url: '/logoutEmailPassword',
+            method: 'put'
           }
         }
       },
@@ -154,7 +158,7 @@ module.exports = {
    */
   axios: {
     // See https://github.com/nuxt-community/axios-module#options
-    baseURL: 'http://localhost:8080'
+    baseURL: apiurl
   },
 
   /*

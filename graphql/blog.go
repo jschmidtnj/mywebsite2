@@ -19,11 +19,8 @@ var BlogType *graphql.Object = graphql.NewObject(graphql.ObjectConfig{
 		"author": &graphql.Field{
 			Type: graphql.String,
 		},
-		"pageviews": &graphql.Field{
+		"views": &graphql.Field{
 			Type: graphql.Int,
-			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				return 0, nil
-			},
 		},
 	},
 })
