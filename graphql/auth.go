@@ -15,6 +15,8 @@ import (
   "strconv"
 )
 
+var numhashes = 15
+
 func Register(response http.ResponseWriter, request *http.Request) {
 	if !ManageCors(response, request) {
 		return
@@ -38,7 +40,17 @@ func Register(response http.ResponseWriter, request *http.Request) {
 		handleError("no email or password provided", http.StatusBadRequest, response)
 		return
 	}
-	countemail, err := UserCollection.CountDocuments(CTX, bson.M{"email": registerdata["email"]})
+	password, ok := registerdata["password"].(string)
+	if (!ok) {
+		handleError("password cannot be cast to string", http.StatusBadRequest, response)
+		return
+	}
+	email, ok := registerdata["email"].(string)
+	if (!ok) {
+		handleError("email cannot be cast to string", http.StatusBadRequest, response)
+		return
+	}
+	countemail, err := UserCollection.CountDocuments(CTX, bson.M{"email": email})
 	if (err != nil) {
 		handleError("error counting users with same email: " + err.Error(), http.StatusBadRequest, response)
 		return
@@ -47,12 +59,11 @@ func Register(response http.ResponseWriter, request *http.Request) {
 		handleError("email is already taken", http.StatusBadRequest, response)
 		return
   }
-	passwordhashed, err := bcrypt.GenerateFromPassword([]byte(registerdata["password"].(string)), 14)
+	passwordhashed, err := bcrypt.GenerateFromPassword([]byte(password), numhashes)
 	if (err != nil) {
 		handleError("error hashing password: " + err.Error(), http.StatusBadRequest, response)
 		return
   }
-  email := registerdata["email"].(string)
   emailres, err := SendEmailVerification(email)
   if (err != nil) {
     handleError("error sending email verification: " + err.Error(), http.StatusBadRequest, response)
@@ -103,12 +114,23 @@ func LoginEmailPassword(response http.ResponseWriter, request *http.Request) {
 		handleError("no email or password provided", http.StatusBadRequest, response)
 		return
 	}
-	cursor, err := UserCollection.Find(CTX, bson.M{"email": logindata["email"]})
+	email, ok := logindata["email"].(string)
+	if (!ok) {
+		handleError("email cannot be cast to string", http.StatusBadRequest, response)
+		return
+	}
+	password, ok := logindata["password"].(string)
+	if (!ok) {
+		handleError("password cannot be cast to string", http.StatusBadRequest, response)
+		return
+	}
+	cursor, err := UserCollection.Find(CTX, bson.M{"email": email})
 	defer cursor.Close(CTX)
 	if (err != nil) {
 		handleError("error finding user: " + err.Error(), http.StatusUnauthorized, response)
 		return
 	}
+	var foundstuff = false
   for cursor.Next(CTX) {
     userDataPrimitive := &bson.D{}
     err = cursor.Decode(userDataPrimitive)
@@ -117,11 +139,11 @@ func LoginEmailPassword(response http.ResponseWriter, request *http.Request) {
       return
 		}
 		userData := userDataPrimitive.Map()
-    if (!(userData["emailverified"] != nil && userData["emailverified"].(bool))) {
+    if (!userData["emailverified"].(bool)) {
       handleError("email not verified", http.StatusUnauthorized, response)
       return
     }
-    err = bcrypt.CompareHashAndPassword([]byte(userData["password"].(string)), []byte(logindata["password"].(string)))
+    err = bcrypt.CompareHashAndPassword([]byte(userData["password"].(string)), []byte(password))
     if (err != nil) {
       handleError("invalid password: " + err.Error(), http.StatusUnauthorized, response)
       return
@@ -146,9 +168,13 @@ func LoginEmailPassword(response http.ResponseWriter, request *http.Request) {
       zap.String("id", id),
     )
     response.Header().Set("content-type", "application/json")
-    response.Write([]byte(`{ "token": "` + tokenString + `" }`))
+		response.Write([]byte(`{ "token": "` + tokenString + `" }`))
+		foundstuff = true
     break
-  }
+	}
+	if (!foundstuff) {
+		handleError("no user data found", http.StatusBadRequest, response)
+	}
 }
 
 func LogoutEmailPassword(response http.ResponseWriter, request *http.Request) {
@@ -191,7 +217,12 @@ func VerifyEmail(response http.ResponseWriter, request *http.Request) {
 		handleError("no token provided", http.StatusBadRequest, response)
 		return
 	}
-	token, err := jwt.Parse(verifydata["token"].(string), func(token *jwt.Token) (interface{}, error) {
+	giventoken, ok := verifydata["token"].(string)
+	if (!ok) {
+		handleError("token cannot be cast to string", http.StatusBadRequest, response)
+		return
+	}
+	token, err := jwt.Parse(giventoken, func(token *jwt.Token) (interface{}, error) {
 		if _, success := token.Method.(*jwt.SigningMethodHMAC); !success {
 			return nil, errors.New("There was an error")
 		}
@@ -208,16 +239,31 @@ func VerifyEmail(response http.ResponseWriter, request *http.Request) {
 		handleError("invalid token", http.StatusBadRequest, response)
 		return
 	}
-	if (!(decodedToken["email"] != nil && decodedToken["verify"] != nil && decodedToken["verify"].(bool))) {
-		handleError("token does not contian email or verify boolean", http.StatusBadRequest, response)
+	if (!(decodedToken["email"] != nil && decodedToken["verify"] != nil)) {
+		handleError("token does not contian email or verify", http.StatusBadRequest, response)
 		return
 	}
-	cursor, err := UserCollection.Find(CTX, bson.M{"email": decodedToken["email"]})
+	email, ok := decodedToken["email"].(string)
+	if (!ok) {
+		handleError("email in token cannot be cast to string", http.StatusBadRequest, response)
+		return
+	}
+	verify, ok := decodedToken["verify"].(bool)
+	if (!ok) {
+		handleError("verify in token cannot be cast to boolean", http.StatusBadRequest, response)
+		return
+	}
+	if (!verify) {
+		handleError("verify in token is false", http.StatusBadRequest, response)
+		return
+	}
+	cursor, err := UserCollection.Find(CTX, bson.M{"email": email})
 	if (err != nil) {
 		handleError("error finding user: " + err.Error(), http.StatusBadRequest, response)
 		return
 	}
-  defer cursor.Close(CTX)
+	defer cursor.Close(CTX)
+	var foundstuff = false
   for cursor.Next(CTX) {
     userDataPrimitive := &bson.D{}
     err = cursor.Decode(userDataPrimitive)
@@ -245,9 +291,13 @@ func VerifyEmail(response http.ResponseWriter, request *http.Request) {
 			zap.String("email", userData["email"].(string)),
 		)
     response.Header().Set("content-type", "application/json")
-    response.Write([]byte(`{"message":"email successfully verified"}`))
+		response.Write([]byte(`{"message":"email successfully verified"}`))
+		foundstuff = true
     break
-  }
+	}
+	if (!foundstuff) {
+		handleError("no user data found", http.StatusBadRequest, response)
+	}
 }
 
 func ResetPassword(response http.ResponseWriter, request *http.Request) {
@@ -273,7 +323,17 @@ func ResetPassword(response http.ResponseWriter, request *http.Request) {
 		handleError("no token or new password provided", http.StatusBadRequest, response)
 		return
 	}
-	token, err := jwt.Parse(resetdata["token"].(string), func(token *jwt.Token) (interface{}, error) {
+	giventoken, ok := resetdata["token"].(string)
+	if (!ok) {
+		handleError("token cannot be cast to string", http.StatusBadRequest, response)
+		return
+	}
+	password, ok := resetdata["password"].(string)
+	if (!ok) {
+		handleError("password cannot be cast to string", http.StatusBadRequest, response)
+		return
+	}
+	token, err := jwt.Parse(giventoken, func(token *jwt.Token) (interface{}, error) {
 		if _, success := token.Method.(*jwt.SigningMethodHMAC); !success {
 			return nil, errors.New("There was an error")
 		}
@@ -290,16 +350,31 @@ func ResetPassword(response http.ResponseWriter, request *http.Request) {
 		handleError("invalid token", http.StatusBadRequest, response)
 		return
 	}
-	if (!(decodedToken["email"] != nil && decodedToken["reset"] != nil && decodedToken["reset"].(bool))) {
-		handleError("token does not contian email or reset boolean", http.StatusBadRequest, response)
+	if (!(decodedToken["email"] != nil && decodedToken["reset"] != nil)) {
+		handleError("token does not contian email or reset", http.StatusBadRequest, response)
 		return
 	}
-	cursor, err := UserCollection.Find(CTX, bson.M{"email": decodedToken["email"]})
+	email, ok := decodedToken["email"].(string)
+	if (!ok) {
+		handleError("email in token cannot be cast to string", http.StatusBadRequest, response)
+		return
+	}
+	reset, ok := decodedToken["reset"].(bool)
+	if (!ok) {
+		handleError("reset in token cannot be cast to boolean", http.StatusBadRequest, response)
+		return
+	}
+	if (!reset) {
+		handleError("reset in token is false", http.StatusBadRequest, response)
+		return
+	}
+	cursor, err := UserCollection.Find(CTX, bson.M{"email": email})
 	defer cursor.Close(CTX)
 	if (err != nil) {
 		handleError("error finding user: " + err.Error(), http.StatusBadRequest, response)
 		return
 	}
+	var foundstuff = false
   for cursor.Next(CTX) {
     userDataPrimitive := &bson.D{}
     err = cursor.Decode(userDataPrimitive)
@@ -313,7 +388,7 @@ func ResetPassword(response http.ResponseWriter, request *http.Request) {
       return
 		}
 		var id string = userData["_id"].(string)
-		passwordhashed, err := bcrypt.GenerateFromPassword([]byte(resetdata["password"].(string)), 14)
+		passwordhashed, err := bcrypt.GenerateFromPassword([]byte(password), numhashes)
 		if (err != nil) {
 			handleError("error hashing password: " + err.Error(), http.StatusBadRequest, response)
 			return
@@ -332,9 +407,13 @@ func ResetPassword(response http.ResponseWriter, request *http.Request) {
 			zap.String("email", userData["email"].(string)),
 		)
     response.Header().Set("content-type", "application/json")
-    response.Write([]byte(`{"message":"password reset successfully"}`))
+		response.Write([]byte(`{"message":"password reset successfully"}`))
+		foundstuff = true
     break
-  }
+	}
+	if (!foundstuff) {
+		handleError("no user data found", http.StatusBadRequest, response)
+	}
 }
 
 // ValidateLoggedIn validates JWT token to confirm login

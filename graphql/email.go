@@ -46,7 +46,7 @@ func SendEmailVerification(email string) (*rest.Response, error) {
 	if (err != nil) {
 		return nil, err
 	}
-	doc.Find("#verify").SetAttr("href", WebsiteUrl + "/signin?verify=true?token=" + tokenString)
+	doc.Find("#verify").SetAttr("href", WebsiteUrl + "/login?verify=true?token=" + tokenString)
 	template, err := doc.Html()
 	request := sendgrid.GetRequest(SendgridApiKey, sendgridApiPath + "/mail/send", sendgridApiUrl)
 	request.Method = "POST"
@@ -145,7 +145,7 @@ func SendPasswordResetEmail(response http.ResponseWriter, request *http.Request)
 		handleError(err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	doc.Find("#reset").SetAttr("href", WebsiteUrl + "/signin?verify=true?token=" + tokenString)
+	doc.Find("#reset").SetAttr("href", WebsiteUrl + "/login?verify=true?token=" + tokenString)
 	template, err := doc.Html()
 	req := sendgrid.GetRequest(SendgridApiKey, sendgridApiPath + "/mail/send", sendgridApiUrl)
 	req.Method = "POST"

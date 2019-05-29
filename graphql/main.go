@@ -10,7 +10,8 @@ import (
 	"os"
 	"github.com/graphql-go/graphql"
 	"go.mongodb.org/mongo-driver/mongo"
-  "go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/olivere/elastic/v7"
 	"strconv"
 	"strings"
 )
@@ -25,13 +26,17 @@ var WebsiteUrl string
 
 var Client *mongo.Client
 
+var Elastic *elastic.Client
+
 var CTX context.Context
 
-var Database string = "testing"
+var Database = "testing"
 
 var UserCollection *mongo.Collection
 
 var BlogCollection *mongo.Collection
+
+var BlogElasticIndex = "blogs"
 
 var Logger *zap.Logger
 
@@ -63,13 +68,13 @@ func main() {
   }
   var err error
   Logger, err = zapconfig.Build()
-  if err != nil {
+  if (err != nil) {
     panic(err)
   }
   defer Logger.Sync()
   Logger.Info("logger created")
 	err = godotenv.Load()
-	if err != nil {
+	if (err != nil) {
 		Logger.Fatal("Error loading .env file")
 	}
   JwtSecret = []byte(os.Getenv("SECRET"))
@@ -83,18 +88,22 @@ func main() {
 	cancel()
 	mongouri := os.Getenv("MONGOURI")
 	Client, err = mongo.Connect(CTX, options.Client().ApplyURI(mongouri))
-	if err != nil {
+	if (err != nil) {
 		Logger.Fatal(err.Error())
 	}
 	UserCollection = Client.Database(Database).Collection("users")
 	BlogCollection = Client.Database(Database).Collection("blogs")
+	elasticuri := os.Getenv("ELASTICURI")
+	Elastic, err = elastic.NewClient(elastic.SetURL(elasticuri))
+	if (err != nil) {
+		Logger.Fatal(err.Error())
+	}
 	port := ":" + os.Getenv("PORT")
-	Logger.Info("Starting the application at " + port)
 	schema, err := graphql.NewSchema(graphql.SchemaConfig{
 		Query: RootQuery(),
 		Mutation: RootMutation(),
 	})
-	if err != nil {
+	if (err != nil) {
 		Logger.Fatal(err.Error())
 	}
 	http.HandleFunc("/graphql", func(response http.ResponseWriter, request *http.Request) {
@@ -117,6 +126,7 @@ func main() {
 	http.HandleFunc("/reset", ResetPassword)
   http.HandleFunc("/hello", Hello)
 	http.ListenAndServe(port, nil)
+	Logger.Info("Starting the application at " + port + " 🚀")
 }
 
 func GetAuthToken(request *http.Request) string {

@@ -1,0 +1,32 @@
+{
+  "name": "initadmin",
+  "description": "admin initialization - add keys and stuff",
+  "license": "MIT",
+  "scripts": {
+    "lint": "tslint --project tsconfig.json --fix",
+    "build": "tsc",
+    "gcp-build": "npm run build",
+    "start": "node lib/index.js",
+    "deploy": "gcloud app deploy",
+    "precommit": "npm run lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jschmidtnj/findverdicts.git"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "@types/node": "^12.0.3",
+    "body-parser": "^1.18.3",
+    "cookie-parser": "^1.4.4",
+    "cors": "^2.8.5",
+    "elasticsearch": "^16.0.0",
+    "express": "^4.17.1",
+    "mongodb": "^3.2.6"
+  },
+  "devDependencies": {
+    "tslint": "~5.8.0",
+    "typescript": "~3.3.1"
+  },
+  "private": false
+}

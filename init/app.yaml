@@ -1,0 +1,2 @@
+runtime: nodejs10
+service: default # change to admin if adding other app engine stuff

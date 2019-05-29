@@ -3,9 +3,10 @@ package main
 import (
 	"github.com/graphql-go/graphql"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"github.com/olivere/elastic/v7"
 	"errors"
+	"encoding/json"
 )
 
 func RootQuery() (*graphql.Object) {
@@ -34,6 +35,7 @@ func RootQuery() (*graphql.Object) {
 						return nil, err
 					}
 					var userData map[string]interface{}
+					var foundstuff = false
 					for cursor.Next(CTX) {
 						userDataPrimitive := &bson.D{}
 						err = cursor.Decode(userDataPrimitive)
@@ -41,8 +43,15 @@ func RootQuery() (*graphql.Object) {
 							return nil, err
 						}
 						userData = userDataPrimitive.Map()
-						userData["id"] = userData["_id"].(primitive.ObjectID).Hex()
+						id := userData["_id"].(primitive.ObjectID)
+						userData["date"] = objectidtimestamp(id).Format(DateFormat)
+						userData["id"] = id.Hex()
 						delete(userData, "_id")
+						foundstuff = true
+						break
+					}
+					if (!foundstuff) {
+						return nil, errors.New("account data not found")
 					}
 					return userData, nil
 				},
@@ -56,33 +65,56 @@ func RootQuery() (*graphql.Object) {
 					"page": &graphql.ArgumentConfig{
             Type: graphql.Int,
 					},
+					"searchterm": &graphql.ArgumentConfig{
+            Type: graphql.String,
+					},
         },
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					findOptions := options.FindOptions{}
-					findOptions.Sort = bson.M{"_id": -1}
 					if (params.Args["perpage"] == nil) {
 						return nil, errors.New("no perpage argument found")
 					}
-					var perpage int64 = params.Args["perpage"].(int64)
-					findOptions.Limit = &perpage
+					perpage64, ok := params.Args["perpage"].(int64)
+					if (!ok) {
+						return nil, errors.New("perpage could not be cast to int")
+					}
+					perpage := int(perpage64)
 					if (params.Args["page"] == nil) {
 						return nil, errors.New("no page argument found")
 					}
-					var page int64 = params.Args["page"].(int64)
-					findOptions.Skip = &page
-					cursor, err := BlogCollection.Find(CTX, nil, &findOptions)
+					page64, ok := params.Args["page"].(int64)
+					if (!ok) {
+						return nil, errors.New("page could not be cast to int")
+					}
+					page := int(page64)
+					searchterm, ok := params.Args["searchterm"].(string)
+					if (!ok) {
+						return nil, errors.New("searchterm could not be cast to string")
+					}
+					queryString := elastic.NewQueryStringQuery(searchterm)
+					searchResult, err := Elastic.Search().
+						Index(BlogElasticIndex).
+						Query(queryString).
+						Sort("date", true). // ascending = true
+						From(page).Size(perpage).
+						Pretty(false).
+						Do(CTX)
 					if (err != nil) {
 						return nil, err
 					}
 					var blogs []map[string]interface{}
-					for cursor.Next(CTX) {
-						blogPrimitive := &bson.D{}
-						err = cursor.Decode(blogPrimitive)
+					for _, hit := range searchResult.Hits.Hits {
+						// Deserialize hit.Source into a Tweet (could also be just a map[string]interface{}).
+						var blogData map[string]interface{}
+						err := json.Unmarshal(hit.Source, &blogData)
 						if (err != nil) {
 							return nil, err
 						}
-						blogData := blogPrimitive.Map()
-						blogData["id"] = blogData["_id"].(primitive.ObjectID).Hex()
+						id, err := primitive.ObjectIDFromHex(hit.Id)
+						if (err != nil) {
+							return nil, err
+						}
+						blogData["date"] = objectidtimestamp(id).Format(DateFormat)
+						blogData["id"] = id.Hex()
 						delete(blogData, "_id")
 						blogs = append(blogs, blogData)
 					}
@@ -90,7 +122,7 @@ func RootQuery() (*graphql.Object) {
 				},
 			},
 			"blog": &graphql.Field{
-				Type: graphql.NewList(BlogType),
+				Type: BlogType,
 				Args: graphql.FieldConfigArgument{
 					"id": &graphql.ArgumentConfig{
 						Type: graphql.String,
@@ -100,8 +132,11 @@ func RootQuery() (*graphql.Object) {
 					if (params.Args["id"] == nil) {
 						return nil, errors.New("no id argument found")
 					}
-					var id string = params.Args["id"].(string)
-					_, err := BlogCollection.UpdateOne(CTX, bson.M{
+					id, err := primitive.ObjectIDFromHex(params.Args["id"].(string))
+					if (err != nil) {
+						return nil, err
+					}
+					_, err = BlogCollection.UpdateOne(CTX, bson.M{
 						"_id": id,
 					}, bson.M{
 						"$inc": bson.M{
@@ -119,6 +154,7 @@ func RootQuery() (*graphql.Object) {
 						return nil, err
 					}
 					var blogData map[string]interface{}
+					var foundstuff = false
 					for cursor.Next(CTX) {
 						blogPrimitive := &bson.D{}
 						err = cursor.Decode(blogPrimitive)
@@ -126,9 +162,16 @@ func RootQuery() (*graphql.Object) {
 							return nil, err
 						}
 						blogData = blogPrimitive.Map()
-						blogData["id"] = blogData["_id"].(primitive.ObjectID).Hex()
+						id := blogData["_id"].(primitive.ObjectID)
+						blogData["date"] = objectidtimestamp(id).Format(DateFormat)
+						blogData["views"] = int(blogData["views"].(int32))
+						blogData["id"] = id.Hex()
 						delete(blogData, "_id")
+						foundstuff = true
 						break
+					}
+					if (!foundstuff) {
+						return nil, errors.New("blog not found with given id")
 					}
 					return blogData, nil
 				},

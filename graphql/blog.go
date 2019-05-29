@@ -22,5 +22,8 @@ var BlogType *graphql.Object = graphql.NewObject(graphql.ObjectConfig{
 		"views": &graphql.Field{
 			Type: graphql.Int,
 		},
+		"date": &graphql.Field{
+			Type: graphql.String,
+		},
 	},
 })
