@@ -2,12 +2,19 @@ import express = require('express')
 import bodyParser = require('body-parser')
 import { codes, adminconfig, mongoconfig } from './config'
 import { initializeblogs } from './blogs'
-import mongo from './mongo'
+import * as mongodb from 'mongodb'
+
+const MongoClient = mongodb.MongoClient
+const ObjectID = mongodb.ObjectID
+
+const client = new MongoClient(mongoconfig.uri, {
+  useNewUrlParser: true
+})
 
 let db
 
-mongo.then(client => {
-  db = client.db(mongoconfig.dbname)
+client.connect().then(theclient => {
+  db = theclient.db(mongoconfig.dbname)
 }).catch(err => {
   console.error(`got error connecting to mongo: ${err}`)
 })
@@ -36,11 +43,15 @@ adminApp.post('/addAdmin', (req, res) => {
     const id = req.body.id
     if (id) {
       db.collection('users').updateOne({
-        _id: id
-      }, {
+        _id: new ObjectID(id)
+      },
+        {
           $set: {
             type: 'admin'
           }
+        },
+        {
+          upsert: true
         }).then(res1 => {
           res.json({
             message: `updated user ${id} to admin`
@@ -68,7 +79,7 @@ adminApp.post('/addAdmin', (req, res) => {
 
 adminApp.post('/initializeBlogs', (req, res) => {
   if (req.body.token === adminconfig.token) {
-    initializeblogs().then(res1 => {
+    initializeblogs(db).then(res1 => {
       res.json({
         message: res1
       }).status(codes.success)

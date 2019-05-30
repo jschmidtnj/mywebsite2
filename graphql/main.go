@@ -11,7 +11,7 @@ import (
 	"github.com/graphql-go/graphql"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"github.com/olivere/elastic/v7"
+	"github.com/olivere/elastic"
 	"strconv"
 	"strings"
 )
@@ -26,8 +26,6 @@ var WebsiteUrl string
 
 var Client *mongo.Client
 
-var Elastic *elastic.Client
-
 var CTX context.Context
 
 var Database = "testing"
@@ -35,6 +33,10 @@ var Database = "testing"
 var UserCollection *mongo.Collection
 
 var BlogCollection *mongo.Collection
+
+var Elastic *elastic.Client
+
+var CTXElastic context.Context
 
 var BlogElasticIndex = "blogs"
 
@@ -94,10 +96,11 @@ func main() {
 	UserCollection = Client.Database(Database).Collection("users")
 	BlogCollection = Client.Database(Database).Collection("blogs")
 	elasticuri := os.Getenv("ELASTICURI")
-	Elastic, err = elastic.NewClient(elastic.SetURL(elasticuri))
+	Elastic, err = elastic.NewClient(elastic.SetSniff(false), elastic.SetURL(elasticuri))
 	if (err != nil) {
 		Logger.Fatal(err.Error())
 	}
+	CTXElastic = context.Background()
 	port := ":" + os.Getenv("PORT")
 	schema, err := graphql.NewSchema(graphql.SchemaConfig{
 		Query: RootQuery(),
@@ -115,6 +118,7 @@ func main() {
 			RequestString: request.URL.Query().Get("query"),
 			Context:       context.WithValue(context.Background(), "token", GetAuthToken(request)),
 		})
+		response.Header().Set("content-type", "application/json")
 		json.NewEncoder(response).Encode(result)
 	})
 	http.HandleFunc("/sendTestEmail", SendTestEmail)

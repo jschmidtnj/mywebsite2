@@ -4,7 +4,7 @@ import (
 	"github.com/graphql-go/graphql"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"github.com/olivere/elastic/v7"
+	"github.com/olivere/elastic"
 	"errors"
 	"encoding/json"
 )
@@ -15,12 +15,14 @@ func RootQuery() (*graphql.Object) {
 		Fields: graphql.Fields{
 			"hello": &graphql.Field{
 				Type: graphql.String,
+				Description: "Say Hi",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					return "Hello World!", nil
 				},
 			},
 			"account": &graphql.Field{
 				Type: AccountType,
+				Description: "Get your account info",
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 					accountdata, err := ValidateLoggedIn(params.Context.Value("token").(string))
 					if err != nil {
@@ -56,8 +58,61 @@ func RootQuery() (*graphql.Object) {
 					return userData, nil
 				},
 			},
+			"user": &graphql.Field{
+				Type: AccountType,
+				Description: "Get a user by id as admin",
+				Args: graphql.FieldConfigArgument{
+					"id": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
+				},
+				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+					accountdata, err := ValidateAdmin(params.Context.Value("token").(string))
+					if err != nil {
+						return nil, err
+					}
+					if (accountdata["id"] == nil) {
+						return nil, errors.New("email not found in token")
+					}
+					idstring, ok := params.Args["id"].(string)
+					if (!ok) {
+						return nil, errors.New("cannot cast id to string")
+					}
+					id, err := primitive.ObjectIDFromHex(idstring)
+					if (err != nil) {
+						return nil, err
+					}
+					cursor, err := UserCollection.Find(CTX, bson.M{
+						"_id": id,
+					})
+					defer cursor.Close(CTX)
+					if (err != nil) {
+						return nil, err
+					}
+					var userData map[string]interface{}
+					var foundstuff = false
+					for cursor.Next(CTX) {
+						userDataPrimitive := &bson.D{}
+						err = cursor.Decode(userDataPrimitive)
+						if (err != nil) {
+							return nil, err
+						}
+						userData = userDataPrimitive.Map()
+						userData["date"] = objectidtimestamp(id).Format(DateFormat)
+						userData["id"] = idstring
+						delete(userData, "_id")
+						foundstuff = true
+						break
+					}
+					if (!foundstuff) {
+						return nil, errors.New("account data not found")
+					}
+					return userData, nil
+				},
+			},
 			"blogs": &graphql.Field{
 				Type: graphql.NewList(BlogType),
+				Description: "Get list of blog posts",
 				Args: graphql.FieldConfigArgument{
           "perpage": &graphql.ArgumentConfig{
             Type: graphql.Int,
@@ -68,36 +123,57 @@ func RootQuery() (*graphql.Object) {
 					"searchterm": &graphql.ArgumentConfig{
             Type: graphql.String,
 					},
+					"sort": &graphql.ArgumentConfig{
+            Type: graphql.String,
+					},
+					"ascending": &graphql.ArgumentConfig{
+            Type: graphql.Boolean,
+					},
         },
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 					if (params.Args["perpage"] == nil) {
 						return nil, errors.New("no perpage argument found")
 					}
-					perpage64, ok := params.Args["perpage"].(int64)
+					perpage, ok := params.Args["perpage"].(int)
 					if (!ok) {
 						return nil, errors.New("perpage could not be cast to int")
 					}
-					perpage := int(perpage64)
 					if (params.Args["page"] == nil) {
 						return nil, errors.New("no page argument found")
 					}
-					page64, ok := params.Args["page"].(int64)
+					page, ok := params.Args["page"].(int)
 					if (!ok) {
 						return nil, errors.New("page could not be cast to int")
 					}
-					page := int(page64)
+					if (params.Args["searchterm"] == nil) {
+						return nil, errors.New("searchterm is undefined")
+					}
 					searchterm, ok := params.Args["searchterm"].(string)
 					if (!ok) {
 						return nil, errors.New("searchterm could not be cast to string")
+					}
+					if (params.Args["sort"] == nil) {
+						return nil, errors.New("sort is undefined")
+					}
+					sort, ok := params.Args["sort"].(string)
+					if (!ok) {
+						return nil, errors.New("sort could not be cast to string")
+					}
+					if (params.Args["ascending"] == nil) {
+						return nil, errors.New("ascending is undefined")
+					}
+					ascending, ok := params.Args["ascending"].(bool)
+					if (!ok) {
+						return nil, errors.New("ascending could not be cast to boolean")
 					}
 					queryString := elastic.NewQueryStringQuery(searchterm)
 					searchResult, err := Elastic.Search().
 						Index(BlogElasticIndex).
 						Query(queryString).
-						Sort("date", true). // ascending = true
+						Sort(sort, ascending).
 						From(page).Size(perpage).
 						Pretty(false).
-						Do(CTX)
+						Do(CTXElastic)
 					if (err != nil) {
 						return nil, err
 					}
@@ -105,7 +181,7 @@ func RootQuery() (*graphql.Object) {
 					for _, hit := range searchResult.Hits.Hits {
 						// Deserialize hit.Source into a Tweet (could also be just a map[string]interface{}).
 						var blogData map[string]interface{}
-						err := json.Unmarshal(hit.Source, &blogData)
+						err := json.Unmarshal(*hit.Source, &blogData)
 						if (err != nil) {
 							return nil, err
 						}
@@ -123,6 +199,7 @@ func RootQuery() (*graphql.Object) {
 			},
 			"blog": &graphql.Field{
 				Type: BlogType,
+				Description: "Get a Blog Post",
 				Args: graphql.FieldConfigArgument{
 					"id": &graphql.ArgumentConfig{
 						Type: graphql.String,
@@ -132,7 +209,11 @@ func RootQuery() (*graphql.Object) {
 					if (params.Args["id"] == nil) {
 						return nil, errors.New("no id argument found")
 					}
-					id, err := primitive.ObjectIDFromHex(params.Args["id"].(string))
+					idstring, ok := params.Args["id"].(string)
+					if (!ok) {
+						return nil, errors.New("cannot cast id to string")
+					}
+					id, err := primitive.ObjectIDFromHex(idstring)
 					if (err != nil) {
 						return nil, err
 					}
@@ -162,10 +243,9 @@ func RootQuery() (*graphql.Object) {
 							return nil, err
 						}
 						blogData = blogPrimitive.Map()
-						id := blogData["_id"].(primitive.ObjectID)
 						blogData["date"] = objectidtimestamp(id).Format(DateFormat)
 						blogData["views"] = int(blogData["views"].(int32))
-						blogData["id"] = id.Hex()
+						blogData["id"] = idstring
 						delete(blogData, "_id")
 						foundstuff = true
 						break

@@ -57,16 +57,18 @@ func RootMutation() (*graphql.Object) {
 					}
 					id := res.InsertedID.(primitive.ObjectID)
 					idstring := id.Hex()
-					blogData["date"] = objectidtimestamp(id).Format(DateFormat)
+					timestamp := objectidtimestamp(id)
+					blogData["date"] = timestamp.Unix()
 					_, err = Elastic.Index().
 						Index(BlogElasticIndex).
 						Type("blog").
 						Id(idstring).
 						BodyJson(blogData).
-						Do(CTX)
+						Do(CTXElastic)
 					if (err != nil) {
 						return nil, err
 					}
+					blogData["date"] = timestamp.Format(DateFormat)
 					blogData["id"] = idstring
 					return blogData, nil
 				},
@@ -130,8 +132,16 @@ func RootMutation() (*graphql.Object) {
 						Index(BlogElasticIndex).
 						Type("blog").
 						Id(idstring).
-						Upsert(updateData).
-						Do(CTX)
+						Doc(updateData).
+						Do(CTXElastic)
+					if (err != nil) {
+						return nil, err
+					}
+					_, err = BlogCollection.UpdateOne(CTX, bson.M{
+						"_id": id,
+					}, bson.M{
+						"$set": updateData,
+					})
 					if (err != nil) {
 						return nil, err
 					}
@@ -160,12 +170,6 @@ func RootMutation() (*graphql.Object) {
 					}
 					if (!foundstuff) {
 						return nil, errors.New("blog not found with given id")
-					}
-					_, err = BlogCollection.UpdateOne(CTX, bson.M{
-						"_id": id,
-					}, updateData)
-					if (err != nil) {
-						return nil, err
 					}
 					return blogData, nil
 				},
@@ -230,7 +234,7 @@ func RootMutation() (*graphql.Object) {
 						Index(BlogElasticIndex).
 						Type("blog").
 						Id(idstring).
-						Do(CTX)
+						Do(CTXElastic)
 					if (err != nil) {
 						return nil, err
 					}
@@ -238,8 +242,8 @@ func RootMutation() (*graphql.Object) {
 				},
 			},
 			"deleteUser": &graphql.Field{
-				Type: BlogType,
-				Description: "Create a Blog Post",
+				Type: AccountType,
+				Description: "Delete a User",
 				Args: graphql.FieldConfigArgument{
 					"id": &graphql.ArgumentConfig{
 						Type: graphql.String,
@@ -253,7 +257,11 @@ func RootMutation() (*graphql.Object) {
 					if (params.Args["id"] == nil) {
 						return nil, errors.New("user id not provided")
 					}
-					id, err := primitive.ObjectIDFromHex(params.Args["id"].(string))
+					idstring, ok := params.Args["id"].(string)
+					if (!ok) {
+						return nil, errors.New("cannot cast id to string")
+					}
+					id, err := primitive.ObjectIDFromHex(idstring)
 					if (err != nil) {
 						return nil, err
 					}

@@ -1,17 +1,8 @@
 import elasticsearch = require('elasticsearch')
-import { elasticuri, mongoconfig } from './config'
-import mongo from './mongo'
-
-let db
-
-mongo.then(client => {
-  db = client.db(mongoconfig.dbname)
-}).catch(err => {
-  console.error(`got error connecting to mongo: ${err}`)
-})
+import { elasticuri } from './config'
 
 /**
- * blog functions - editing / searching blogs etc.
+ * blog functions - initialize blogs
  */
 
 const blogindexname = 'blogs'
@@ -19,16 +10,17 @@ const blogdoctype = 'blog'
 const blogmappings = {
   properties: {
     title: {
-      type: 'text'
+      type: 'keyword'
     },
     author: {
-      type: 'text'
+      type: 'keyword'
     },
     content: {
       type: 'text'
     },
     views: {
-      type: 'integer'
+      type: 'integer',
+
     },
     date: {
       type: 'date',
@@ -46,7 +38,7 @@ const writeclient = new elasticsearch.Client({
   host: elasticuri
 })
 
-export const initializeblogs = () => {
+export const initializeblogs = db => {
   return new Promise((resolve, reject) => {
     writeclient
       .ping({
@@ -129,8 +121,6 @@ export const initializeblogs = () => {
                                         res5
                                       )}`
                                     )
-                                    resolve(`finished initializing elasticsearch`)
-                                    // get from mongodb
                                     db
                                       .collection('blogs')
                                       .find({})
@@ -143,12 +133,11 @@ export const initializeblogs = () => {
                                           const delay = 100
                                           let iterationcount = -1
                                           docs.forEach(doc => {
-                                            const id = doc._id
-                                            delete doc._id
-                                            doc.date = new Date(doc._id.getTimestamp()).getTime()
                                             iterationcount++
                                             setTimeout(() => {
-                                              console.log(`updating blog ${id}`)
+                                              const id = doc._id.toHexString()
+                                              doc.date = new Date(doc._id.getTimestamp()).getTime()
+                                              delete doc._id
                                               writeclient
                                                 .index({
                                                   index: blogindexname,

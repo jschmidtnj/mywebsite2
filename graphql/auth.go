@@ -15,7 +15,16 @@ import (
   "strconv"
 )
 
-var numhashes = 15
+var JwtIssuer = "Joshua Schmidt"
+
+var NumHashes = 15
+
+type LoginClaims struct {
+	ID string `json:"id"`
+	Email string `json:"email"`
+	Type string `json:"type"`
+	jwt.StandardClaims
+}
 
 func Register(response http.ResponseWriter, request *http.Request) {
 	if !ManageCors(response, request) {
@@ -59,7 +68,7 @@ func Register(response http.ResponseWriter, request *http.Request) {
 		handleError("email is already taken", http.StatusBadRequest, response)
 		return
   }
-	passwordhashed, err := bcrypt.GenerateFromPassword([]byte(password), numhashes)
+	passwordhashed, err := bcrypt.GenerateFromPassword([]byte(password), NumHashes)
 	if (err != nil) {
 		handleError("error hashing password: " + err.Error(), http.StatusBadRequest, response)
 		return
@@ -150,13 +159,13 @@ func LoginEmailPassword(response http.ResponseWriter, request *http.Request) {
     }
     id := userData["_id"].(primitive.ObjectID).Hex()
     expirationTime := time.Now().Add(time.Duration(TokenExpiration) * time.Hour)
-    token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-      "id": id,
-      "email": userData["email"].(string),
-      "type": userData["type"].(string),
-      "StandardClaims": jwt.StandardClaims{
+    token := jwt.NewWithClaims(jwt.SigningMethodHS256, LoginClaims{
+      id,
+      userData["email"].(string),
+      userData["type"].(string),
+      jwt.StandardClaims{
         ExpiresAt: expirationTime.Unix(),
-        Issuer: "Joshua Schmidt",
+        Issuer: JwtIssuer,
       },
     })
     tokenString, err := token.SignedString(JwtSecret)
@@ -388,7 +397,7 @@ func ResetPassword(response http.ResponseWriter, request *http.Request) {
       return
 		}
 		var id string = userData["_id"].(string)
-		passwordhashed, err := bcrypt.GenerateFromPassword([]byte(password), numhashes)
+		passwordhashed, err := bcrypt.GenerateFromPassword([]byte(password), NumHashes)
 		if (err != nil) {
 			handleError("error hashing password: " + err.Error(), http.StatusBadRequest, response)
 			return
@@ -421,18 +430,17 @@ func ValidateLoggedIn(t string) (jwt.MapClaims, error) {
 	if (t == "") {
 		return nil, errors.New("Authorization token must be present")
 	}
-	token, _ := jwt.Parse(t, func(token *jwt.Token) (interface{}, error) {
-		if _, success := token.Method.(*jwt.SigningMethodHMAC); !success {
-			return nil, errors.New("There was an error")
-		}
-		return JwtSecret, nil
+	token, err := jwt.ParseWithClaims(t, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
+    return JwtSecret, nil
 	})
-	if claims, success := token.Claims.(jwt.MapClaims); success && token.Valid {
-		var decodedToken jwt.MapClaims
-		mapstructure.Decode(claims, &decodedToken)
-		return decodedToken, nil
+	if (err != nil || !token.Valid) {
+		return nil, err
 	}
-	return nil, errors.New("Invalid authorization token")
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if (!ok) {
+		return nil, errors.New("unable to parse token claims")
+	}
+	return claims, nil
 }
 
 func ValidateAdmin(t string) (jwt.MapClaims, error) {
