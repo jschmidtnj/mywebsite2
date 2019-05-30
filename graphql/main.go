@@ -121,6 +121,7 @@ func main() {
 		response.Header().Set("content-type", "application/json")
 		json.NewEncoder(response).Encode(result)
 	})
+	http.HandleFunc("/countBlogs", CountBlogs)
 	http.HandleFunc("/sendTestEmail", SendTestEmail)
 	http.HandleFunc("/loginEmailPassword", LoginEmailPassword)
 	http.HandleFunc("/logoutEmailPassword", LogoutEmailPassword)

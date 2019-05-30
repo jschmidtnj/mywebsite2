@@ -19,8 +19,7 @@ const blogmappings = {
       type: 'text'
     },
     views: {
-      type: 'integer',
-
+      type: 'integer'
     },
     date: {
       type: 'date',
@@ -52,7 +51,7 @@ export const initializeblogs = db => {
             body: {
               index: {
                 number_of_replicas: 0,
-                number_of_shards: 0
+                number_of_shards: 1
               }
             }
           })

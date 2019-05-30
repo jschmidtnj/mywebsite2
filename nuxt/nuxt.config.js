@@ -109,7 +109,7 @@ module.exports = {
             url: '/graphql',
             method: 'get',
             params: {
-              query: '{account{id email}}'
+              query: '{account{id email type emailverified}}'
             },
             propertyName: 'data.account'
           },

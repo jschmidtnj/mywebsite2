@@ -1,8 +1,7 @@
 export default ({ store, redirect }) => {
-  // console.log(`auth: ${JSON.stringify(store.state.auth)}`)
-  // use custom strategy with custom token that I can
-  // read from the json
-  if (store.state.auth && store.state.auth.loggedIn) {
+  console.log(`auth: ${JSON.stringify(store.state.auth)}`)
+  if (store.state.auth && store.state.auth.loggedIn && 
+      store.state.auth.user.emailverified && store.state.auth.user.type === 'admin') {
     console.log('signed in')
   } else {
     console.log('not signed in')

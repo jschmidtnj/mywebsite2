@@ -1,0 +1,209 @@
+<template>
+  <b-container fluid>
+    <b-row>
+      <b-col md="6" class="my-1">
+        <b-form-group label-cols-sm="3" label="search" class="mb-0">
+          <b-input-group>
+            <b-form-input
+              v-model="search"
+              placeholder="Type to Search"
+              @keyup.enter.native="
+                evt => {
+                  evt.preventDefault()
+                  searchBlogs()
+                }
+              "
+            ></b-form-input>
+            <b-input-group-append>
+              <b-button :disabled="!search" @click="search = ''"
+                >Clear</b-button
+              >
+            </b-input-group-append>
+          </b-input-group>
+        </b-form-group>
+      </b-col>
+      <b-col md="6" class="my-1">
+        <b-form-group label-cols-sm="3" label="Sort" class="mb-0">
+          <b-input-group>
+            <b-form-select v-model="sortBy" :options="sortOptions">
+              <option slot="first" :value="null">-- none --</option>
+            </b-form-select>
+            <b-form-select
+              slot="prepend"
+              v-model="sortDesc"
+              :disabled="!sortBy"
+            >
+              <option :value="false">Asc</option>
+              <option :value="true">Desc</option>
+            </b-form-select>
+          </b-input-group>
+        </b-form-group>
+      </b-col>
+      <b-col md="6" class="my-1">
+        <b-form-group label-cols-sm="3" label="Per page" class="mb-0">
+          <b-form-select
+            v-model="perPage"
+            :options="pageOptions"
+          ></b-form-select>
+        </b-form-group>
+      </b-col>
+    </b-row>
+    <b-table
+      show-empty
+      stacked="md"
+      :items="items"
+      :fields="fields"
+      :current-page="currentPage"
+      :per-page="perPage"
+      :sort-by.sync="sortBy"
+      :sort-desc.sync="sortDesc"
+      :sort-direction="sortDirection"
+    >
+      <template slot="title" slot-scope="row">{{ row.value }}</template>
+      <template slot="author" slot-scope="row">{{ row.value }}</template>
+      <template slot="date" slot-scope="row">{{
+        formatDate(row.value, 'M/D/YYYY')
+      }}</template>
+      <template slot="views" slot-scope="row">{{ row.value }}</template>
+      <template slot="read" slot-scope="row">
+        <a class="btn btn-primary btn-sm" :href="`/blog?id=${row.item.id}`"
+          >Read</a
+        >
+      </template>
+    </b-table>
+    <b-row>
+      <b-col md="6" class="my-1">
+        <b-pagination
+          v-model="currentPage"
+          :total-rows="totalRows"
+          :per-page="perPage"
+          class="my-0"
+        ></b-pagination>
+      </b-col>
+    </b-row>
+  </b-container>
+</template>
+
+<script lang="ts">
+import Vue from 'vue'
+import { format } from 'date-fns'
+export default Vue.extend({
+  data() {
+    return {
+      items: [],
+      fields: [
+        {
+          key: 'title',
+          label: 'Title',
+          sortable: true,
+          sortDirection: 'desc'
+        },
+        {
+          key: 'author',
+          label: 'Author',
+          sortable: true
+        },
+        {
+          key: 'date',
+          label: 'Date',
+          sortable: true,
+          class: 'text-center'
+        },
+        {
+          key: 'views',
+          label: 'Views',
+          sortable: true,
+          class: 'text-center'
+        },
+        {
+          key: 'read',
+          label: 'Read',
+          sortable: false
+        }
+      ],
+      totalRows: 0,
+      currentPage: 1,
+      perPage: 5,
+      pageOptions: [5, 10, 15],
+      sortBy: null,
+      sortDesc: false,
+      sortDirection: 'asc',
+      search: ''
+    }
+  },
+  computed: {
+    sortOptions() {
+      // Create an options list from our fields
+      return this.fields
+        .filter(f => f.sortable)
+        .map(f => {
+          return { text: f.label, value: f.key }
+        })
+    }
+  },
+  mounted() {
+    /* eslint-disable */
+    this.updateCount()
+    this.searchBlogs()
+  },
+  methods: {
+    updateCount() {
+      this.$axios.put('/countBlogs', {
+        searchterm: this.search
+      }).then(res => {
+        if (res.status === 200) {
+          if (res.data) {
+            if (res.data.count !== null) {
+              this.totalRows = res.data.count
+            } else {
+              console.log('could not find count data')
+              console.log(res.data)
+            }
+          } else {
+            console.log('could not get data')
+          }
+        } else {
+          console.log(`status code of ${res.status}`)
+        }
+      }).catch(err => {
+        console.error(`got error: ${err}`)
+      })
+    },
+    searchBlogs() {
+      this.currentPage = 1
+      this.updateCount()
+      const sort = (this.sortBy ? this.sortBy : this.sortOptions[0]).value
+      console.log(`sort`)
+      console.log(sort)
+      this.$axios.get('/graphql', {
+        params: {
+          query: `{blogs(perpage:${this.perPage},page:${this.currentPage - 1},searchterm:"${this.search}",sort:"${sort}",ascending:${!this.sortDesc}){title views id author date}}`
+        }
+      }).then(res => {
+        if (res.status === 200) {
+          if (res.data) {
+            if (res.data.data && res.data.data.blogs) {
+              this.items = res.data.data.blogs
+              console.log(res.data.data.blogs)
+            } else if (res.data.errors) {
+              console.log(`found errors:`)
+              console.log(res.data.errors)
+            } else {
+              console.log('could not find data or errors')
+            }
+          } else {
+            console.log('could not get data')
+          }
+        } else {
+          console.log(`status code of ${res.status}`)
+        }
+      }).catch(err => {
+        console.error(`got error: ${err}`)
+      })
+    },
+    formatDate(dateUTC, formatStr) {
+      return format(dateUTC, formatStr)
+    }
+  }
+})
+</script>

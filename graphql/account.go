@@ -16,5 +16,11 @@ var AccountType *graphql.Object = graphql.NewObject(graphql.ObjectConfig{
 		"password": &graphql.Field{
 			Type: graphql.String,
 		},
+		"emailverified": &graphql.Field{
+			Type: graphql.Boolean,
+		},
+		"type": &graphql.Field{
+			Type: graphql.String,
+		},
 	},
 })

@@ -145,12 +145,12 @@ func RootQuery() (*graphql.Object) {
 					if (!ok) {
 						return nil, errors.New("page could not be cast to int")
 					}
-					if (params.Args["searchterm"] == nil) {
-						return nil, errors.New("searchterm is undefined")
-					}
-					searchterm, ok := params.Args["searchterm"].(string)
-					if (!ok) {
-						return nil, errors.New("searchterm could not be cast to string")
+					var searchterm string
+					if (params.Args["searchterm"] != nil) {
+						searchterm, ok = params.Args["searchterm"].(string)
+						if (!ok) {
+							return nil, errors.New("searchterm could not be cast to string")
+						}
 					}
 					if (params.Args["sort"] == nil) {
 						return nil, errors.New("sort is undefined")
@@ -166,14 +166,26 @@ func RootQuery() (*graphql.Object) {
 					if (!ok) {
 						return nil, errors.New("ascending could not be cast to boolean")
 					}
-					queryString := elastic.NewQueryStringQuery(searchterm)
-					searchResult, err := Elastic.Search().
-						Index(BlogElasticIndex).
-						Query(queryString).
-						Sort(sort, ascending).
-						From(page).Size(perpage).
-						Pretty(false).
-						Do(CTXElastic)
+					var searchResult *elastic.SearchResult
+					var err error
+					if (len(searchterm) > 0) {
+						queryString := elastic.NewQueryStringQuery(searchterm)
+						searchResult, err = Elastic.Search().
+							Index(BlogElasticIndex).
+							Query(queryString).
+							Sort(sort, ascending).
+							From(page).Size(perpage).
+							Pretty(false).
+							Do(CTXElastic)
+					} else {
+						searchResult, err = Elastic.Search().
+							Index(BlogElasticIndex).
+							Query(nil).
+							Sort(sort, ascending).
+							From(page).Size(perpage).
+							Pretty(false).
+							Do(CTXElastic)
+					}
 					if (err != nil) {
 						return nil, err
 					}
@@ -244,7 +256,6 @@ func RootQuery() (*graphql.Object) {
 						}
 						blogData = blogPrimitive.Map()
 						blogData["date"] = objectidtimestamp(id).Format(DateFormat)
-						blogData["views"] = int(blogData["views"].(int32))
 						blogData["id"] = idstring
 						delete(blogData, "_id")
 						foundstuff = true
@@ -253,6 +264,14 @@ func RootQuery() (*graphql.Object) {
 					if (!foundstuff) {
 						return nil, errors.New("blog not found with given id")
 					}
+					_, err = Elastic.Update().
+						Index(BlogElasticIndex).
+						Type("blog").
+						Id(idstring).
+						Doc(bson.M{
+							"views": int(blogData["views"].(int32)),
+						}).
+						Do(CTXElastic)
 					return blogData, nil
 				},
 			},
