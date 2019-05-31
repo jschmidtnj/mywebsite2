@@ -190,15 +190,24 @@ export default Vue.extend({
               console.log(res.data.errors)
             } else {
               console.log('could not find data or errors')
+              this.$toasted.global.error({
+                message: 'could not get data'
+              })
             }
           } else {
-            console.log('could not get data')
+            this.$toasted.global.error({
+              message: 'could not get data'
+            })
           }
         } else {
-          console.log(`status code of ${res.status}`)
+          this.$toasted.global.error({
+            message: `status code of ${res.status}`
+          })
         }
       }).catch(err => {
-        console.error(`got error: ${err}`)
+        this.$toasted.global.error({
+          message: err
+        })
       })
     },
     formatDate(dateUTC, formatStr) {
