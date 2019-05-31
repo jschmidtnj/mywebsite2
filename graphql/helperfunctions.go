@@ -1,10 +1,10 @@
 package main
 
 import (
+	"encoding/binary"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"time"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"encoding/binary"
 )
 
 var DateFormat = "Mon Jan _2 15:04:05 2006"

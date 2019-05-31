@@ -3,17 +3,17 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"net/http"
-	"go.uber.org/zap"
-	"time"
-	"github.com/joho/godotenv"
-	"os"
 	"github.com/graphql-go/graphql"
+	"github.com/joho/godotenv"
+	"github.com/olivere/elastic"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"github.com/olivere/elastic"
+	"go.uber.org/zap"
+	"net/http"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var JwtSecret []byte
@@ -64,49 +64,49 @@ func main() {
 		  "levelEncoder": "lowercase"
 		}
   }`)
-  var zapconfig zap.Config
-  if err := json.Unmarshal(loggerconfig, &zapconfig); err != nil {
-      panic(err)
-  }
-  var err error
-  Logger, err = zapconfig.Build()
-  if (err != nil) {
-    panic(err)
-  }
-  defer Logger.Sync()
-  Logger.Info("logger created")
+	var zapconfig zap.Config
+	if err := json.Unmarshal(loggerconfig, &zapconfig); err != nil {
+		panic(err)
+	}
+	var err error
+	Logger, err = zapconfig.Build()
+	if err != nil {
+		panic(err)
+	}
+	defer Logger.Sync()
+	Logger.Info("logger created")
 	err = godotenv.Load()
-	if (err != nil) {
+	if err != nil {
 		Logger.Fatal("Error loading .env file")
 	}
-  JwtSecret = []byte(os.Getenv("SECRET"))
-  TokenExpiration, err = strconv.Atoi(os.Getenv("TOKENEXPIRATION"))
-  if (err != nil) {
-    Logger.Fatal(err.Error())
-  }
-  SendgridApiKey = os.Getenv("SENDGRIDAPIKEY")
-  WebsiteUrl = os.Getenv("WEBSITEURL")
+	JwtSecret = []byte(os.Getenv("SECRET"))
+	TokenExpiration, err = strconv.Atoi(os.Getenv("TOKENEXPIRATION"))
+	if err != nil {
+		Logger.Fatal(err.Error())
+	}
+	SendgridApiKey = os.Getenv("SENDGRIDAPIKEY")
+	WebsiteUrl = os.Getenv("WEBSITEURL")
 	CTX, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	cancel()
 	mongouri := os.Getenv("MONGOURI")
 	Client, err = mongo.Connect(CTX, options.Client().ApplyURI(mongouri))
-	if (err != nil) {
+	if err != nil {
 		Logger.Fatal(err.Error())
 	}
 	UserCollection = Client.Database(Database).Collection("users")
 	BlogCollection = Client.Database(Database).Collection("blogs")
 	elasticuri := os.Getenv("ELASTICURI")
 	Elastic, err = elastic.NewClient(elastic.SetSniff(false), elastic.SetURL(elasticuri))
-	if (err != nil) {
+	if err != nil {
 		Logger.Fatal(err.Error())
 	}
 	CTXElastic = context.Background()
 	port := ":" + os.Getenv("PORT")
 	schema, err := graphql.NewSchema(graphql.SchemaConfig{
-		Query: RootQuery(),
+		Query:    RootQuery(),
 		Mutation: RootMutation(),
 	})
-	if (err != nil) {
+	if err != nil {
 		Logger.Fatal(err.Error())
 	}
 	http.HandleFunc("/graphql", func(response http.ResponseWriter, request *http.Request) {
@@ -129,7 +129,7 @@ func main() {
 	http.HandleFunc("/verify", VerifyEmail)
 	http.HandleFunc("/sendResetEmail", SendPasswordResetEmail)
 	http.HandleFunc("/reset", ResetPassword)
-  http.HandleFunc("/hello", Hello)
+	http.HandleFunc("/hello", Hello)
 	http.ListenAndServe(port, nil)
 	Logger.Info("Starting the application at " + port + " 🚀")
 }
@@ -137,18 +137,18 @@ func main() {
 func GetAuthToken(request *http.Request) string {
 	authToken := request.Header.Get("Authorization")
 	splitToken := strings.Split(authToken, "Bearer ")
-	if (splitToken != nil && len(splitToken) > 1) {
+	if splitToken != nil && len(splitToken) > 1 {
 		authToken = splitToken[1]
 	}
 	return authToken
 }
 
 func ManageCors(w http.ResponseWriter, r *http.Request) bool {
-  w.Header().Set("Access-Control-Allow-Origin", "*")
-  w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-  w.Header().Set("Access-Control-Allow-Headers", "*")
-  if r.Method == "OPTIONS" {
-    w.Header().Set("Access-Control-Max-Age", "86400")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Max-Age", "86400")
 		w.WriteHeader(http.StatusOK)
 		return false
 	}

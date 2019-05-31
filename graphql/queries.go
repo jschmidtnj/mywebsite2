@@ -1,39 +1,39 @@
 package main
 
 import (
+	"encoding/json"
+	"errors"
 	"github.com/graphql-go/graphql"
+	"github.com/olivere/elastic"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"github.com/olivere/elastic"
-	"errors"
-	"encoding/json"
 )
 
-func RootQuery() (*graphql.Object) {
+func RootQuery() *graphql.Object {
 	return graphql.NewObject(graphql.ObjectConfig{
 		Name: "Query",
 		Fields: graphql.Fields{
 			"hello": &graphql.Field{
-				Type: graphql.String,
+				Type:        graphql.String,
 				Description: "Say Hi",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					return "Hello World!", nil
 				},
 			},
 			"account": &graphql.Field{
-				Type: AccountType,
+				Type:        AccountType,
 				Description: "Get your account info",
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 					accountdata, err := ValidateLoggedIn(params.Context.Value("token").(string))
 					if err != nil {
 						return nil, err
 					}
-					if (accountdata["email"] == nil) {
+					if accountdata["email"] == nil {
 						return nil, errors.New("email not found in token")
 					}
 					cursor, err := UserCollection.Find(CTX, bson.M{"email": accountdata["email"].(string)})
 					defer cursor.Close(CTX)
-					if (err != nil) {
+					if err != nil {
 						return nil, err
 					}
 					var userData map[string]interface{}
@@ -41,7 +41,7 @@ func RootQuery() (*graphql.Object) {
 					for cursor.Next(CTX) {
 						userDataPrimitive := &bson.D{}
 						err = cursor.Decode(userDataPrimitive)
-						if (err != nil) {
+						if err != nil {
 							return nil, err
 						}
 						userData = userDataPrimitive.Map()
@@ -52,14 +52,14 @@ func RootQuery() (*graphql.Object) {
 						foundstuff = true
 						break
 					}
-					if (!foundstuff) {
+					if !foundstuff {
 						return nil, errors.New("account data not found")
 					}
 					return userData, nil
 				},
 			},
 			"user": &graphql.Field{
-				Type: AccountType,
+				Type:        AccountType,
 				Description: "Get a user by id as admin",
 				Args: graphql.FieldConfigArgument{
 					"id": &graphql.ArgumentConfig{
@@ -71,22 +71,22 @@ func RootQuery() (*graphql.Object) {
 					if err != nil {
 						return nil, err
 					}
-					if (accountdata["id"] == nil) {
+					if accountdata["id"] == nil {
 						return nil, errors.New("email not found in token")
 					}
 					idstring, ok := params.Args["id"].(string)
-					if (!ok) {
+					if !ok {
 						return nil, errors.New("cannot cast id to string")
 					}
 					id, err := primitive.ObjectIDFromHex(idstring)
-					if (err != nil) {
+					if err != nil {
 						return nil, err
 					}
 					cursor, err := UserCollection.Find(CTX, bson.M{
 						"_id": id,
 					})
 					defer cursor.Close(CTX)
-					if (err != nil) {
+					if err != nil {
 						return nil, err
 					}
 					var userData map[string]interface{}
@@ -94,7 +94,7 @@ func RootQuery() (*graphql.Object) {
 					for cursor.Next(CTX) {
 						userDataPrimitive := &bson.D{}
 						err = cursor.Decode(userDataPrimitive)
-						if (err != nil) {
+						if err != nil {
 							return nil, err
 						}
 						userData = userDataPrimitive.Map()
@@ -104,71 +104,71 @@ func RootQuery() (*graphql.Object) {
 						foundstuff = true
 						break
 					}
-					if (!foundstuff) {
+					if !foundstuff {
 						return nil, errors.New("account data not found")
 					}
 					return userData, nil
 				},
 			},
 			"blogs": &graphql.Field{
-				Type: graphql.NewList(BlogType),
+				Type:        graphql.NewList(BlogType),
 				Description: "Get list of blog posts",
 				Args: graphql.FieldConfigArgument{
-          "perpage": &graphql.ArgumentConfig{
-            Type: graphql.Int,
+					"perpage": &graphql.ArgumentConfig{
+						Type: graphql.Int,
 					},
 					"page": &graphql.ArgumentConfig{
-            Type: graphql.Int,
+						Type: graphql.Int,
 					},
 					"searchterm": &graphql.ArgumentConfig{
-            Type: graphql.String,
+						Type: graphql.String,
 					},
 					"sort": &graphql.ArgumentConfig{
-            Type: graphql.String,
+						Type: graphql.String,
 					},
 					"ascending": &graphql.ArgumentConfig{
-            Type: graphql.Boolean,
+						Type: graphql.Boolean,
 					},
-        },
+				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					if (params.Args["perpage"] == nil) {
+					if params.Args["perpage"] == nil {
 						return nil, errors.New("no perpage argument found")
 					}
 					perpage, ok := params.Args["perpage"].(int)
-					if (!ok) {
+					if !ok {
 						return nil, errors.New("perpage could not be cast to int")
 					}
-					if (params.Args["page"] == nil) {
+					if params.Args["page"] == nil {
 						return nil, errors.New("no page argument found")
 					}
 					page, ok := params.Args["page"].(int)
-					if (!ok) {
+					if !ok {
 						return nil, errors.New("page could not be cast to int")
 					}
 					var searchterm string
-					if (params.Args["searchterm"] != nil) {
+					if params.Args["searchterm"] != nil {
 						searchterm, ok = params.Args["searchterm"].(string)
-						if (!ok) {
+						if !ok {
 							return nil, errors.New("searchterm could not be cast to string")
 						}
 					}
-					if (params.Args["sort"] == nil) {
+					if params.Args["sort"] == nil {
 						return nil, errors.New("sort is undefined")
 					}
 					sort, ok := params.Args["sort"].(string)
-					if (!ok) {
+					if !ok {
 						return nil, errors.New("sort could not be cast to string")
 					}
-					if (params.Args["ascending"] == nil) {
+					if params.Args["ascending"] == nil {
 						return nil, errors.New("ascending is undefined")
 					}
 					ascending, ok := params.Args["ascending"].(bool)
-					if (!ok) {
+					if !ok {
 						return nil, errors.New("ascending could not be cast to boolean")
 					}
 					var searchResult *elastic.SearchResult
 					var err error
-					if (len(searchterm) > 0) {
+					if len(searchterm) > 0 {
 						queryString := elastic.NewQueryStringQuery(searchterm)
 						searchResult, err = Elastic.Search().
 							Index(BlogElasticIndex).
@@ -186,7 +186,7 @@ func RootQuery() (*graphql.Object) {
 							Pretty(false).
 							Do(CTXElastic)
 					}
-					if (err != nil) {
+					if err != nil {
 						return nil, err
 					}
 					var blogs []map[string]interface{}
@@ -194,11 +194,11 @@ func RootQuery() (*graphql.Object) {
 						// Deserialize hit.Source into a Tweet (could also be just a map[string]interface{}).
 						var blogData map[string]interface{}
 						err := json.Unmarshal(*hit.Source, &blogData)
-						if (err != nil) {
+						if err != nil {
 							return nil, err
 						}
 						id, err := primitive.ObjectIDFromHex(hit.Id)
-						if (err != nil) {
+						if err != nil {
 							return nil, err
 						}
 						blogData["date"] = objectidtimestamp(id).Format(DateFormat)
@@ -210,7 +210,7 @@ func RootQuery() (*graphql.Object) {
 				},
 			},
 			"blog": &graphql.Field{
-				Type: BlogType,
+				Type:        BlogType,
 				Description: "Get a Blog Post",
 				Args: graphql.FieldConfigArgument{
 					"id": &graphql.ArgumentConfig{
@@ -218,15 +218,15 @@ func RootQuery() (*graphql.Object) {
 					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					if (params.Args["id"] == nil) {
+					if params.Args["id"] == nil {
 						return nil, errors.New("no id argument found")
 					}
 					idstring, ok := params.Args["id"].(string)
-					if (!ok) {
+					if !ok {
 						return nil, errors.New("cannot cast id to string")
 					}
 					id, err := primitive.ObjectIDFromHex(idstring)
-					if (err != nil) {
+					if err != nil {
 						return nil, err
 					}
 					_, err = BlogCollection.UpdateOne(CTX, bson.M{
@@ -236,14 +236,14 @@ func RootQuery() (*graphql.Object) {
 							"views": 1,
 						},
 					})
-					if (err != nil) {
+					if err != nil {
 						return nil, err
 					}
 					cursor, err := BlogCollection.Find(CTX, bson.M{
 						"_id": id,
 					})
 					defer cursor.Close(CTX)
-					if (err != nil) {
+					if err != nil {
 						return nil, err
 					}
 					var blogData map[string]interface{}
@@ -251,7 +251,7 @@ func RootQuery() (*graphql.Object) {
 					for cursor.Next(CTX) {
 						blogPrimitive := &bson.D{}
 						err = cursor.Decode(blogPrimitive)
-						if (err != nil) {
+						if err != nil {
 							return nil, err
 						}
 						blogData = blogPrimitive.Map()
@@ -261,7 +261,7 @@ func RootQuery() (*graphql.Object) {
 						foundstuff = true
 						break
 					}
-					if (!foundstuff) {
+					if !foundstuff {
 						return nil, errors.New("blog not found with given id")
 					}
 					_, err = Elastic.Update().
