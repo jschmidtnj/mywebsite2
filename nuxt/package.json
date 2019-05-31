@@ -9,15 +9,18 @@
     "dev": "cross-env NODE_ENV=development nodemon server/index.js --watch server",
     "email:build": "mjml emailtemplates/*.mjml -o static/emailtemplates/",
     "email:dev": "mjml -u emailtemplates/**/*.mjml",
-    "build": "nuxt build",
+    "build": "npm run email:build && nuxt build",
     "build:spa": "nuxt build --spa",
     "start": "cross-env NODE_ENV=production node server/index.js",
-    "generate": "nuxt generate",
+    "generate": "nuxt generate --spa",
     "lint": "eslint --ext .js,.vue --fix --ignore-path .eslintignore .",
     "precommit": "npm run lint",
     "predeploy": "npm run precommit && npm run email:build && npm run generate",
     "serve": "node staticserver.js",
     "now-build": "npm run predeploy",
+    "deploy:gcp": "gcloud app deploy",
+    "deploy:heroku:windows": "deployheroku.sh",
+    "deploy:heroku:linux": "./deployheroku.sh",
     "test": "jest"
   },
   "dependencies": {
@@ -78,8 +81,5 @@
     "pug-plain-loader": "^1.0.0",
     "sass-loader": "^7.1.0",
     "vue-jest": "^3.0.3"
-  },
-  "resolutions": {
-    "webpack-dev-middleware": "3.6.0"
   }
 }

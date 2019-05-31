@@ -3,7 +3,6 @@
 .netlify/
 dist/
 .firebase/
-.nuxt/
 node_modules/
 static/sw.js
 static/emailtemplates/*.html

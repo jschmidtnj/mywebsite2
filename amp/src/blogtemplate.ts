@@ -1,13 +1,11 @@
-// https://github.com/niutech/amp-spectre
-
 export default `
 <!doctype html>
 <html ⚡ class="amp-border-box">
 <head>
   <meta charset="utf-8">
-  <link rel="canonical" href="index.html">
-  <title>AMP Spectre CSS Framework</title>
-  <meta name="description" content="AMP version of Spectre CSS framework">
+  <link rel="canonical" href="#">
+  <title>Blog</title>
+  <meta name="description" content="Blog entry">
   <meta name="viewport" content="width=device-width,minimum-scale=1">
   <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
   <style amp-custom>
@@ -19,9 +17,13 @@ export default `
   <script async custom-element="amp-bind" src="https://cdn.ampproject.org/v0/amp-bind-0.1.js"></script>
 </head>
 <body>
-<div id="content" class="container">
-    <h1 class="text-center">⚡ AMP Spectre CSS Framework</h1>
-    <p class="text-center"><a href="https://github.com/niutech/amp-spectre/">Download from GitHub</a></p>
+<div class="container">
+  <h1 id="title"></h1>
+  <p id="author"></p>
+  <p id="date"></p>
+  <p id="views"></p>
+  <p id="content"></p>
+  <a id="mainsite" href="#">view without amp</a>
 </div>
 </body>
 </html>

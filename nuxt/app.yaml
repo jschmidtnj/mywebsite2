@@ -1,0 +1,2 @@
+runtime: nodejs10
+service: nuxt # change to nuxt if adding other app engine stuff, or default for main app

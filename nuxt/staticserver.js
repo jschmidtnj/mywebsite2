@@ -1,5 +1,6 @@
 const connect = require('connect')
 const serveStatic = require('serve-static')
+require('dotenv').config()
 
 const PORT = process.env.PORT || 8080
 
@@ -7,5 +8,5 @@ const PORT = process.env.PORT || 8080
 connect()
   .use(serveStatic('dist'))
   .listen(PORT, () => {
-    console.log(`cron app is listening on port ${PORT} 🚀`)
+    console.log(`nuxt app is listening on port ${PORT} 🚀`)
   })

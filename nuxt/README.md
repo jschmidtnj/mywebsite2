@@ -66,3 +66,12 @@ $ git merge frontend
 # push changes to github - master branch
 $ git push origin master
 ```
+
+## now.sh and cloudflare
+
+see [this](https://zeit.co/docs/v1/guides/how-to-use-cloudflare) for more info.  
+now.sh doesn't work currently because we need an ssr config. instead I'm using heroku (or you can use gcp)
+
+## heroku
+
+deploy to heroku using the script. see [this](https://support.cloudflare.com/hc/en-us/articles/205893698-Configure-Cloudflare-and-Heroku-over-HTTPS) for connecting to cloudflare. also look at [this](https://nuxtjs.org/faq/heroku-deployment/) first.

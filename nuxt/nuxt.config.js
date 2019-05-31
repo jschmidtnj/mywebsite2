@@ -4,13 +4,16 @@ require('dotenv').config()
 const seodata = JSON.parse(process.env.SEOCONFIG)
 const authdata = JSON.parse(process.env.AUTHCONFIG)
 const apiurl = process.env.APIURL
+const ampurl = process.env.AMPURL
 
 module.exports = {
   mode: 'universal',
 
   env: {
     seoconfig: process.env.SEOCONFIG,
-    authconfig: process.env.AUTHCONFIG
+    authconfig: process.env.AUTHCONFIG,
+    apiurl: apiurl,
+    ampurl: ampurl
   },
 
   /*
@@ -140,7 +143,7 @@ module.exports = {
   },
 
   /*
-   ** generate 404 page
+   ** generate config
    */
   generate: {
     fallback: '404.html'
