@@ -9,6 +9,8 @@ const ampurl = process.env.AMPURL
 module.exports = {
   mode: 'universal',
 
+  globalName: 'Joshua Schmidt',
+
   env: {
     seoconfig: process.env.SEOCONFIG,
     authconfig: process.env.AUTHCONFIG,
