@@ -17,7 +17,7 @@ import (
 
 var JwtIssuer = "Joshua Schmidt"
 
-var NumHashes = 15
+var NumHashes = 12
 
 type LoginClaims struct {
 	ID string `json:"id"`
@@ -151,12 +151,12 @@ func LoginEmailPassword(response http.ResponseWriter, request *http.Request) {
     if (!userData["emailverified"].(bool)) {
       handleError("email not verified", http.StatusUnauthorized, response)
       return
-    }
+		}
     err = bcrypt.CompareHashAndPassword([]byte(userData["password"].(string)), []byte(password))
     if (err != nil) {
       handleError("invalid password: " + err.Error(), http.StatusUnauthorized, response)
       return
-    }
+		}
     id := userData["_id"].(primitive.ObjectID).Hex()
     expirationTime := time.Now().Add(time.Duration(TokenExpiration) * time.Hour)
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, LoginClaims{
@@ -167,7 +167,7 @@ func LoginEmailPassword(response http.ResponseWriter, request *http.Request) {
         ExpiresAt: expirationTime.Unix(),
         Issuer: JwtIssuer,
       },
-    })
+		})
     tokenString, err := token.SignedString(JwtSecret)
     if (err != nil) {
       handleError("error creating token: " + err.Error(), http.StatusBadRequest, response)
@@ -175,7 +175,7 @@ func LoginEmailPassword(response http.ResponseWriter, request *http.Request) {
     }
     Logger.Info("User login",
       zap.String("id", id),
-    )
+		)
     response.Header().Set("content-type", "application/json")
 		response.Write([]byte(`{ "token": "` + tokenString + `" }`))
 		foundstuff = true

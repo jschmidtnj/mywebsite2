@@ -60,7 +60,7 @@ ampApp.get('/blog/:id', (req, res) => {
             $('#content').text(blogdata.content)
             $('#views').text(blogdata.views)
             $('#date').text(date)
-            $('#mainsite').attr('href', `${config.websiteurl}/blog?id=${id}`)
+            $('#mainsite').attr('href', `${config.websiteurl}/blog/${id}`)
             $('title').text(blogdata.title)
             $('meta[name=description]').attr('content', `${blogdata.title} blog by ${blogdata.author}`)
             const html = $.html()

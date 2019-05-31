@@ -19,8 +19,14 @@ export default Vue.extend({
   // @ts-ignore
   asyncData(context) {
     // @ts-ignore
-    if (context.query && context.query.id) {
-      const id = context.query.id
+    const handleErrors = () => {
+      return {
+        id: null,
+        blog: {}
+      }
+    }
+    if (context.params && context.params.id) {
+      const id = context.params.id
       return context.app.$axios
         .get('/graphql', {
           params: {
@@ -38,26 +44,28 @@ export default Vue.extend({
                   blog: blog
                 }
               } else if (res.data.errors) {
-                console.log(`found errors: ${res.data.errors}`)
+                console.log(`found errors: ${JSON.stringify(res.data.errors)}`)
+                return handleErrors()
               } else {
                 console.log('could not find data or errors')
+                return handleErrors()
               }
             } else {
               console.log('could not get data')
+              return handleErrors()
             }
           } else {
             console.log(`status code of ${res.status}`)
+            return handleErrors()
           }
         })
         .catch(err => {
           console.error(`got error: ${err}`)
+          return handleErrors()
         })
     } else {
-      console.log('could not find id in query')
-      return {
-        id: null,
-        blog: {}
-      }
+      console.log('could not find id in params')
+      return handleErrors()
     }
   },
   // @ts-ignore
@@ -83,7 +91,7 @@ export default Vue.extend({
         },
         {
           rel: 'amphtml',
-          href: `${ampurl}/blog/${this.$route.query.id}`
+          href: `${ampurl}/blog/${this.$route.params.id}`
         }
       ]
     }
