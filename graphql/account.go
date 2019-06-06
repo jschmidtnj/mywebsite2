@@ -4,6 +4,7 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
+// AccountType account type object for user accounts graphql
 var AccountType *graphql.Object = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Account",
 	Fields: graphql.Fields{

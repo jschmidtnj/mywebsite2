@@ -14,14 +14,14 @@ import (
 	"time"
 )
 
-var sendEmail string = "noreply@joshuaschmidt.tech"
+var sendEmail = "noreply@joshuaschmidt.tech"
 
-var sendgridApiUrl string = "https://api.sendgrid.com"
+var sendgridAPIUrl = "https://api.sendgrid.com"
 
-var sendgridApiPath string = "/v3"
+var sendgridAPIPath = "/v3"
 
-func SendEmailVerification(email string) (*rest.Response, error) {
-	expirationTime := time.Now().Add(time.Duration(TokenExpiration) * time.Hour)
+func sendEmailVerification(email string) (*rest.Response, error) {
+	expirationTime := time.Now().Add(time.Duration(tokenExpiration) * time.Hour)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email":  email,
 		"verify": true,
@@ -30,11 +30,11 @@ func SendEmailVerification(email string) (*rest.Response, error) {
 			Issuer:    "Joshua Schmidt",
 		},
 	})
-	tokenString, err := token.SignedString(JwtSecret)
+	tokenString, err := token.SignedString(jwtSecret)
 	if err != nil {
 		return nil, err
 	}
-	res, err := http.Get(WebsiteUrl + "/emailtemplates/verifyemail.html")
+	res, err := http.Get(websiteURL + "/emailtemplates/verifyemail.html")
 	if err != nil {
 		return nil, err
 	}
@@ -46,9 +46,9 @@ func SendEmailVerification(email string) (*rest.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	doc.Find("#verify").SetAttr("href", WebsiteUrl+"/login?verify=true?token="+tokenString)
+	doc.Find("#verify").SetAttr("href", websiteURL+"/login?verify=true?token="+tokenString)
 	template, err := doc.Html()
-	request := sendgrid.GetRequest(SendgridApiKey, sendgridApiPath+"/mail/send", sendgridApiUrl)
+	request := sendgrid.GetRequest(sendgridAPIKey, sendgridAPIPath+"/mail/send", sendgridAPIUrl)
 	request.Method = "POST"
 	body := `
 	{
@@ -77,13 +77,13 @@ func SendEmailVerification(email string) (*rest.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	var bodyJson map[string]interface{}
-	err = json.Unmarshal([]byte(body), &bodyJson)
+	var bodyJSON map[string]interface{}
+	err = json.Unmarshal([]byte(body), &bodyJSON)
 	if err != nil {
 		return nil, err
 	}
-	bodyJson["content"].([]interface{})[0].(map[string]interface{})["value"] = template
-	bodyBytes, err := json.Marshal(bodyJson)
+	bodyJSON["content"].([]interface{})[0].(map[string]interface{})["value"] = template
+	bodyBytes, err := json.Marshal(bodyJSON)
 	if err != nil {
 		return nil, err
 	}
@@ -92,8 +92,8 @@ func SendEmailVerification(email string) (*rest.Response, error) {
 	return response, err
 }
 
-func SendPasswordResetEmail(response http.ResponseWriter, request *http.Request) {
-	if !ManageCors(response, request) {
+func sendPasswordResetEmail(response http.ResponseWriter, request *http.Request) {
+	if !manageCors(response, request) {
 		return
 	}
 	if request.Method != http.MethodPut {
@@ -115,8 +115,8 @@ func SendPasswordResetEmail(response http.ResponseWriter, request *http.Request)
 		handleError("no email provided", http.StatusBadRequest, response)
 		return
 	}
-	expirationTime := time.Now().Add(time.Duration(TokenExpiration) * time.Hour)
-	var email string = resetdata["email"].(string)
+	expirationTime := time.Now().Add(time.Duration(tokenExpiration) * time.Hour)
+	var email = resetdata["email"].(string)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email": email,
 		"reset": true,
@@ -125,12 +125,12 @@ func SendPasswordResetEmail(response http.ResponseWriter, request *http.Request)
 			Issuer:    "Joshua Schmidt",
 		},
 	})
-	tokenString, err := token.SignedString(JwtSecret)
+	tokenString, err := token.SignedString(jwtSecret)
 	if err != nil {
 		handleError(err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	res, err := http.Get(WebsiteUrl + "/emailtemplates/passwordreset.html")
+	res, err := http.Get(websiteURL + "/emailtemplates/passwordreset.html")
 	if err != nil {
 		handleError(err.Error(), http.StatusBadRequest, response)
 		return
@@ -145,9 +145,9 @@ func SendPasswordResetEmail(response http.ResponseWriter, request *http.Request)
 		handleError(err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	doc.Find("#reset").SetAttr("href", WebsiteUrl+"/login?verify=true?token="+tokenString)
+	doc.Find("#reset").SetAttr("href", websiteURL+"/login?verify=true?token="+tokenString)
 	template, err := doc.Html()
-	req := sendgrid.GetRequest(SendgridApiKey, sendgridApiPath+"/mail/send", sendgridApiUrl)
+	req := sendgrid.GetRequest(sendgridAPIKey, sendgridAPIPath+"/mail/send", sendgridAPIUrl)
 	req.Method = "POST"
 	body := `
 	{
@@ -177,14 +177,14 @@ func SendPasswordResetEmail(response http.ResponseWriter, request *http.Request)
 		handleError(err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	var bodyJson map[string]interface{}
-	err = json.Unmarshal([]byte(body), &bodyJson)
+	var bodyJSON map[string]interface{}
+	err = json.Unmarshal([]byte(body), &bodyJSON)
 	if err != nil {
 		handleError(err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	bodyJson["content"].([]interface{})[0].(map[string]interface{})["value"] = template
-	bodyBytes, err := json.Marshal(bodyJson)
+	bodyJSON["content"].([]interface{})[0].(map[string]interface{})["value"] = template
+	bodyBytes, err := json.Marshal(bodyJSON)
 	if err != nil {
 		handleError(err.Error(), http.StatusBadRequest, response)
 		return
@@ -203,8 +203,8 @@ func SendPasswordResetEmail(response http.ResponseWriter, request *http.Request)
 	response.Write([]byte(`{"message":"reset email sent"}`))
 }
 
-func SendTestEmail(response http.ResponseWriter, request *http.Request) {
-	if !ManageCors(response, request) {
+func sendTestEmail(response http.ResponseWriter, request *http.Request) {
+	if !manageCors(response, request) {
 		return
 	}
 	if request.Method != http.MethodPost {
@@ -226,7 +226,7 @@ func SendTestEmail(response http.ResponseWriter, request *http.Request) {
 		handleError("no to or from or content or subject provided", http.StatusBadRequest, response)
 		return
 	}
-	res, err := http.Get(WebsiteUrl + "/emailtemplates/test.html")
+	res, err := http.Get(websiteURL + "/emailtemplates/test.html")
 	if err != nil {
 		handleError(err.Error(), http.StatusBadRequest, response)
 		return
@@ -243,7 +243,7 @@ func SendTestEmail(response http.ResponseWriter, request *http.Request) {
 	}
 	doc.Find("#content").SetHtml(emaildata["content"].(string))
 	template, err := doc.Html()
-	req := sendgrid.GetRequest(SendgridApiKey, sendgridApiPath+"/mail/send", sendgridApiUrl)
+	req := sendgrid.GetRequest(sendgridAPIKey, sendgridAPIPath+"/mail/send", sendgridAPIUrl)
 	req.Method = "POST"
 	body := `
 	{
@@ -269,14 +269,14 @@ func SendTestEmail(response http.ResponseWriter, request *http.Request) {
 	}
 	`
 	body = fmt.Sprintf(body, emaildata["to"], emaildata["subject"], emaildata["from"])
-	var bodyJson map[string]interface{}
-	err = json.Unmarshal([]byte(body), &bodyJson)
+	var bodyJSON map[string]interface{}
+	err = json.Unmarshal([]byte(body), &bodyJSON)
 	if err != nil {
 		handleError(err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	bodyJson["content"].([]interface{})[0].(map[string]interface{})["value"] = template
-	bodyBytes, err := json.Marshal(bodyJson)
+	bodyJSON["content"].([]interface{})[0].(map[string]interface{})["value"] = template
+	bodyBytes, err := json.Marshal(bodyJSON)
 	if err != nil {
 		handleError(err.Error(), http.StatusBadRequest, response)
 		return

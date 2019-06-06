@@ -7,7 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func RootMutation() *graphql.Object {
+func rootMutation() *graphql.Object {
 	return graphql.NewObject(graphql.ObjectConfig{
 		Name: "Mutation",
 		Fields: graphql.Fields{
@@ -26,7 +26,7 @@ func RootMutation() *graphql.Object {
 					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					_, err := ValidateAdmin(params.Context.Value("token").(string))
+					_, err := validateAdmin(params.Context.Value("token").(string))
 					if err != nil {
 						return nil, err
 					}
@@ -46,12 +46,14 @@ func RootMutation() *graphql.Object {
 						return nil, errors.New("problem casting content to string")
 					}
 					blogData := bson.M{
-						"title":   title,
-						"content": content,
-						"author":  author,
-						"views":   0,
+						"title":     title,
+						"content":   content,
+						"author":    author,
+						"views":     0,
+						"heroimage": "",
+						"images":    []string{},
 					}
-					res, err := BlogCollection.InsertOne(CTX, blogData)
+					res, err := blogCollection.InsertOne(ctxMongo, blogData)
 					if err != nil {
 						return nil, err
 					}
@@ -59,16 +61,16 @@ func RootMutation() *graphql.Object {
 					idstring := id.Hex()
 					timestamp := objectidtimestamp(id)
 					blogData["date"] = timestamp.Unix()
-					_, err = Elastic.Index().
-						Index(BlogElasticIndex).
+					_, err = elasticClient.Index().
+						Index(blogElasticIndex).
 						Type("blog").
 						Id(idstring).
 						BodyJson(blogData).
-						Do(CTXElastic)
+						Do(ctxElastic)
 					if err != nil {
 						return nil, err
 					}
-					blogData["date"] = timestamp.Format(DateFormat)
+					blogData["date"] = timestamp.Format(dateFormat)
 					blogData["id"] = idstring
 					return blogData, nil
 				},
@@ -91,7 +93,7 @@ func RootMutation() *graphql.Object {
 					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					_, err := ValidateAdmin(params.Context.Value("token").(string))
+					_, err := validateAdmin(params.Context.Value("token").(string))
 					if err != nil {
 						return nil, err
 					}
@@ -128,16 +130,16 @@ func RootMutation() *graphql.Object {
 						}
 						updateData["content"] = content
 					}
-					_, err = Elastic.Update().
-						Index(BlogElasticIndex).
+					_, err = elasticClient.Update().
+						Index(blogElasticIndex).
 						Type("blog").
 						Id(idstring).
 						Doc(updateData).
-						Do(CTXElastic)
+						Do(ctxElastic)
 					if err != nil {
 						return nil, err
 					}
-					_, err = BlogCollection.UpdateOne(CTX, bson.M{
+					_, err = blogCollection.UpdateOne(ctxMongo, bson.M{
 						"_id": id,
 					}, bson.M{
 						"$set": updateData,
@@ -145,16 +147,16 @@ func RootMutation() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
-					cursor, err := BlogCollection.Find(CTX, bson.M{
+					cursor, err := blogCollection.Find(ctxMongo, bson.M{
 						"_id": id,
 					})
-					defer cursor.Close(CTX)
+					defer cursor.Close(ctxMongo)
 					if err != nil {
 						return nil, err
 					}
 					var blogData map[string]interface{}
 					var foundstuff = false
-					for cursor.Next(CTX) {
+					for cursor.Next(ctxMongo) {
 						blogPrimitive := &bson.D{}
 						err = cursor.Decode(blogPrimitive)
 						if err != nil {
@@ -162,7 +164,7 @@ func RootMutation() *graphql.Object {
 						}
 						blogData = blogPrimitive.Map()
 						id := blogData["_id"].(primitive.ObjectID)
-						blogData["date"] = objectidtimestamp(id).Format(DateFormat)
+						blogData["date"] = objectidtimestamp(id).Format(dateFormat)
 						blogData["id"] = id.Hex()
 						delete(blogData, "_id")
 						foundstuff = true
@@ -183,7 +185,7 @@ func RootMutation() *graphql.Object {
 					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					_, err := ValidateAdmin(params.Context.Value("token").(string))
+					_, err := validateAdmin(params.Context.Value("token").(string))
 					if err != nil {
 						return nil, err
 					}
@@ -198,16 +200,16 @@ func RootMutation() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
-					cursor, err := BlogCollection.Find(CTX, bson.M{
+					cursor, err := blogCollection.Find(ctxMongo, bson.M{
 						"_id": id,
 					})
 					if err != nil {
 						return nil, err
 					}
-					defer cursor.Close(CTX)
+					defer cursor.Close(ctxMongo)
 					var blogData map[string]interface{}
 					var foundstuff = false
-					for cursor.Next(CTX) {
+					for cursor.Next(ctxMongo) {
 						blogPrimitive := &bson.D{}
 						err = cursor.Decode(blogPrimitive)
 						if err != nil {
@@ -215,7 +217,7 @@ func RootMutation() *graphql.Object {
 						}
 						blogData = blogPrimitive.Map()
 						id := blogData["_id"].(primitive.ObjectID)
-						blogData["date"] = objectidtimestamp(id).Format(DateFormat)
+						blogData["date"] = objectidtimestamp(id).Format(dateFormat)
 						blogData["id"] = id.Hex()
 						delete(blogData, "_id")
 						foundstuff = true
@@ -224,20 +226,21 @@ func RootMutation() *graphql.Object {
 					if !foundstuff {
 						return nil, errors.New("blog not found with given id")
 					}
-					_, err = BlogCollection.DeleteOne(CTX, bson.M{
+					_, err = blogCollection.DeleteOne(ctxMongo, bson.M{
 						"_id": id,
 					})
 					if err != nil {
 						return nil, err
 					}
-					_, err = Elastic.Delete().
-						Index(BlogElasticIndex).
+					_, err = elasticClient.Delete().
+						Index(blogElasticIndex).
 						Type("blog").
 						Id(idstring).
-						Do(CTXElastic)
+						Do(ctxElastic)
 					if err != nil {
 						return nil, err
 					}
+					// delete images here
 					return blogData, nil
 				},
 			},
@@ -250,7 +253,7 @@ func RootMutation() *graphql.Object {
 					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					_, err := ValidateAdmin(params.Context.Value("token").(string))
+					_, err := validateAdmin(params.Context.Value("token").(string))
 					if err != nil {
 						return nil, err
 					}
@@ -265,16 +268,16 @@ func RootMutation() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
-					cursor, err := UserCollection.Find(CTX, bson.M{
+					cursor, err := userCollection.Find(ctxMongo, bson.M{
 						"_id": id,
 					})
-					defer cursor.Close(CTX)
+					defer cursor.Close(ctxMongo)
 					if err != nil {
 						return nil, err
 					}
 					var userData map[string]interface{}
 					var foundstuff = false
-					for cursor.Next(CTX) {
+					for cursor.Next(ctxMongo) {
 						userPrimitive := &bson.D{}
 						err = cursor.Decode(userPrimitive)
 						if err != nil {
@@ -282,7 +285,7 @@ func RootMutation() *graphql.Object {
 						}
 						userData = userPrimitive.Map()
 						id := userData["_id"].(primitive.ObjectID)
-						userData["date"] = objectidtimestamp(id).Format(DateFormat)
+						userData["date"] = objectidtimestamp(id).Format(dateFormat)
 						userData["id"] = id.Hex()
 						delete(userData, "_id")
 						foundstuff = true
@@ -291,7 +294,7 @@ func RootMutation() *graphql.Object {
 					if !foundstuff {
 						return nil, errors.New("user not found with given id")
 					}
-					_, err = UserCollection.DeleteOne(CTX, bson.M{
+					_, err = userCollection.DeleteOne(ctxMongo, bson.M{
 						"_id": id,
 					})
 					if err != nil {

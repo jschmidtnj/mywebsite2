@@ -15,19 +15,19 @@ import (
 	"time"
 )
 
-var JwtIssuer = "Joshua Schmidt"
+var jwtIssuer = "Joshua Schmidt"
 
-var NumHashes = 12
+var numHashes = 12
 
-type LoginClaims struct {
+type loginClaims struct {
 	ID    string `json:"id"`
 	Email string `json:"email"`
 	Type  string `json:"type"`
 	jwt.StandardClaims
 }
 
-func Register(response http.ResponseWriter, request *http.Request) {
-	if !ManageCors(response, request) {
+func register(response http.ResponseWriter, request *http.Request) {
+	if !manageCors(response, request) {
 		return
 	}
 	if request.Method != http.MethodPost {
@@ -59,7 +59,7 @@ func Register(response http.ResponseWriter, request *http.Request) {
 		handleError("email cannot be cast to string", http.StatusBadRequest, response)
 		return
 	}
-	countemail, err := UserCollection.CountDocuments(CTX, bson.M{"email": email})
+	countemail, err := userCollection.CountDocuments(ctxMongo, bson.M{"email": email})
 	if err != nil {
 		handleError("error counting users with same email: "+err.Error(), http.StatusBadRequest, response)
 		return
@@ -68,12 +68,12 @@ func Register(response http.ResponseWriter, request *http.Request) {
 		handleError("email is already taken", http.StatusBadRequest, response)
 		return
 	}
-	passwordhashed, err := bcrypt.GenerateFromPassword([]byte(password), NumHashes)
+	passwordhashed, err := bcrypt.GenerateFromPassword([]byte(password), numHashes)
 	if err != nil {
 		handleError("error hashing password: "+err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	emailres, err := SendEmailVerification(email)
+	emailres, err := sendEmailVerification(email)
 	if err != nil {
 		handleError("error sending email verification: "+err.Error(), http.StatusBadRequest, response)
 		return
@@ -81,7 +81,7 @@ func Register(response http.ResponseWriter, request *http.Request) {
 		handleError("error sending email verification: got status code "+strconv.Itoa(emailres.StatusCode), http.StatusBadRequest, response)
 		return
 	}
-	res, err := UserCollection.InsertOne(CTX, bson.M{
+	res, err := userCollection.InsertOne(ctxMongo, bson.M{
 		"email":         email,
 		"password":      string(passwordhashed),
 		"emailverified": false,
@@ -92,7 +92,7 @@ func Register(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 	id := res.InsertedID.(primitive.ObjectID).Hex()
-	Logger.Info("User register",
+	logger.Info("User register",
 		zap.String("id", id),
 		zap.String("email", registerdata["email"].(string)),
 	)
@@ -100,8 +100,8 @@ func Register(response http.ResponseWriter, request *http.Request) {
 	response.Write([]byte(`{"message":"please check email for verification"}`))
 }
 
-func LoginEmailPassword(response http.ResponseWriter, request *http.Request) {
-	if !ManageCors(response, request) {
+func loginEmailPassword(response http.ResponseWriter, request *http.Request) {
+	if !manageCors(response, request) {
 		return
 	}
 	if request.Method != http.MethodPut {
@@ -133,14 +133,14 @@ func LoginEmailPassword(response http.ResponseWriter, request *http.Request) {
 		handleError("password cannot be cast to string", http.StatusBadRequest, response)
 		return
 	}
-	cursor, err := UserCollection.Find(CTX, bson.M{"email": email})
-	defer cursor.Close(CTX)
+	cursor, err := userCollection.Find(ctxMongo, bson.M{"email": email})
+	defer cursor.Close(ctxMongo)
 	if err != nil {
 		handleError("error finding user: "+err.Error(), http.StatusUnauthorized, response)
 		return
 	}
 	var foundstuff = false
-	for cursor.Next(CTX) {
+	for cursor.Next(ctxMongo) {
 		userDataPrimitive := &bson.D{}
 		err = cursor.Decode(userDataPrimitive)
 		if err != nil {
@@ -158,22 +158,22 @@ func LoginEmailPassword(response http.ResponseWriter, request *http.Request) {
 			return
 		}
 		id := userData["_id"].(primitive.ObjectID).Hex()
-		expirationTime := time.Now().Add(time.Duration(TokenExpiration) * time.Hour)
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, LoginClaims{
+		expirationTime := time.Now().Add(time.Duration(tokenExpiration) * time.Hour)
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, loginClaims{
 			id,
 			userData["email"].(string),
 			userData["type"].(string),
 			jwt.StandardClaims{
 				ExpiresAt: expirationTime.Unix(),
-				Issuer:    JwtIssuer,
+				Issuer:    jwtIssuer,
 			},
 		})
-		tokenString, err := token.SignedString(JwtSecret)
+		tokenString, err := token.SignedString(jwtSecret)
 		if err != nil {
 			handleError("error creating token: "+err.Error(), http.StatusBadRequest, response)
 			return
 		}
-		Logger.Info("User login",
+		logger.Info("User login",
 			zap.String("id", id),
 		)
 		response.Header().Set("content-type", "application/json")
@@ -186,15 +186,15 @@ func LoginEmailPassword(response http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func LogoutEmailPassword(response http.ResponseWriter, request *http.Request) {
-	if !ManageCors(response, request) {
+func logoutEmailPassword(response http.ResponseWriter, request *http.Request) {
+	if !manageCors(response, request) {
 		return
 	}
 	if request.Method != http.MethodPut {
 		handleError("logout http method not PUT", http.StatusBadRequest, response)
 		return
 	}
-	_, err := ValidateLoggedIn(GetAuthToken(request))
+	_, err := validateLoggedIn(getAuthToken(request))
 	if err != nil {
 		handleError(err.Error(), http.StatusBadRequest, response)
 		return
@@ -203,8 +203,8 @@ func LogoutEmailPassword(response http.ResponseWriter, request *http.Request) {
 	response.Write([]byte(`{ "message": "successfully signed out" }`))
 }
 
-func VerifyEmail(response http.ResponseWriter, request *http.Request) {
-	if !ManageCors(response, request) {
+func verifyEmail(response http.ResponseWriter, request *http.Request) {
+	if !manageCors(response, request) {
 		return
 	}
 	if request.Method != http.MethodPost {
@@ -235,7 +235,7 @@ func VerifyEmail(response http.ResponseWriter, request *http.Request) {
 		if _, success := token.Method.(*jwt.SigningMethodHMAC); !success {
 			return nil, errors.New("There was an error")
 		}
-		return JwtSecret, nil
+		return jwtSecret, nil
 	})
 	if err != nil {
 		handleError(err.Error(), http.StatusBadRequest, response)
@@ -266,14 +266,14 @@ func VerifyEmail(response http.ResponseWriter, request *http.Request) {
 		handleError("verify in token is false", http.StatusBadRequest, response)
 		return
 	}
-	cursor, err := UserCollection.Find(CTX, bson.M{"email": email})
+	cursor, err := userCollection.Find(ctxMongo, bson.M{"email": email})
 	if err != nil {
 		handleError("error finding user: "+err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	defer cursor.Close(CTX)
+	defer cursor.Close(ctxMongo)
 	var foundstuff = false
-	for cursor.Next(CTX) {
+	for cursor.Next(ctxMongo) {
 		userDataPrimitive := &bson.D{}
 		err = cursor.Decode(userDataPrimitive)
 		if err != nil {
@@ -286,7 +286,7 @@ func VerifyEmail(response http.ResponseWriter, request *http.Request) {
 			return
 		}
 		var id string = userData["_id"].(string)
-		_, err := UserCollection.UpdateOne(CTX, bson.M{
+		_, err := userCollection.UpdateOne(ctxMongo, bson.M{
 			"_id": id,
 		}, bson.M{
 			"emailverified": true,
@@ -295,7 +295,7 @@ func VerifyEmail(response http.ResponseWriter, request *http.Request) {
 			handleError("error updating user in database: "+err.Error(), http.StatusBadRequest, response)
 			return
 		}
-		Logger.Info("User email verify",
+		logger.Info("User email verify",
 			zap.String("id", id),
 			zap.String("email", userData["email"].(string)),
 		)
@@ -309,8 +309,8 @@ func VerifyEmail(response http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func ResetPassword(response http.ResponseWriter, request *http.Request) {
-	if !ManageCors(response, request) {
+func resetPassword(response http.ResponseWriter, request *http.Request) {
+	if !manageCors(response, request) {
 		return
 	}
 	if request.Method != http.MethodPost {
@@ -346,7 +346,7 @@ func ResetPassword(response http.ResponseWriter, request *http.Request) {
 		if _, success := token.Method.(*jwt.SigningMethodHMAC); !success {
 			return nil, errors.New("There was an error")
 		}
-		return JwtSecret, nil
+		return jwtSecret, nil
 	})
 	if err != nil {
 		handleError(err.Error(), http.StatusBadRequest, response)
@@ -377,14 +377,14 @@ func ResetPassword(response http.ResponseWriter, request *http.Request) {
 		handleError("reset in token is false", http.StatusBadRequest, response)
 		return
 	}
-	cursor, err := UserCollection.Find(CTX, bson.M{"email": email})
-	defer cursor.Close(CTX)
+	cursor, err := userCollection.Find(ctxMongo, bson.M{"email": email})
+	defer cursor.Close(ctxMongo)
 	if err != nil {
 		handleError("error finding user: "+err.Error(), http.StatusBadRequest, response)
 		return
 	}
 	var foundstuff = false
-	for cursor.Next(CTX) {
+	for cursor.Next(ctxMongo) {
 		userDataPrimitive := &bson.D{}
 		err = cursor.Decode(userDataPrimitive)
 		if err != nil {
@@ -397,12 +397,12 @@ func ResetPassword(response http.ResponseWriter, request *http.Request) {
 			return
 		}
 		var id string = userData["_id"].(string)
-		passwordhashed, err := bcrypt.GenerateFromPassword([]byte(password), NumHashes)
+		passwordhashed, err := bcrypt.GenerateFromPassword([]byte(password), numHashes)
 		if err != nil {
 			handleError("error hashing password: "+err.Error(), http.StatusBadRequest, response)
 			return
 		}
-		_, err = UserCollection.UpdateOne(CTX, bson.M{
+		_, err = userCollection.UpdateOne(ctxMongo, bson.M{
 			"_id": id,
 		}, bson.M{
 			"password": passwordhashed,
@@ -411,7 +411,7 @@ func ResetPassword(response http.ResponseWriter, request *http.Request) {
 			handleError("error updating user in database: "+err.Error(), http.StatusBadRequest, response)
 			return
 		}
-		Logger.Info("User password reset",
+		logger.Info("User password reset",
 			zap.String("id", id),
 			zap.String("email", userData["email"].(string)),
 		)
@@ -425,13 +425,13 @@ func ResetPassword(response http.ResponseWriter, request *http.Request) {
 	}
 }
 
-// ValidateLoggedIn validates JWT token to confirm login
-func ValidateLoggedIn(t string) (jwt.MapClaims, error) {
+// validateLoggedIn validates JWT token to confirm login
+func validateLoggedIn(t string) (jwt.MapClaims, error) {
 	if t == "" {
 		return nil, errors.New("Authorization token must be present")
 	}
 	token, err := jwt.ParseWithClaims(t, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return JwtSecret, nil
+		return jwtSecret, nil
 	})
 	if err != nil || !token.Valid {
 		return nil, err
@@ -443,8 +443,8 @@ func ValidateLoggedIn(t string) (jwt.MapClaims, error) {
 	return claims, nil
 }
 
-func ValidateAdmin(t string) (jwt.MapClaims, error) {
-	accountdata, err := ValidateLoggedIn(t)
+func validateAdmin(t string) (jwt.MapClaims, error) {
+	accountdata, err := validateLoggedIn(t)
 	if err != nil {
 		return nil, err
 	}

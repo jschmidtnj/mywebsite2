@@ -8,8 +8,8 @@ import (
 	"strconv"
 )
 
-func CountBlogs(response http.ResponseWriter, request *http.Request) {
-	if !ManageCors(response, request) {
+func countBlogs(response http.ResponseWriter, request *http.Request) {
+	if !manageCors(response, request) {
 		return
 	}
 	if request.Method != http.MethodPut {
@@ -39,17 +39,17 @@ func CountBlogs(response http.ResponseWriter, request *http.Request) {
 	var count int64
 	if len(searchterm) > 0 {
 		queryString := elastic.NewQueryStringQuery(searchterm)
-		count, err = Elastic.Count().
-			Index(BlogElasticIndex).
+		count, err = elasticClient.Count().
+			Index(blogElasticIndex).
 			Query(queryString).
 			Pretty(false).
-			Do(CTXElastic)
+			Do(ctxElastic)
 	} else {
-		count, err = Elastic.Count().
-			Index(BlogElasticIndex).
+		count, err = elasticClient.Count().
+			Index(blogElasticIndex).
 			Query(nil).
 			Pretty(false).
-			Do(CTXElastic)
+			Do(ctxElastic)
 	}
 	if err != nil {
 		handleError(err.Error(), http.StatusBadRequest, response)

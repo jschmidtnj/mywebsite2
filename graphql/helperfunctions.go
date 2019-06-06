@@ -7,10 +7,10 @@ import (
 	"time"
 )
 
-var DateFormat = "Mon Jan _2 15:04:05 2006"
+var dateFormat = "Mon Jan _2 15:04:05 2006"
 
 func handleError(message string, statuscode int, response http.ResponseWriter) {
-	// Logger.Error(message)
+	// logger.Error(message)
 	response.Header().Set("content-type", "application/json")
 	response.WriteHeader(statuscode)
 	response.Write([]byte(`{"message":"` + message + `"}`))

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cloud.google.com/go/storage"
 	"context"
 	"encoding/json"
 	"github.com/graphql-go/graphql"
@@ -9,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
+	"google.golang.org/api/option"
 	"net/http"
 	"os"
 	"strconv"
@@ -16,34 +18,40 @@ import (
 	"time"
 )
 
-var JwtSecret []byte
+var jwtSecret []byte
 
-var TokenExpiration int
+var tokenExpiration int
 
-var SendgridApiKey string
+var sendgridAPIKey string
 
-var WebsiteUrl string
+var websiteURL string
 
-var Client *mongo.Client
+var mongoClient *mongo.Client
 
-var CTX context.Context
+var ctxMongo context.Context
 
-var Database = "testing"
+var database = "testing"
 
-var UserCollection *mongo.Collection
+var userCollection *mongo.Collection
 
-var BlogCollection *mongo.Collection
+var blogCollection *mongo.Collection
 
-var Elastic *elastic.Client
+var elasticClient *elastic.Client
 
-var CTXElastic context.Context
+var ctxElastic context.Context
 
-var BlogElasticIndex = "blogs"
+var blogElasticIndex = "blogs"
 
-var Logger *zap.Logger
+var ctxStorage context.Context
 
-func Hello(response http.ResponseWriter, request *http.Request) {
-	if !ManageCors(response, request) {
+var storageClient *storage.Client
+
+var blogImageBucket *storage.BucketHandle
+
+var logger *zap.Logger
+
+func hello(response http.ResponseWriter, request *http.Request) {
+	if !manageCors(response, request) {
 		return
 	}
 	response.Header().Set("content-type", "application/json")
@@ -69,72 +77,94 @@ func main() {
 		panic(err)
 	}
 	var err error
-	Logger, err = zapconfig.Build()
+	logger, err = zapconfig.Build()
 	if err != nil {
 		panic(err)
 	}
-	defer Logger.Sync()
-	Logger.Info("logger created")
+	defer logger.Sync()
+	logger.Info("logger created")
 	err = godotenv.Load()
 	if err != nil {
-		Logger.Fatal("Error loading .env file")
+		logger.Fatal("Error loading .env file")
 	}
-	JwtSecret = []byte(os.Getenv("SECRET"))
-	TokenExpiration, err = strconv.Atoi(os.Getenv("TOKENEXPIRATION"))
+	jwtSecret = []byte(os.Getenv("SECRET"))
+	tokenExpiration, err = strconv.Atoi(os.Getenv("TOKENEXPIRATION"))
 	if err != nil {
-		Logger.Fatal(err.Error())
+		logger.Fatal(err.Error())
 	}
-	SendgridApiKey = os.Getenv("SENDGRIDAPIKEY")
-	WebsiteUrl = os.Getenv("WEBSITEURL")
-	CTX, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	sendgridAPIKey = os.Getenv("SENDGRIDAPIKEY")
+	websiteURL = os.Getenv("WEBSITEURL")
+	ctxMongo, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	cancel()
 	mongouri := os.Getenv("MONGOURI")
-	Client, err = mongo.Connect(CTX, options.Client().ApplyURI(mongouri))
+	mongoClient, err = mongo.Connect(ctxMongo, options.Client().ApplyURI(mongouri))
 	if err != nil {
-		Logger.Fatal(err.Error())
+		logger.Fatal(err.Error())
 	}
-	UserCollection = Client.Database(Database).Collection("users")
-	BlogCollection = Client.Database(Database).Collection("blogs")
+	userCollection = mongoClient.Database(database).Collection("users")
+	blogCollection = mongoClient.Database(database).Collection("blogs")
 	elasticuri := os.Getenv("ELASTICURI")
-	Elastic, err = elastic.NewClient(elastic.SetSniff(false), elastic.SetURL(elasticuri))
+	elasticClient, err = elastic.NewClient(elastic.SetSniff(false), elastic.SetURL(elasticuri))
 	if err != nil {
-		Logger.Fatal(err.Error())
+		logger.Fatal(err.Error())
 	}
-	CTXElastic = context.Background()
+	ctxElastic = context.Background()
+	var storageconfigstr = os.Getenv("STORAGECONFIG")
+	var storageconfigjson map[string]interface{}
+	json.Unmarshal([]byte(storageconfigstr), &storageconfigjson)
+	ctxStorage = context.Background()
+	storageconfigjsonbytes, err := json.Marshal(storageconfigjson)
+	if err != nil {
+		logger.Fatal(err.Error())
+	}
+	storageClient, err = storage.NewClient(ctxStorage, option.WithCredentialsJSON([]byte(storageconfigjsonbytes)))
+	if err != nil {
+		logger.Fatal(err.Error())
+	}
+	blogImageBucket = storageClient.Bucket("blogimages")
+	gcpprojectid, ok := storageconfigjson["project_id"].(string)
+	if !ok {
+		logger.Fatal("could not cast gcp project id to string")
+	}
+	if err := blogImageBucket.Create(ctxStorage, gcpprojectid, nil); err != nil {
+		logger.Info(err.Error())
+	}
 	port := ":" + os.Getenv("PORT")
 	schema, err := graphql.NewSchema(graphql.SchemaConfig{
-		Query:    RootQuery(),
-		Mutation: RootMutation(),
+		Query:    rootQuery(),
+		Mutation: rootMutation(),
 	})
 	if err != nil {
-		Logger.Fatal(err.Error())
+		logger.Fatal(err.Error())
 	}
 	http.HandleFunc("/graphql", func(response http.ResponseWriter, request *http.Request) {
-		if !ManageCors(response, request) {
+		if !manageCors(response, request) {
 			return
 		}
+		type contextKey string
+		var authToken = contextKey("token")
 		result := graphql.Do(graphql.Params{
 			Schema:        schema,
 			RequestString: request.URL.Query().Get("query"),
-			Context:       context.WithValue(context.Background(), "token", GetAuthToken(request)),
+			Context:       context.WithValue(context.Background(), authToken, getAuthToken(request)),
 		})
 		response.Header().Set("content-type", "application/json")
 		json.NewEncoder(response).Encode(result)
 	})
-	http.HandleFunc("/countBlogs", CountBlogs)
-	http.HandleFunc("/sendTestEmail", SendTestEmail)
-	http.HandleFunc("/loginEmailPassword", LoginEmailPassword)
-	http.HandleFunc("/logoutEmailPassword", LogoutEmailPassword)
-	http.HandleFunc("/register", Register)
-	http.HandleFunc("/verify", VerifyEmail)
-	http.HandleFunc("/sendResetEmail", SendPasswordResetEmail)
-	http.HandleFunc("/reset", ResetPassword)
-	http.HandleFunc("/hello", Hello)
+	http.HandleFunc("/countBlogs", countBlogs)
+	http.HandleFunc("/sendTestEmail", sendTestEmail)
+	http.HandleFunc("/loginEmailPassword", loginEmailPassword)
+	http.HandleFunc("/logoutEmailPassword", logoutEmailPassword)
+	http.HandleFunc("/register", register)
+	http.HandleFunc("/verify", verifyEmail)
+	http.HandleFunc("/sendResetEmail", sendPasswordResetEmail)
+	http.HandleFunc("/reset", resetPassword)
+	http.HandleFunc("/hello", hello)
 	http.ListenAndServe(port, nil)
-	Logger.Info("Starting the application at " + port + " 🚀")
+	logger.Info("Starting the application at " + port + " 🚀")
 }
 
-func GetAuthToken(request *http.Request) string {
+func getAuthToken(request *http.Request) string {
 	authToken := request.Header.Get("Authorization")
 	splitToken := strings.Split(authToken, "Bearer ")
 	if splitToken != nil && len(splitToken) > 1 {
@@ -143,7 +173,7 @@ func GetAuthToken(request *http.Request) string {
 	return authToken
 }
 
-func ManageCors(w http.ResponseWriter, r *http.Request) bool {
+func manageCors(w http.ResponseWriter, r *http.Request) bool {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	w.Header().Set("Access-Control-Allow-Headers", "*")

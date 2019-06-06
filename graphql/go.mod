@@ -3,6 +3,7 @@ module github.com/jschmidtnj/mywebsite2
 go 1.12
 
 require (
+	cloud.google.com/go v0.39.0
 	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-stack/stack v1.8.0 // indirect
@@ -25,4 +26,5 @@ require (
 	golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f
 	golang.org/x/lint v0.0.0-20190409202823-959b441ac422 // indirect
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58 // indirect
+	google.golang.org/api v0.5.0
 )

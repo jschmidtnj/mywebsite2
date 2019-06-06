@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func RootQuery() *graphql.Object {
+func rootQuery() *graphql.Object {
 	return graphql.NewObject(graphql.ObjectConfig{
 		Name: "Query",
 		Fields: graphql.Fields{
@@ -24,21 +24,21 @@ func RootQuery() *graphql.Object {
 				Type:        AccountType,
 				Description: "Get your account info",
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					accountdata, err := ValidateLoggedIn(params.Context.Value("token").(string))
+					accountdata, err := validateLoggedIn(params.Context.Value("token").(string))
 					if err != nil {
 						return nil, err
 					}
 					if accountdata["email"] == nil {
 						return nil, errors.New("email not found in token")
 					}
-					cursor, err := UserCollection.Find(CTX, bson.M{"email": accountdata["email"].(string)})
-					defer cursor.Close(CTX)
+					cursor, err := userCollection.Find(ctxMongo, bson.M{"email": accountdata["email"].(string)})
+					defer cursor.Close(ctxMongo)
 					if err != nil {
 						return nil, err
 					}
 					var userData map[string]interface{}
 					var foundstuff = false
-					for cursor.Next(CTX) {
+					for cursor.Next(ctxMongo) {
 						userDataPrimitive := &bson.D{}
 						err = cursor.Decode(userDataPrimitive)
 						if err != nil {
@@ -46,7 +46,7 @@ func RootQuery() *graphql.Object {
 						}
 						userData = userDataPrimitive.Map()
 						id := userData["_id"].(primitive.ObjectID)
-						userData["date"] = objectidtimestamp(id).Format(DateFormat)
+						userData["date"] = objectidtimestamp(id).Format(dateFormat)
 						userData["id"] = id.Hex()
 						delete(userData, "_id")
 						foundstuff = true
@@ -67,7 +67,7 @@ func RootQuery() *graphql.Object {
 					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					accountdata, err := ValidateAdmin(params.Context.Value("token").(string))
+					accountdata, err := validateAdmin(params.Context.Value("token").(string))
 					if err != nil {
 						return nil, err
 					}
@@ -82,23 +82,23 @@ func RootQuery() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
-					cursor, err := UserCollection.Find(CTX, bson.M{
+					cursor, err := userCollection.Find(ctxMongo, bson.M{
 						"_id": id,
 					})
-					defer cursor.Close(CTX)
+					defer cursor.Close(ctxMongo)
 					if err != nil {
 						return nil, err
 					}
 					var userData map[string]interface{}
 					var foundstuff = false
-					for cursor.Next(CTX) {
+					for cursor.Next(ctxMongo) {
 						userDataPrimitive := &bson.D{}
 						err = cursor.Decode(userDataPrimitive)
 						if err != nil {
 							return nil, err
 						}
 						userData = userDataPrimitive.Map()
-						userData["date"] = objectidtimestamp(id).Format(DateFormat)
+						userData["date"] = objectidtimestamp(id).Format(dateFormat)
 						userData["id"] = idstring
 						delete(userData, "_id")
 						foundstuff = true
@@ -170,21 +170,21 @@ func RootQuery() *graphql.Object {
 					var err error
 					if len(searchterm) > 0 {
 						queryString := elastic.NewQueryStringQuery(searchterm)
-						searchResult, err = Elastic.Search().
-							Index(BlogElasticIndex).
+						searchResult, err = elasticClient.Search().
+							Index(blogElasticIndex).
 							Query(queryString).
 							Sort(sort, ascending).
 							From(page).Size(perpage).
 							Pretty(false).
-							Do(CTXElastic)
+							Do(ctxElastic)
 					} else {
-						searchResult, err = Elastic.Search().
-							Index(BlogElasticIndex).
+						searchResult, err = elasticClient.Search().
+							Index(blogElasticIndex).
 							Query(nil).
 							Sort(sort, ascending).
 							From(page).Size(perpage).
 							Pretty(false).
-							Do(CTXElastic)
+							Do(ctxElastic)
 					}
 					if err != nil {
 						return nil, err
@@ -201,7 +201,7 @@ func RootQuery() *graphql.Object {
 						if err != nil {
 							return nil, err
 						}
-						blogData["date"] = objectidtimestamp(id).Format(DateFormat)
+						blogData["date"] = objectidtimestamp(id).Format(dateFormat)
 						blogData["id"] = id.Hex()
 						delete(blogData, "_id")
 						blogs = append(blogs, blogData)
@@ -229,7 +229,7 @@ func RootQuery() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
-					_, err = BlogCollection.UpdateOne(CTX, bson.M{
+					_, err = blogCollection.UpdateOne(ctxMongo, bson.M{
 						"_id": id,
 					}, bson.M{
 						"$inc": bson.M{
@@ -239,23 +239,23 @@ func RootQuery() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
-					cursor, err := BlogCollection.Find(CTX, bson.M{
+					cursor, err := blogCollection.Find(ctxMongo, bson.M{
 						"_id": id,
 					})
-					defer cursor.Close(CTX)
+					defer cursor.Close(ctxMongo)
 					if err != nil {
 						return nil, err
 					}
 					var blogData map[string]interface{}
 					var foundstuff = false
-					for cursor.Next(CTX) {
+					for cursor.Next(ctxMongo) {
 						blogPrimitive := &bson.D{}
 						err = cursor.Decode(blogPrimitive)
 						if err != nil {
 							return nil, err
 						}
 						blogData = blogPrimitive.Map()
-						blogData["date"] = objectidtimestamp(id).Format(DateFormat)
+						blogData["date"] = objectidtimestamp(id).Format(dateFormat)
 						blogData["id"] = idstring
 						delete(blogData, "_id")
 						foundstuff = true
@@ -264,14 +264,14 @@ func RootQuery() *graphql.Object {
 					if !foundstuff {
 						return nil, errors.New("blog not found with given id")
 					}
-					_, err = Elastic.Update().
-						Index(BlogElasticIndex).
+					_, err = elasticClient.Update().
+						Index(blogElasticIndex).
 						Type("blog").
 						Id(idstring).
 						Doc(bson.M{
 							"views": int(blogData["views"].(int32)),
 						}).
-						Do(CTXElastic)
+						Do(ctxElastic)
 					return blogData, nil
 				},
 			},
