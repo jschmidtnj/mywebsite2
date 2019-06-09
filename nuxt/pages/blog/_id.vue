@@ -5,7 +5,11 @@
       <p>{{ blog.author }}</p>
       <p v-if="blog.date">{{ formatDate(blog.date, 'M/D/YYYY') }}</p>
       <p>{{ blog.views }}</p>
-      <p>{{ blog.content }}</p>
+      <vue-markdown
+        :source="blog.content"
+        class="mb-4 markdown"
+        @rendered="updateCodeHighlighting"
+      />
     </b-container>
   </div>
 </template>
@@ -13,8 +17,13 @@
 <script lang="ts">
 import Vue from 'vue'
 import { format } from 'date-fns'
+import VueMarkdown from 'vue-markdown'
+import Prism from 'prismjs'
 export default Vue.extend({
   name: 'Blog',
+  components: {
+    VueMarkdown
+  },
   /* eslint-disable */
   // @ts-ignore
   asyncData(context) {
@@ -97,6 +106,11 @@ export default Vue.extend({
     }
   },
   methods: {
+    updateCodeHighlighting() {
+      this.$nextTick(() => {
+        Prism.highlightAll()
+      })
+    },
     formatDate(dateUTC, formatStr) {
       return format(dateUTC, formatStr)
     }
@@ -104,4 +118,6 @@ export default Vue.extend({
 })
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+@import '~/node_modules/prismjs/themes/prism.css';
+</style>

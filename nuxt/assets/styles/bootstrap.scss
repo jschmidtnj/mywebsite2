@@ -1,1 +1,16 @@
 @import '~bootstrap/scss/bootstrap';
+
+/* custom */
+.markdown {
+  overflow: auto;
+  max-height: 20rem;
+}
+.markdown img {
+  max-width: 35%;
+}
+/* get bullet points back */
+.markdown ul {
+  list-style-type: disc !important;
+  padding-left:1em !important;
+  margin-left:1em;
+}
