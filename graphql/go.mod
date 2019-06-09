@@ -8,6 +8,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
+	github.com/google/uuid v1.1.1
 	github.com/graphql-go/graphql v0.7.8
 	github.com/joho/godotenv v1.3.0
 	github.com/mailru/easyjson v0.0.0-20190403194419-1ea4449da983 // indirect
