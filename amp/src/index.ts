@@ -5,6 +5,7 @@ import blogtemplate from './blogtemplate'
 import axios from 'axios'
 import * as cheerio from 'cheerio'
 import { format } from 'date-fns'
+import * as showdown from 'showdown'
 
 const ampApp = express()
 
@@ -57,7 +58,9 @@ ampApp.get('/blog/:id', (req, res) => {
             $('link[rel=canonical]').attr('href', config.websiteurl)
             $('#title').text(blogdata.title)
             $('#author').text(blogdata.author)
-            $('#content').text(blogdata.content)
+            const markdownconverter = new showdown.Converter()
+            const blogcontenthtml = markdownconverter.makeHtml(blogdata.content)
+            $('#content').text(blogcontenthtml)
             $('#views').text(blogdata.views)
             $('#date').text(date)
             $('#mainsite').attr('href', `${config.websiteurl}/blog/${id}`)

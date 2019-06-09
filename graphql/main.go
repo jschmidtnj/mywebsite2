@@ -48,6 +48,8 @@ var storageClient *storage.Client
 
 var blogImageBucket *storage.BucketHandle
 
+var blogPictureIndex = "blogs"
+
 var logger *zap.Logger
 
 func hello(response http.ResponseWriter, request *http.Request) {
@@ -160,6 +162,10 @@ func main() {
 	http.HandleFunc("/sendResetEmail", sendPasswordResetEmail)
 	http.HandleFunc("/reset", resetPassword)
 	http.HandleFunc("/hello", hello)
+	http.HandleFunc("/createBlogPicture", createBlogPicture)
+	http.HandleFunc("/updateBlogPicture", updateBlogPicture)
+	http.HandleFunc("/deleteBlogPictures", deleteBlogPictures)
+	http.HandleFunc("/getBlogPicture", getBlogPicture)
 	http.ListenAndServe(port, nil)
 	logger.Info("Starting the application at " + port + " 🚀")
 }

@@ -208,6 +208,7 @@ func rootMutation() *graphql.Object {
 					}
 					defer cursor.Close(ctxMongo)
 					var blogData map[string]interface{}
+					idstr := id.Hex()
 					var foundstuff = false
 					for cursor.Next(ctxMongo) {
 						blogPrimitive := &bson.D{}
@@ -218,7 +219,7 @@ func rootMutation() *graphql.Object {
 						blogData = blogPrimitive.Map()
 						id := blogData["_id"].(primitive.ObjectID)
 						blogData["date"] = objectidtimestamp(id).Format(dateFormat)
-						blogData["id"] = id.Hex()
+						blogData["id"] = idstr
 						delete(blogData, "_id")
 						foundstuff = true
 						break
@@ -240,7 +241,14 @@ func rootMutation() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
-					// delete images here
+					pictureids := blogData["images"].([]string)
+					for _, pictureid := range pictureids {
+						logger.Info("pictureid: " + pictureid + ", blogid: " + idstr)
+						fileobj := blogImageBucket.Object(blogPictureIndex + "/" + idstr + "/" + pictureid)
+						if err := fileobj.Delete(ctxStorage); err != nil {
+							return nil, err
+						}
+					}
 					return blogData, nil
 				},
 			},

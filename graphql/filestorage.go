@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -19,9 +21,18 @@ func createBlogPicture(response http.ResponseWriter, request *http.Request) {
 		handleError("create blog picture http method not POST", http.StatusBadRequest, response)
 		return
 	}
+	if _, err := validateAdmin(getAuthToken(request)); err != nil {
+		handleError("auth error: "+err.Error(), http.StatusBadRequest, response)
+		return
+	}
 	blogid := request.URL.Query().Get("blogid")
 	if blogid == "" {
 		handleError("error getting blog id from query", http.StatusBadRequest, response)
+		return
+	}
+	id, err := primitive.ObjectIDFromHex(blogid)
+	if err != nil {
+		handleError("error creating objectid from blogid: "+err.Error(), http.StatusBadRequest, response)
 		return
 	}
 	herostr := request.URL.Query().Get("hero")
@@ -37,11 +48,6 @@ func createBlogPicture(response http.ResponseWriter, request *http.Request) {
 		handleError("hero is not a boolean", http.StatusBadRequest, response)
 		return
 	}
-	if hero {
-		logger.Info("hero is true")
-	} else {
-		logger.Info("hero is false")
-	}
 	var filebuffer bytes.Buffer
 	file, header, err := request.FormFile("file")
 	if err != nil {
@@ -51,8 +57,13 @@ func createBlogPicture(response http.ResponseWriter, request *http.Request) {
 	name := strings.Split(header.Filename, ".")
 	logger.Info("File name: " + name[0])
 	io.Copy(&filebuffer, file)
-	pictureid := uuid.New().String()
-	fileobj := blogImageBucket.Object(pictureid)
+	var pictureid string
+	if hero {
+		pictureid = "hero"
+	} else {
+		pictureid = uuid.New().String()
+	}
+	fileobj := blogImageBucket.Object(blogPictureIndex + "/" + blogid + "/" + pictureid)
 	filewriter := fileobj.NewWriter(ctxStorage)
 	if byteswritten, err := filebuffer.WriteTo(filewriter); err != nil {
 		handleError("error writing to filewriter: num bytes: "+strconv.FormatInt(byteswritten, 10)+", "+err.Error(), http.StatusBadRequest, response)
@@ -65,6 +76,17 @@ func createBlogPicture(response http.ResponseWriter, request *http.Request) {
 	contents := filebuffer.String()
 	logger.Info(contents)
 	filebuffer.Reset()
+	_, err = blogCollection.UpdateOne(ctxMongo, bson.M{
+		"_id": id,
+	}, bson.M{
+		"$push": bson.M{
+			"images": pictureid,
+		},
+	})
+	if err != nil {
+		handleError("error updating mongodb: "+err.Error(), http.StatusBadRequest, response)
+		return
+	}
 	response.Header().Set("content-type", "application/json")
 	response.Write([]byte(`{"message":"file uploaded"}`))
 }
@@ -77,9 +99,18 @@ func updateBlogPicture(response http.ResponseWriter, request *http.Request) {
 		handleError("update blog picture http method not PUT", http.StatusBadRequest, response)
 		return
 	}
+	if _, err := validateAdmin(getAuthToken(request)); err != nil {
+		handleError("auth error: "+err.Error(), http.StatusBadRequest, response)
+		return
+	}
 	blogid := request.URL.Query().Get("blogid")
 	if blogid == "" {
 		handleError("error getting blog id from query", http.StatusBadRequest, response)
+		return
+	}
+	_, err := primitive.ObjectIDFromHex(blogid)
+	if err != nil {
+		handleError("error creating objectid from blogid: "+err.Error(), http.StatusBadRequest, response)
 		return
 	}
 	herostr := request.URL.Query().Get("hero")
@@ -95,9 +126,13 @@ func updateBlogPicture(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 	pictureid := request.URL.Query().Get("pictureid")
-	if pictureid == "" && !hero {
-		handleError("no hero and no picture id", http.StatusBadRequest, response)
-		return
+	if pictureid == "" {
+		if hero {
+			pictureid = "hero"
+		} else {
+			handleError("no hero and no picture id", http.StatusBadRequest, response)
+			return
+		}
 	}
 	var filebuffer bytes.Buffer
 	file, header, err := request.FormFile("file")
@@ -108,7 +143,7 @@ func updateBlogPicture(response http.ResponseWriter, request *http.Request) {
 	name := strings.Split(header.Filename, ".")
 	logger.Info("File name: " + name[0])
 	io.Copy(&filebuffer, file)
-	fileobj := blogImageBucket.Object(pictureid)
+	fileobj := blogImageBucket.Object(blogPictureIndex + "/" + blogid + "/" + pictureid)
 	filewriter := fileobj.NewWriter(ctxStorage)
 	if byteswritten, err := filebuffer.WriteTo(filewriter); err != nil {
 		handleError("error writing to filewriter: num bytes: "+strconv.FormatInt(byteswritten, 10)+", "+err.Error(), http.StatusBadRequest, response)
@@ -131,6 +166,10 @@ func deleteBlogPictures(response http.ResponseWriter, request *http.Request) {
 	}
 	if request.Method != http.MethodDelete {
 		handleError("delete blog picture http method not Delete", http.StatusBadRequest, response)
+		return
+	}
+	if _, err := validateAdmin(getAuthToken(request)); err != nil {
+		handleError("auth error: "+err.Error(), http.StatusBadRequest, response)
 		return
 	}
 	var picturedata map[string]interface{}
@@ -158,13 +197,83 @@ func deleteBlogPictures(response http.ResponseWriter, request *http.Request) {
 		handleError("blogid cannot be cast to string", http.StatusBadRequest, response)
 		return
 	}
+	id, err := primitive.ObjectIDFromHex(blogid)
+	if err != nil {
+		handleError("error creating objectid from blogid: "+err.Error(), http.StatusBadRequest, response)
+		return
+	}
 	for _, pictureid := range pictureids {
 		logger.Info("pictureid: " + pictureid + ", blogid: " + blogid)
-		if err := blogImageBucket.Object(pictureid).Delete(ctxStorage); err != nil {
+		fileobj := blogImageBucket.Object(blogPictureIndex + "/" + blogid + "/" + pictureid)
+		if err := fileobj.Delete(ctxStorage); err != nil {
 			handleError("error deleting file: "+err.Error(), http.StatusBadRequest, response)
 			return
 		}
 	}
+	_, err = blogCollection.UpdateOne(ctxMongo, bson.M{
+		"_id": id,
+	}, bson.M{
+		"$push": bson.M{
+			"images": bson.M{
+				"$each": pictureids,
+			},
+		},
+	})
+	if err != nil {
+		handleError("error updating mongodb: "+err.Error(), http.StatusBadRequest, response)
+		return
+	}
 	response.Header().Set("content-type", "application/json")
 	response.Write([]byte(`{"message":"files deleted"}`))
+}
+
+func getBlogPicture(response http.ResponseWriter, request *http.Request) {
+	if !manageCors(response, request) {
+		return
+	}
+	if request.Method != http.MethodGet {
+		handleError("get blog picture http method not GET", http.StatusBadRequest, response)
+		return
+	}
+	blogid := request.URL.Query().Get("blogid")
+	if blogid == "" {
+		handleError("error getting blog id from query", http.StatusBadRequest, response)
+		return
+	}
+	herostr := request.URL.Query().Get("hero")
+	var hero bool
+	if herostr == "" {
+		hero = false
+	} else if herostr == "true" {
+		hero = true
+	} else if herostr == "false" {
+		hero = false
+	} else {
+		handleError("hero is not a boolean", http.StatusBadRequest, response)
+		return
+	}
+	pictureid := request.URL.Query().Get("pictureid")
+	if pictureid == "" {
+		if hero {
+			pictureid = "hero"
+		} else {
+			handleError("no hero and no picture id", http.StatusBadRequest, response)
+			return
+		}
+	}
+	fileobj := blogImageBucket.Object(blogPictureIndex + "/" + blogid + "/" + pictureid)
+	filereader, err := fileobj.NewReader(ctxStorage)
+	if err != nil {
+		handleError("error reading file: "+err.Error(), http.StatusBadRequest, response)
+		return
+	}
+	defer filereader.Close()
+	filebuffer := new(bytes.Buffer)
+	if bytesread, err := filebuffer.ReadFrom(filereader); err != nil {
+		handleError("error reading to buffer: num bytes: "+strconv.FormatInt(bytesread, 10)+", "+err.Error(), http.StatusBadRequest, response)
+		return
+	}
+	contentType := filereader.Attrs.ContentType
+	response.Header().Set("content-type", contentType)
+	response.Write(filebuffer.Bytes())
 }
