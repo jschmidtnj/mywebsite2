@@ -271,7 +271,6 @@
 import Vue from 'vue'
 import { validationMixin } from 'vuelidate'
 import { required, minLength, integer } from 'vuelidate/lib/validators'
-import { codes } from '~/assets/config'
 import VueMarkdown from 'vue-markdown'
 import Prism from 'prismjs'
 /**
@@ -366,6 +365,7 @@ export default Vue.extend({
     }
   },
   mounted() {},
+  /* eslint-disable */
   methods: {
     updateCodeHighlighting() {
       this.$nextTick(() => {
@@ -373,14 +373,42 @@ export default Vue.extend({
       })
     },
     editBlog(searchresult) {
+      const id = searchresult._id
+      console.log(`id: ${id}`)
       this.$axios
-        .get()
+        .get('/graphql', {
+          params: {
+            query: `{blog(id:"${id}"){title content id author views}}`
+          }
+        })
         .then(res => {
-          this.blog = res.data
-          this.mode = this.modetypes.edit
-          this.$toasted.global.success({
-            message: 'edit blog'
-          })
+          if (res.status === 200) {
+            if (res.data) {
+              if (res.data.data && res.data.data.blog) {
+                this.blog = res.data.data.blog
+                this.mode = this.modetypes.edit
+                this.$toasted.global.success({
+                  message: 'edit blog'
+                })
+              } else if (res.data.errors) {
+                this.$toasted.global.error({
+                  message: `found errors: ${JSON.stringify(res.data.errors)}`
+                })
+              } else {
+                this.$toasted.global.error({
+                  message: 'could not find data or errors'
+                })
+              }
+            } else {
+              this.$toasted.global.error({
+                message: 'could not get data'
+              })
+            }
+          } else {
+            this.$toasted.global.error({
+              message: `status code of ${res.status}`
+            })
+          }
         })
         .catch(err => {
           this.$toasted.global.error({
@@ -389,13 +417,41 @@ export default Vue.extend({
         })
     },
     deleteBlog(searchresult) {
+      const id = searchresult._id
+      console.log(`id: ${id}`)
       this.$axios
-        .put()
+        .put('/graphql', {
+          params: {
+            query: `mutation{deleteBlog(id:"${id}"){}}`
+          }
+        })
         .then(res => {
-          this.searchresults.splice(this.searchresults.indexOf(searchresult), 1)
-          this.$toasted.global.success({
-            message: 'blog deleted'
-          })
+          if (res.status === 200) {
+            if (res.data) {
+              if (res.data.data && res.data.data.blog) {
+                this.searchresults.splice(this.searchresults.indexOf(searchresult), 1)
+                this.$toasted.global.success({
+                  message: 'blog deleted'
+                })
+              } else if (res.data.errors) {
+                this.$toasted.global.error({
+                  message: `found errors: ${JSON.stringify(res.data.errors)}`
+                })
+              } else {
+                this.$toasted.global.error({
+                  message: 'could not find data or errors'
+                })
+              }
+            } else {
+              this.$toasted.global.error({
+                message: 'could not get data'
+              })
+            }
+          } else {
+            this.$toasted.global.error({
+              message: `status code of ${res.status}`
+            })
+          }
         })
         .catch(err => {
           this.$toasted.global.error({
@@ -405,53 +461,45 @@ export default Vue.extend({
     },
     searchblogs(evt) {
       evt.preventDefault()
-      const searchfunction = null
-      searchfunction({
-        request: {
-          _source: ['firstname', 'lastname'],
-          query: {
-            multi_match: {
-              query: this.search,
-              type: 'best_fields',
-              tie_breaker: 0.3
-            }
+      this.$axios
+        .get('/graphql', {
+          params: {
+            query: `{blogs(perpage:10,page:0,searchterm:"${this.search}",sort:"title",ascending:false){title id}}`
           }
-        }
-      })
+        })
         .then(res => {
-          let message = ''
-          let code = 0
-          switch (res.data.code) {
-            case codes.success:
-              this.searchresults = res.data.message.hits.hits
-              message = `found ${this.searchresults.length} result${
-                this.searchresults.length === 1 ? '' : 's'
-              }`
-              code =
-                this.searchresults.length !== 0 ? codes.success : codes.error
-              break
-            case codes.error:
-              message = `got error ${res.data.message}`
-              code = codes.error
-              break
-            case codes.unauthorized:
-              message = `unauthorized: you must be signed in to search`
-              code = codes.unauthorized
-              break
-            default:
-              message = `warning: ${res.data.message}`
-              code = codes.warning
-              break
+          if (res.status === 200) {
+            if (res.data) {
+              if (res.data.data && res.data.data.blogs) {
+                this.searchresults = res.data.data.blogs
+                this.$toasted.global.success({
+                  message: `found ${this.searchresults.length} result${
+                    this.searchresults.length === 1 ? '' : 's'
+                  }`
+                })
+              } else if (res.data.errors) {
+                this.$toasted.global.error({
+                  message: `found errors: ${JSON.stringify(res.data.errors)}`
+                })
+              } else {
+                this.$toasted.global.error({
+                  message: 'could not find data or errors'
+                })
+              }
+            } else {
+              this.$toasted.global.error({
+                message: 'could not get data'
+              })
+            }
+          } else {
+            this.$toasted.global.error({
+              message: `status code of ${res.status}`
+            })
           }
-          this.$store.commit('notifications/addNotification', {
-            code: code,
-            message: message
-          })
         })
         .catch(err => {
-          this.$store.commit('notifications/addNotification', {
-            code: codes.error,
-            message: JSON.stringify(err)
+          this.$toasted.global.error({
+            message: err
           })
         })
     },
@@ -475,85 +523,83 @@ export default Vue.extend({
     manageblogs(evt) {
       evt.preventDefault()
       const blogdata = Object.assign({}, this.blog)
-      blogdata.updated = new Date().getTime()
-      blogdata.articles = blogdata.articles.map(result => result.id)
-      blogdata.yearjoined = parseInt(blogdata.yearjoined)
-      blogdata.baradmissions.year = parseInt(blogdata.baradmissions.year)
-      delete blogdata.image
-      const successmessage = () => {
-        this.$store.commit('notifications/addNotification', {
-          code: codes.success,
-          message: `added blog ${blogdata.firstname} ${blogdata.lastname}`
-        })
-      }
       if (this.mode === this.modetypes.add) {
-        blogdata.created = new Date().getTime()
-        const Firestore = null
-        Firestore.collection('blogs')
-          .add(blogdata)
-          .then(docRef => {
-            this.blog.image = new File([this.blog.image], docRef.id, {
-              type: this.blog.image.type
-            })
-            const Storage = null
-            Storage.ref('blogimages')
-              .child(docRef.id)
-              .put(this.blog.image)
-              .then(storagesnap => {
-                successmessage()
-                // this.resetblogs()
-              })
-              .catch(err => {
-                this.$store.commit('notifications/addNotification', {
-                  code: codes.error,
-                  message: JSON.stringify(err)
-                })
-              })
+        this.$axios
+          .post('/graphql', {
+            params: {
+              query: `mutation{addBlog(title:"${this.blog.title}",content:"${this.blog.content}",author:"${this.blog.author}"){id}}`
+            }
           })
-          .catch(err => {
-            this.$store.commit('notifications/addNotification', {
-              code: codes.error,
-              message: JSON.stringify(err)
-            })
-          })
-      } else {
-        const Firestore = null
-        Firestore.collection('blogimages')
-          .doc(this.blogid)
-          .set(blogdata)
-          .then(() => {
-            if (this.blog.image) {
-              this.blog.image = new File([this.blog.image], this.blogid, {
-                type: this.blog.image.type
-              })
-              const Storage = null
-              Storage.ref('blogimages')
-                .child(this.blogid)
-                .put(this.blog.image)
-                .then(storagesnap => {
-                  successmessage()
-                  this.resetblogs()
-                })
-                .catch(err => {
-                  this.$store.commit('notifications/addNotification', {
-                    code: codes.error,
-                    message: JSON.stringify(err)
+          .then(res => {
+            if (res.status === 200) {
+              if (res.data) {
+                if (res.data.data && res.data.data.blog) {
+                  this.$toasted.global.success({
+                    message: `added blog with id ${res.data.data.blog.id}`
                   })
+                } else if (res.data.errors) {
+                  this.$toasted.global.error({
+                    message: `found errors: ${JSON.stringify(res.data.errors)}`
+                  })
+                } else {
+                  this.$toasted.global.error({
+                    message: 'could not find data or errors'
+                  })
+                }
+              } else {
+                this.$toasted.global.error({
+                  message: 'could not get data'
                 })
+              }
             } else {
-              successmessage()
-              this.resetblogs()
+              this.$toasted.global.error({
+                message: `status code of ${res.status}`
+              })
             }
           })
           .catch(err => {
-            this.$store.commit('notifications/addNotification', {
-              code: codes.error,
-              message: JSON.stringify(err)
+            this.$toasted.global.error({
+              message: err
             })
           })
-          .then(() => {
-            this.blogid = null
-            this.mode = this.modetypes.add
+      } else {
+        this.$axios
+          .put('/graphql', {
+            params: {
+              query: `mutation{updateBlog(id:"${this.blogid}",title:"${this.blog.title}",content:"${this.blog.content}",author:"${this.blog.author}"){}}`
+            }
+          })
+          .then(res => {
+            if (res.status === 200) {
+              if (res.data) {
+                if (res.data.data && res.data.data.blog) {
+                  this.$toasted.global.success({
+                    message: `updated blog with id ${this.blogid}`
+                  })
+                } else if (res.data.errors) {
+                  this.$toasted.global.error({
+                    message: `found errors: ${JSON.stringify(res.data.errors)}`
+                  })
+                } else {
+                  this.$toasted.global.error({
+                    message: 'could not find data or errors'
+                  })
+                }
+              } else {
+                this.$toasted.global.error({
+                  message: 'could not get data'
+                })
+              }
+            } else {
+              this.$toasted.global.error({
+                message: `status code of ${res.status}`
+              })
+            }
+          })
+          .catch(err => {
+            this.$toasted.global.error({
+              message: err
+            })
           })
       }
     }
@@ -561,4 +607,6 @@ export default Vue.extend({
 })
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+@import '~/node_modules/prismjs/themes/prism.css';
+</style>
