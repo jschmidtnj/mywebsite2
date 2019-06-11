@@ -440,8 +440,6 @@ export default Vue.extend({
         views: null,
         date: null,
         heroimage: {
-          id: 'hero',
-          name: 'hero',
           uploaded: false,
           file: null,
           update: false
@@ -539,6 +537,7 @@ export default Vue.extend({
         let gothero = false
         let cont = true
         const finishedGets = () => {
+          this.mode = this.modetypes.edit
           this.$toasted.global.success({
             message: `edit ${this.type} with id ${this.postid}`
           })
@@ -607,9 +606,10 @@ export default Vue.extend({
               if (!cont) return
               if (res.status == 200) {
                 if (res.data) {
+                  // todo - make this into the name
                   thepost.images[getimagecount] = {
                     id: thepost.images[getimagecount],
-                    name: 'hero',
+                    name: `image-${i}`,
                     uploaded: true,
                     file: base64ToFile(res.data),
                     update: true
@@ -635,10 +635,6 @@ export default Vue.extend({
               })
             })
         }
-        this.post.heroimage = null
-        this.post.images = []
-        this.mode = this.modetypes.edit
-        
       }
 
       // get post data first
@@ -787,7 +783,11 @@ export default Vue.extend({
         author: '',
         views: null,
         date: null,
-        heroimage: null,
+        heroimage: {
+          uploaded: false,
+          file: null,
+          update: false
+        },
         images: []
       }
       this.mode = this.modetypes.add
@@ -825,6 +825,7 @@ export default Vue.extend({
               if (res.status == 200) {
                 imageuploadcount++
                 if (totaluploads === imageuploadcount) {
+                  this.resetposts(evt)
                   this.$toasted.global.success({
                     message: `${this.mode}ed ${this.type} with id ${postid}`
                   })
