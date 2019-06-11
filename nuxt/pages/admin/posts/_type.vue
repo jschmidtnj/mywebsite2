@@ -130,19 +130,25 @@
                       </div>
                     </b-form-invalid-feedback>
                   </b-form-group>
-                  <b-img v-if="post.heroimage.file" :src="fileToUrl(post.heroimage.file)"></b-img>
+                  <b-img
+                    v-if="post.heroimage.file"
+                    :src="fileToUrl(post.heroimage.file)"
+                  ></b-img>
+                  <p v-if="postid && post.heroimage.file">
+                    {{ getHeroImageTag() }}
+                  </p>
                   <b-form-group>
                     <label class="form-required">Hero Image</label>
                     <span>
                       <b-form-file
                         v-model="post.heroimage.file"
                         accept="image/*"
-                        @change="post.heroimage.uploaded = false"
                         :state="!$v.post.heroimage.$invalid"
                         class="mb-2 form-control"
                         aria-describedby="heroimagefeedback"
                         placeholder="Choose an image..."
                         drop-placeholder="Drop image here..."
+                        @change="post.heroimage.uploaded = false"
                       />
                     </span>
                     <b-form-invalid-feedback
@@ -159,7 +165,23 @@
                     id="fileselecter"
                     :key="`file-${index}`"
                   >
-                    <b-img v-if="post.images[index].file" :src="fileToUrl(post.images[index].file)"></b-img>
+                    <b-img
+                      v-if="post.images[index].file"
+                      :src="fileToUrl(post.images[index].file)"
+                    ></b-img>
+                    <p
+                      v-if="
+                        postid &&
+                          post.images[index].file &&
+                          post.images[index].id
+                      "
+                    >
+                      {{
+                        getImageTag(
+                          `${post.images[index].name}.${post.images[index].id}`
+                        )
+                      }}
+                    </p>
                     <b-form-group class="mb-2">
                       <label class="form-required">Image Name</label>
                       <span>
@@ -215,7 +237,7 @@
                               name: '',
                               file: null,
                               uploaded: false,
-                              id: '',
+                              id: createId(),
                               update: false
                             })
                           "
@@ -349,9 +371,9 @@
                 :current-page="currentpage"
                 :per-page="numperpage"
               >
-                <template slot="name" slot-scope="row">{{
-                  row.value
-                }}</template>
+                <template slot="name" slot-scope="row">
+                  {{ row.value }}
+                </template>
                 <template slot="id" slot-scope="row">{{ row.value }}</template>
                 <template slot="actions" slot-scope="row">
                   <b-button
@@ -360,9 +382,9 @@
                     @click="editPost(row.item)"
                     >{{ modetypes.edit }}</b-button
                   >
-                  <b-button size="sm" @click="deletePost(row.item)">{{
-                    modetypes.delete
-                  }}</b-button>
+                  <b-button size="sm" @click="deletePost(row.item)">
+                    {{ modetypes.delete }}
+                  </b-button>
                 </template>
               </b-table>
               <b-row class="mb-2">
@@ -389,6 +411,7 @@ import { validationMixin } from 'vuelidate'
 import { required, minLength, integer } from 'vuelidate/lib/validators'
 import VueMarkdown from 'vue-markdown'
 import Prism from 'prismjs'
+import uuid from 'uuid/v1'
 /**
  * posts edit
  */
@@ -519,6 +542,27 @@ export default Vue.extend({
         Prism.highlightAll()
       })
     },
+    createId() {
+      return uuid()
+    },
+    getHeroImageTag() {
+      // @ts-ignore
+      const url = encodeURIComponent(
+        `${process.env.apiurl}/getPostPicture?type=${this.type}&postid=${
+          this.postid
+        }&hero=true`
+      )
+      return `<img src="${url}"></img>`
+    },
+    getImageTag(imageid) {
+      // @ts-ignore
+      const url = encodeURIComponent(
+        `${process.env.apiurl}/getPostPicture?type=${this.type}&postid=${
+          this.postid
+        }&imageid=${imageid}`
+      )
+      return `<img src="${url}"></img>`
+    },
     async fileToUrl(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader()
@@ -550,9 +594,7 @@ export default Vue.extend({
           for (let i = 0; i < binary.length; i++) {
             array.push(binary.charCodeAt(i))
           }
-          return new Blob([
-            new Uint8Array(array)
-          ], {
+          return new Blob([new Uint8Array(array)], {
             type: mimetype
           })
         }
@@ -606,10 +648,12 @@ export default Vue.extend({
               if (!cont) return
               if (res.status == 200) {
                 if (res.data) {
-                  // todo - make this into the name
+                  const name = thepost.images[getimagecount].split(
+                    /\.(?=[^\.]+$)/
+                  )[0]
                   thepost.images[getimagecount] = {
                     id: thepost.images[getimagecount],
-                    name: `image-${i}`,
+                    name: name,
                     uploaded: true,
                     file: base64ToFile(res.data),
                     update: true
@@ -869,7 +913,7 @@ export default Vue.extend({
             )
             uploadImage(
               this.post.images[i].file,
-              this.post.images[i].id,
+              `${this.post.images[i].name}.${this.post.images[i].id}`,
               this.post.images[i].update
             )
           }

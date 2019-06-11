@@ -313,6 +313,6 @@ func getPostPicture(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 	contentType := filereader.Attrs.ContentType
-	response.Header().Set("content-type", contentType)
+	response.Header().Set("Content-Type", contentType)
 	response.Write(filebuffer.Bytes())
 }
