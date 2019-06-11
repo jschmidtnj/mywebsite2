@@ -130,12 +130,14 @@
                       </div>
                     </b-form-invalid-feedback>
                   </b-form-group>
+                  <b-img v-if="post.heroimage.file" :src="fileToUrl(post.heroimage.file)"></b-img>
                   <b-form-group>
                     <label class="form-required">Hero Image</label>
                     <span>
                       <b-form-file
-                        v-model="post.heroimage"
+                        v-model="post.heroimage.file"
                         accept="image/*"
+                        @change="post.heroimage.uploaded = false"
                         :state="!$v.post.heroimage.$invalid"
                         class="mb-2 form-control"
                         aria-describedby="heroimagefeedback"
@@ -157,6 +159,7 @@
                     id="fileselecter"
                     :key="`file-${index}`"
                   >
+                    <b-img v-if="post.images[index].file" :src="fileToUrl(post.images[index].file)"></b-img>
                     <b-form-group class="mb-2">
                       <label class="form-required">Image Name</label>
                       <span>
@@ -212,7 +215,8 @@
                               name: '',
                               file: null,
                               uploaded: false,
-                              id: ''
+                              id: '',
+                              update: false
                             })
                           "
                         >
@@ -435,7 +439,13 @@ export default Vue.extend({
         author: '',
         views: null,
         date: null,
-        heroimage: null,
+        heroimage: {
+          id: 'hero',
+          name: 'hero',
+          uploaded: false,
+          file: null,
+          update: false
+        },
         images: []
       }
     }
@@ -511,6 +521,14 @@ export default Vue.extend({
         Prism.highlightAll()
       })
     },
+    async fileToUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        // @ts-ignore
+        reader.onload = e => resolve(e.target.result)
+        reader.readAsDataURL(file)
+      })
+    },
     editPost(searchresult) {
       this.postid = searchresult._id
       console.log(`id: ${this.postid}`)
@@ -518,11 +536,25 @@ export default Vue.extend({
       // get images
       const getimages = thepost => {
         let getimagecount = 0
-        let totalimages = 1 + thepost.images.length
+        let gothero = false
         let cont = true
         const finishedGets = () => {
           this.$toasted.global.success({
             message: `edit ${this.type} with id ${this.postid}`
+          })
+        }
+        const base64ToFile = data => {
+          const splitdata = data.split(',')
+          const mimetype = splitdata[0]
+          const binary = atob(splitdata)[1]
+          const array = []
+          for (let i = 0; i < binary.length; i++) {
+            array.push(binary.charCodeAt(i))
+          }
+          return new Blob([
+            new Uint8Array(array)
+          ], {
+            type: mimetype
           })
         }
         this.$axios
@@ -536,9 +568,19 @@ export default Vue.extend({
           .then(res => {
             if (!cont) return
             if (res.status == 200) {
-              getimagecount++
-              if (totalimages === getimagecount) {
-                finishedGets()
+              if (res.data) {
+                thepost.heroimage.file = base64ToFile(res.data)
+                thepost.heroimage.uploaded = true
+                thepost.heroimage.update = true
+                gothero = true
+                if (thepost.images.length === getimagecount) {
+                  this.post = thepost
+                  finishedGets()
+                }
+              } else {
+                this.$toasted.global.error({
+                  message: 'could not get image data'
+                })
               }
             } else {
               this.$toasted.global.error({
@@ -564,9 +606,22 @@ export default Vue.extend({
             .then(res => {
               if (!cont) return
               if (res.status == 200) {
-                getimagecount++
-                if (totalimages === getimagecount) {
-                  finishedGets()
+                if (res.data) {
+                  thepost.images[getimagecount] = {
+                    id: thepost.images[getimagecount],
+                    name: 'hero',
+                    uploaded: true,
+                    file: base64ToFile(res.data),
+                    update: true
+                  }
+                  getimagecount++
+                  if (thepost.images.length === getimagecount && gothero) {
+                    finishedGets()
+                  }
+                } else {
+                  this.$toasted.global.error({
+                    message: 'could not get image data'
+                  })
                 }
               } else {
                 this.$toasted.global.error({
@@ -747,8 +802,8 @@ export default Vue.extend({
         let cont = true
         let imageuploadcount = 0
         let totaluploads =
-          (this.blog.heroimage.uploaded ? 1 : 0) +
-          this.blog.images.filter(image => image.uploaded).length
+          (this.post.heroimage.uploaded ? 1 : 0) +
+          this.post.images.filter(image => image.uploaded).length
         const uploadImage = (image, imageid, update) => {
           if (!cont) return
           const formData = new FormData()
@@ -788,11 +843,11 @@ export default Vue.extend({
             })
         }
         if (!this.post.heroimage.uploaded) {
-          this.blog.heroimage.file = new File(
-            [this.blog.heroimage.file],
+          this.post.heroimage.file = new File(
+            [this.post.heroimage.file],
             'hero',
             {
-              type: this.blog.heroimage.file.type
+              type: this.post.heroimage.file.type
             }
           )
           uploadImage(
@@ -801,14 +856,14 @@ export default Vue.extend({
             this.post.heroimage.update
           )
         }
-        for (let i = 0; i < this.blog.images.length; i++) {
+        for (let i = 0; i < this.post.images.length; i++) {
           if (!cont) break
-          if (!this.blog.images[i].uploaded) {
-            this.blog.images[i].file = new File(
-              [this.blog.images[i].file],
-              this.blog.images[i].name,
+          if (!this.post.images[i].uploaded) {
+            this.post.images[i].file = new File(
+              [this.post.images[i].file],
+              this.post.images[i].name,
               {
-                type: this.blog.images[i].file.type
+                type: this.post.images[i].file.type
               }
             )
             uploadImage(
