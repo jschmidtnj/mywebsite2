@@ -2,12 +2,12 @@ import elasticsearch = require('elasticsearch')
 import { elasticuri } from './config'
 
 /**
- * blog functions - initialize blogs
+ * post functions - initialize posts
  */
 
-const blogindexname = 'blogs'
-const blogdoctype = 'blog'
-const blogmappings = {
+const postindexname = 'posts'
+const postdoctype = 'post'
+const postmappings = {
   properties: {
     title: {
       type: 'keyword'
@@ -28,7 +28,7 @@ const blogmappings = {
   }
 }
 
-const blogindexsettings = {
+const postindexsettings = {
   number_of_shards: 2,
   number_of_replicas: 1
 }
@@ -37,7 +37,7 @@ const writeclient = new elasticsearch.Client({
   host: elasticuri
 })
 
-export const initializeblogs = db => {
+export const initializeposts = db => {
   return new Promise((resolve, reject) => {
     writeclient
       .ping({
@@ -47,7 +47,7 @@ export const initializeblogs = db => {
         console.log(`able to ping writeclient`)
         writeclient.indices
           .putSettings({
-            index: blogindexname,
+            index: postindexname,
             body: {
               index: {
                 number_of_replicas: 0,
@@ -57,76 +57,76 @@ export const initializeblogs = db => {
           })
           .then(res0 => {
             console.log(
-              `deleted all shards in ${blogindexname}: ${JSON.stringify(
+              `deleted all shards in ${postindexname}: ${JSON.stringify(
                 res0
               )}`
             )
           })
           .catch(err => {
-            const errmessage = `error deleting shards in index ${blogindexname}: ${err}`
+            const errmessage = `error deleting shards in index ${postindexname}: ${err}`
             console.log(errmessage)
           })
           .then(() => {
             writeclient.indices
               .delete({
-                index: blogindexname
+                index: postindexname
               })
               .then(res1 => {
                 console.log(
-                  `deleted index ${blogindexname}: ${JSON.stringify(res1)}`
+                  `deleted index ${postindexname}: ${JSON.stringify(res1)}`
                 )
               })
               .catch(err => {
-                const errmessage = `error deleting index ${blogindexname}: ${err}`
+                const errmessage = `error deleting index ${postindexname}: ${err}`
                 console.log(errmessage)
               })
               .then(() => {
                 return writeclient.indices
                   .exists({
-                    index: blogindexname
+                    index: postindexname
                   })
                   .then(res2 => {
                     if (res2) {
-                      console.log(`index ${blogindexname} exists still`)
+                      console.log(`index ${postindexname} exists still`)
                     } else {
                       return writeclient.indices
                         .create({
-                          index: blogindexname,
+                          index: postindexname,
                           body: {
-                            settings: blogindexsettings
+                            settings: postindexsettings
                           }
                         })
                         .then(res3 => {
-                          console.log(`added index ${blogindexname}: ${res3}`)
+                          console.log(`added index ${postindexname}: ${res3}`)
                           return writeclient.indices
                             .getMapping()
                             .then(res4 => {
                               if (
-                                Object.keys(res4[blogindexname].mappings)
+                                Object.keys(res4[postindexname].mappings)
                                   .length === 0
                               ) {
                                 console.log(
-                                  `${blogindexname}: no mappings :)`
+                                  `${postindexname}: no mappings :)`
                                 )
                                 return writeclient.indices
                                   .putMapping({
-                                    index: blogindexname,
-                                    type: blogdoctype,
-                                    body: blogmappings
+                                    index: postindexname,
+                                    type: postdoctype,
+                                    body: postmappings
                                   })
                                   .then(res5 => {
                                     console.log(
-                                      `initialized ${blogindexname}: ${JSON.stringify(
+                                      `initialized ${postindexname}: ${JSON.stringify(
                                         res5
                                       )}`
                                     )
                                     db
-                                      .collection('blogs')
+                                      .collection('posts')
                                       .find({})
                                       .toArray()
                                       .then(docs => {
                                         if (docs.length === 0) {
-                                          resolve(`finished initializing elasticsearch: ${docs.length} blogs`)
+                                          resolve(`finished initializing elasticsearch: ${docs.length} posts`)
                                         } else {
                                           let responsecount = 0
                                           const delay = 100
@@ -139,8 +139,8 @@ export const initializeblogs = db => {
                                               delete doc._id
                                               writeclient
                                                 .index({
-                                                  index: blogindexname,
-                                                  type: blogdoctype,
+                                                  index: postindexname,
+                                                  type: postdoctype,
                                                   id: id,
                                                   body: doc
                                                 })
@@ -171,32 +171,32 @@ export const initializeblogs = db => {
                                       }).catch(err => reject(err))
                                   })
                                   .catch(err => {
-                                    const errmessage = `could not create mapping for ${blogindexname}: ${err}`
+                                    const errmessage = `could not create mapping for ${postindexname}: ${err}`
                                     console.log(errmessage)
                                     reject(errmessage)
                                   })
                               } else {
-                                const errmessage = `${blogindexname} already has mappings :(`
+                                const errmessage = `${postindexname} already has mappings :(`
                                 console.log(errmessage)
                                 reject(errmessage)
                               }
                             })
                             .catch(err => {
-                              const errmessage = `could not get mappings for ${blogindexname}: ${err}`
+                              const errmessage = `could not get mappings for ${postindexname}: ${err}`
                               console.log(errmessage)
                               reject(errmessage)
                             })
                         })
 
                         .catch(err => {
-                          const errmessage = `error adding index ${blogindexname}: ${err}`
+                          const errmessage = `error adding index ${postindexname}: ${err}`
                           console.log(errmessage)
                           reject(errmessage)
                         })
                     }
                   })
                   .catch(err => {
-                    const errmessage = `error checking if index ${blogindexname} exists: ${err}`
+                    const errmessage = `error checking if index ${postindexname} exists: ${err}`
                     console.log(errmessage)
                     reject(errmessage)
                   })

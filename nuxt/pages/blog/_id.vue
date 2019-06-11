@@ -1,12 +1,12 @@
 <template>
   <div>
-    <b-container v-if="blog">
-      <h1>{{ blog.title }}</h1>
-      <p>{{ blog.author }}</p>
-      <p v-if="blog.date">{{ formatDate(blog.date, 'M/D/YYYY') }}</p>
-      <p>{{ blog.views }}</p>
+    <b-container v-if="post">
+      <h1>{{ post.title }}</h1>
+      <p>{{ post.author }}</p>
+      <p v-if="post.date">{{ formatDate(post.date, 'M/D/YYYY') }}</p>
+      <p>{{ post.views }}</p>
       <vue-markdown
-        :source="blog.content"
+        :source="post.content"
         class="mb-4 markdown"
         @rendered="updateCodeHighlighting"
       />
@@ -20,7 +20,7 @@ import { format } from 'date-fns'
 import VueMarkdown from 'vue-markdown'
 import Prism from 'prismjs'
 export default Vue.extend({
-  name: 'Blog',
+  name: 'Post',
   components: {
     VueMarkdown
   },
@@ -31,7 +31,7 @@ export default Vue.extend({
     const handleErrors = () => {
       return {
         id: null,
-        blog: {}
+        post: {}
       }
     }
     if (context.params && context.params.id) {
@@ -39,18 +39,18 @@ export default Vue.extend({
       return context.app.$axios
         .get('/graphql', {
           params: {
-            query: `{blog(id:"${id}"){title content id author views}}`
+            query: `{post(type:"blog",id:"${id}"){title content id author views}}`
           }
         })
         .then(res => {
           if (res.status === 200) {
             if (res.data) {
-              if (res.data.data && res.data.data.blog) {
-                const blog = res.data.data.blog
-                console.log(res.data.data.blog)
+              if (res.data.data && res.data.data.post) {
+                const post = res.data.data.post
+                console.log(res.data.data.post)
                 return {
                   id: id,
-                  blog: blog
+                  post: post
                 }
               } else if (res.data.errors) {
                 console.log(`found errors: ${JSON.stringify(res.data.errors)}`)
@@ -79,7 +79,7 @@ export default Vue.extend({
   },
   // @ts-ignore
   head() {
-    const title = this.blog ? this.blog.title : 'Blog'
+    const title = this.post ? this.post.title : 'Post'
     // @ts-ignore
     if (!(process.env.seoconfig && process.env.ampurl)) {
       return {

@@ -1,15 +1,20 @@
 <template>
   <div>
+    <admin-navbar />
     <nuxt />
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
+import AdminNavbar from '~/components/AdminNavbar.vue'
 export default Vue.extend({
   name: 'Admin',
   // @ts-ignore
-  middleware: 'admin'
+  middleware: 'admin',
+  components: {
+    AdminNavbar
+  }
 })
 </script>
 

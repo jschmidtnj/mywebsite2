@@ -7,6 +7,7 @@ import (
 	"github.com/olivere/elastic"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func rootQuery() *graphql.Object {
@@ -110,10 +111,13 @@ func rootQuery() *graphql.Object {
 					return userData, nil
 				},
 			},
-			"blogs": &graphql.Field{
-				Type:        graphql.NewList(BlogType),
-				Description: "Get list of blog posts",
+			"posts": &graphql.Field{
+				Type:        graphql.NewList(PostType),
+				Description: "Get list of posts",
 				Args: graphql.FieldConfigArgument{
+					"type": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
 					"perpage": &graphql.ArgumentConfig{
 						Type: graphql.Int,
 					},
@@ -166,34 +170,50 @@ func rootQuery() *graphql.Object {
 					if !ok {
 						return nil, errors.New("ascending could not be cast to boolean")
 					}
+					thetype, ok := params.Args["type"].(string)
+					if !ok {
+						return nil, errors.New("problem casting type to string")
+					}
+					if !validType(thetype) {
+						return nil, errors.New("invalid type given")
+					}
+					var postElasticIndex = thetype
+					fields := params.Info.FieldASTs
+					fieldstr := make([]string, len(fields))
+					for _, field := range fields {
+						logger.Info(field.Name.Value)
+						fieldstr = append(fieldstr, field.Name.Value)
+					}
 					var searchResult *elastic.SearchResult
 					var err error
 					if len(searchterm) > 0 {
 						queryString := elastic.NewQueryStringQuery(searchterm)
 						searchResult, err = elasticClient.Search().
-							Index(blogElasticIndex).
+							Index(postElasticIndex).
 							Query(queryString).
 							Sort(sort, ascending).
 							From(page).Size(perpage).
 							Pretty(false).
+							Source(fieldstr).
 							Do(ctxElastic)
 					} else {
 						searchResult, err = elasticClient.Search().
-							Index(blogElasticIndex).
+							Index(postElasticIndex).
 							Query(nil).
 							Sort(sort, ascending).
 							From(page).Size(perpage).
 							Pretty(false).
+							Source(fieldstr).
 							Do(ctxElastic)
 					}
 					if err != nil {
 						return nil, err
 					}
-					var blogs []map[string]interface{}
+					var posts []map[string]interface{}
 					for _, hit := range searchResult.Hits.Hits {
 						// Deserialize hit.Source into a Tweet (could also be just a map[string]interface{}).
-						var blogData map[string]interface{}
-						err := json.Unmarshal(*hit.Source, &blogData)
+						var postData map[string]interface{}
+						err := json.Unmarshal(*hit.Source, &postData)
 						if err != nil {
 							return nil, err
 						}
@@ -201,23 +221,40 @@ func rootQuery() *graphql.Object {
 						if err != nil {
 							return nil, err
 						}
-						blogData["date"] = objectidtimestamp(id).Format(dateFormat)
-						blogData["id"] = id.Hex()
-						delete(blogData, "_id")
-						blogs = append(blogs, blogData)
+						postData["date"] = objectidtimestamp(id).Format(dateFormat)
+						postData["id"] = id.Hex()
+						delete(postData, "_id")
+						posts = append(posts, postData)
 					}
-					return blogs, nil
+					return posts, nil
 				},
 			},
-			"blog": &graphql.Field{
-				Type:        BlogType,
-				Description: "Get a Blog Post",
+			"post": &graphql.Field{
+				Type:        PostType,
+				Description: "Get a Post Post",
 				Args: graphql.FieldConfigArgument{
+					"type": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
 					"id": &graphql.ArgumentConfig{
 						Type: graphql.String,
 					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+					thetype, ok := params.Args["type"].(string)
+					if !ok {
+						return nil, errors.New("problem casting type to string")
+					}
+					if !validType(thetype) {
+						return nil, errors.New("invalid type given")
+					}
+					var mongoCollection *mongo.Collection
+					if thetype == "blog" {
+						mongoCollection = blogCollection
+					} else {
+						mongoCollection = projectCollection
+					}
+					var postElasticIndex = thetype
 					if params.Args["id"] == nil {
 						return nil, errors.New("no id argument found")
 					}
@@ -229,7 +266,7 @@ func rootQuery() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
-					_, err = blogCollection.UpdateOne(ctxMongo, bson.M{
+					_, err = mongoCollection.UpdateOne(ctxMongo, bson.M{
 						"_id": id,
 					}, bson.M{
 						"$inc": bson.M{
@@ -239,40 +276,40 @@ func rootQuery() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
-					cursor, err := blogCollection.Find(ctxMongo, bson.M{
+					cursor, err := mongoCollection.Find(ctxMongo, bson.M{
 						"_id": id,
 					})
 					defer cursor.Close(ctxMongo)
 					if err != nil {
 						return nil, err
 					}
-					var blogData map[string]interface{}
+					var postData map[string]interface{}
 					var foundstuff = false
 					for cursor.Next(ctxMongo) {
-						blogPrimitive := &bson.D{}
-						err = cursor.Decode(blogPrimitive)
+						postPrimitive := &bson.D{}
+						err = cursor.Decode(postPrimitive)
 						if err != nil {
 							return nil, err
 						}
-						blogData = blogPrimitive.Map()
-						blogData["date"] = objectidtimestamp(id).Format(dateFormat)
-						blogData["id"] = idstring
-						delete(blogData, "_id")
+						postData = postPrimitive.Map()
+						postData["date"] = objectidtimestamp(id).Format(dateFormat)
+						postData["id"] = idstring
+						delete(postData, "_id")
 						foundstuff = true
 						break
 					}
 					if !foundstuff {
-						return nil, errors.New("blog not found with given id")
+						return nil, errors.New("post not found with given id")
 					}
 					_, err = elasticClient.Update().
-						Index(blogElasticIndex).
-						Type("blog").
+						Index(postElasticIndex).
+						Type("post").
 						Id(idstring).
 						Doc(bson.M{
-							"views": int(blogData["views"].(int32)),
+							"views": int(postData["views"].(int32)),
 						}).
 						Do(ctxElastic)
-					return blogData, nil
+					return postData, nil
 				},
 			},
 		},

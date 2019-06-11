@@ -2,10 +2,11 @@ package main
 
 import (
 	"bytes"
+	"cloud.google.com/go/storage"
 	"encoding/json"
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -13,39 +14,46 @@ import (
 	"strings"
 )
 
-func createBlogPicture(response http.ResponseWriter, request *http.Request) {
+func createPostPicture(response http.ResponseWriter, request *http.Request) {
 	if !manageCors(response, request) {
 		return
 	}
-	if request.Method != http.MethodPost {
-		handleError("create blog picture http method not POST", http.StatusBadRequest, response)
+	if request.Method != http.MethodPut {
+		handleError("create post picture http method not PUT", http.StatusBadRequest, response)
 		return
 	}
 	if _, err := validateAdmin(getAuthToken(request)); err != nil {
 		handleError("auth error: "+err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	blogid := request.URL.Query().Get("blogid")
-	if blogid == "" {
-		handleError("error getting blog id from query", http.StatusBadRequest, response)
+	thetype := request.URL.Query().Get("type")
+	if thetype == "" {
+		handleError("error getting type from query", http.StatusBadRequest, response)
 		return
 	}
-	id, err := primitive.ObjectIDFromHex(blogid)
-	if err != nil {
-		handleError("error creating objectid from blogid: "+err.Error(), http.StatusBadRequest, response)
+	if !validType(thetype) {
+		handleError("invalid type in query", http.StatusBadRequest, response)
 		return
 	}
-	herostr := request.URL.Query().Get("hero")
-	var hero bool
-	if herostr == "" {
-		handleError("error getting hero from query", http.StatusBadRequest, response)
-		return
-	} else if herostr == "true" {
-		hero = true
-	} else if herostr == "false" {
-		hero = false
+	var mongoCollection *mongo.Collection
+	if thetype == "blog" {
+		mongoCollection = blogCollection
 	} else {
-		handleError("hero is not a boolean", http.StatusBadRequest, response)
+		mongoCollection = projectCollection
+	}
+	postid := request.URL.Query().Get("postid")
+	if postid == "" {
+		handleError("error getting post id from query", http.StatusBadRequest, response)
+		return
+	}
+	id, err := primitive.ObjectIDFromHex(postid)
+	if err != nil {
+		handleError("error creating objectid from postid: "+err.Error(), http.StatusBadRequest, response)
+		return
+	}
+	imageid := request.URL.Query().Get("imageid")
+	if imageid == "" {
+		handleError("error getting image id from query", http.StatusBadRequest, response)
 		return
 	}
 	var filebuffer bytes.Buffer
@@ -57,13 +65,12 @@ func createBlogPicture(response http.ResponseWriter, request *http.Request) {
 	name := strings.Split(header.Filename, ".")
 	logger.Info("File name: " + name[0])
 	io.Copy(&filebuffer, file)
-	var pictureid string
-	if hero {
-		pictureid = "hero"
+	var fileobj *storage.ObjectHandle
+	if thetype == "blog" {
+		fileobj = imageBucket.Object(blogImageIndex + "/" + postid + "/" + imageid)
 	} else {
-		pictureid = uuid.New().String()
+		fileobj = imageBucket.Object(projectImageIndex + "/" + postid + "/" + imageid)
 	}
-	fileobj := blogImageBucket.Object(blogPictureIndex + "/" + blogid + "/" + pictureid)
 	filewriter := fileobj.NewWriter(ctxStorage)
 	if byteswritten, err := filebuffer.WriteTo(filewriter); err != nil {
 		handleError("error writing to filewriter: num bytes: "+strconv.FormatInt(byteswritten, 10)+", "+err.Error(), http.StatusBadRequest, response)
@@ -76,11 +83,11 @@ func createBlogPicture(response http.ResponseWriter, request *http.Request) {
 	contents := filebuffer.String()
 	logger.Info(contents)
 	filebuffer.Reset()
-	_, err = blogCollection.UpdateOne(ctxMongo, bson.M{
+	_, err = mongoCollection.UpdateOne(ctxMongo, bson.M{
 		"_id": id,
 	}, bson.M{
 		"$push": bson.M{
-			"images": pictureid,
+			"images": imageid,
 		},
 	})
 	if err != nil {
@@ -91,48 +98,41 @@ func createBlogPicture(response http.ResponseWriter, request *http.Request) {
 	response.Write([]byte(`{"message":"file uploaded"}`))
 }
 
-func updateBlogPicture(response http.ResponseWriter, request *http.Request) {
+func updatePostPicture(response http.ResponseWriter, request *http.Request) {
 	if !manageCors(response, request) {
 		return
 	}
 	if request.Method != http.MethodPut {
-		handleError("update blog picture http method not PUT", http.StatusBadRequest, response)
+		handleError("update post picture http method not PUT", http.StatusBadRequest, response)
 		return
 	}
 	if _, err := validateAdmin(getAuthToken(request)); err != nil {
 		handleError("auth error: "+err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	blogid := request.URL.Query().Get("blogid")
-	if blogid == "" {
-		handleError("error getting blog id from query", http.StatusBadRequest, response)
+	thetype := request.URL.Query().Get("type")
+	if thetype == "" {
+		handleError("error getting type from query", http.StatusBadRequest, response)
 		return
 	}
-	_, err := primitive.ObjectIDFromHex(blogid)
+	if !validType(thetype) {
+		handleError("invalid type in query", http.StatusBadRequest, response)
+		return
+	}
+	postid := request.URL.Query().Get("postid")
+	if postid == "" {
+		handleError("error getting post id from query", http.StatusBadRequest, response)
+		return
+	}
+	_, err := primitive.ObjectIDFromHex(postid)
 	if err != nil {
-		handleError("error creating objectid from blogid: "+err.Error(), http.StatusBadRequest, response)
+		handleError("error creating objectid from postid: "+err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	herostr := request.URL.Query().Get("hero")
-	var hero bool
-	if herostr == "" {
-		hero = false
-	} else if herostr == "true" {
-		hero = true
-	} else if herostr == "false" {
-		hero = false
-	} else {
-		handleError("hero is not a boolean", http.StatusBadRequest, response)
+	imageid := request.URL.Query().Get("imageid")
+	if imageid == "" {
+		handleError("error getting image id from query", http.StatusBadRequest, response)
 		return
-	}
-	pictureid := request.URL.Query().Get("pictureid")
-	if pictureid == "" {
-		if hero {
-			pictureid = "hero"
-		} else {
-			handleError("no hero and no picture id", http.StatusBadRequest, response)
-			return
-		}
 	}
 	var filebuffer bytes.Buffer
 	file, header, err := request.FormFile("file")
@@ -143,7 +143,12 @@ func updateBlogPicture(response http.ResponseWriter, request *http.Request) {
 	name := strings.Split(header.Filename, ".")
 	logger.Info("File name: " + name[0])
 	io.Copy(&filebuffer, file)
-	fileobj := blogImageBucket.Object(blogPictureIndex + "/" + blogid + "/" + pictureid)
+	var fileobj *storage.ObjectHandle
+	if thetype == "blog" {
+		fileobj = imageBucket.Object(blogImageIndex + "/" + postid + "/" + imageid)
+	} else {
+		fileobj = imageBucket.Object(projectImageIndex + "/" + postid + "/" + imageid)
+	}
 	filewriter := fileobj.NewWriter(ctxStorage)
 	if byteswritten, err := filebuffer.WriteTo(filewriter); err != nil {
 		handleError("error writing to filewriter: num bytes: "+strconv.FormatInt(byteswritten, 10)+", "+err.Error(), http.StatusBadRequest, response)
@@ -160,12 +165,12 @@ func updateBlogPicture(response http.ResponseWriter, request *http.Request) {
 	response.Write([]byte(`{"message":"file updated"}`))
 }
 
-func deleteBlogPictures(response http.ResponseWriter, request *http.Request) {
+func deletePostPictures(response http.ResponseWriter, request *http.Request) {
 	if !manageCors(response, request) {
 		return
 	}
 	if request.Method != http.MethodDelete {
-		handleError("delete blog picture http method not Delete", http.StatusBadRequest, response)
+		handleError("delete post picture http method not Delete", http.StatusBadRequest, response)
 		return
 	}
 	if _, err := validateAdmin(getAuthToken(request)); err != nil {
@@ -183,39 +188,59 @@ func deleteBlogPictures(response http.ResponseWriter, request *http.Request) {
 		handleError("error parsing request body: "+err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	if !(picturedata["pictureids"] != nil && picturedata["blogid"] != nil) {
-		handleError("no pictureids or blogid provided", http.StatusBadRequest, response)
+	if !(picturedata["imageids"] != nil && picturedata["postid"] != nil && picturedata["type"] != nil) {
+		handleError("no imageids or postid or type provided", http.StatusBadRequest, response)
 		return
 	}
-	pictureids, ok := picturedata["pictureids"].([]string)
+	thetype, ok := picturedata["type"].(string)
 	if !ok {
-		handleError("pictureids cannot be cast to string array", http.StatusBadRequest, response)
+		handleError("unable to cast type to string", http.StatusBadRequest, response)
 		return
 	}
-	blogid, ok := picturedata["blogid"].(string)
+	if !validType(thetype) {
+		handleError("invalid type in body", http.StatusBadRequest, response)
+		return
+	}
+	var mongoCollection *mongo.Collection
+	if thetype == "blog" {
+		mongoCollection = blogCollection
+	} else {
+		mongoCollection = projectCollection
+	}
+	imageids, ok := picturedata["imageids"].([]string)
 	if !ok {
-		handleError("blogid cannot be cast to string", http.StatusBadRequest, response)
+		handleError("imageids cannot be cast to string array", http.StatusBadRequest, response)
 		return
 	}
-	id, err := primitive.ObjectIDFromHex(blogid)
+	postid, ok := picturedata["postid"].(string)
+	if !ok {
+		handleError("postid cannot be cast to string", http.StatusBadRequest, response)
+		return
+	}
+	id, err := primitive.ObjectIDFromHex(postid)
 	if err != nil {
-		handleError("error creating objectid from blogid: "+err.Error(), http.StatusBadRequest, response)
+		handleError("error creating objectid from postid: "+err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	for _, pictureid := range pictureids {
-		logger.Info("pictureid: " + pictureid + ", blogid: " + blogid)
-		fileobj := blogImageBucket.Object(blogPictureIndex + "/" + blogid + "/" + pictureid)
+	for _, imageid := range imageids {
+		logger.Info("imageid: " + imageid + ", postid: " + postid)
+		var fileobj *storage.ObjectHandle
+		if thetype == "blog" {
+			fileobj = imageBucket.Object(blogImageIndex + "/" + postid + "/" + imageid)
+		} else {
+			fileobj = imageBucket.Object(projectImageIndex + "/" + postid + "/" + imageid)
+		}
 		if err := fileobj.Delete(ctxStorage); err != nil {
 			handleError("error deleting file: "+err.Error(), http.StatusBadRequest, response)
 			return
 		}
 	}
-	_, err = blogCollection.UpdateOne(ctxMongo, bson.M{
+	_, err = mongoCollection.UpdateOne(ctxMongo, bson.M{
 		"_id": id,
 	}, bson.M{
 		"$push": bson.M{
 			"images": bson.M{
-				"$each": pictureids,
+				"$each": imageids,
 			},
 		},
 	})
@@ -227,17 +252,26 @@ func deleteBlogPictures(response http.ResponseWriter, request *http.Request) {
 	response.Write([]byte(`{"message":"files deleted"}`))
 }
 
-func getBlogPicture(response http.ResponseWriter, request *http.Request) {
+func getPostPicture(response http.ResponseWriter, request *http.Request) {
 	if !manageCors(response, request) {
 		return
 	}
 	if request.Method != http.MethodGet {
-		handleError("get blog picture http method not GET", http.StatusBadRequest, response)
+		handleError("get post picture http method not GET", http.StatusBadRequest, response)
 		return
 	}
-	blogid := request.URL.Query().Get("blogid")
-	if blogid == "" {
-		handleError("error getting blog id from query", http.StatusBadRequest, response)
+	thetype := request.URL.Query().Get("type")
+	if thetype == "" {
+		handleError("error getting type from query", http.StatusBadRequest, response)
+		return
+	}
+	if !validType(thetype) {
+		handleError("invalid type in query", http.StatusBadRequest, response)
+		return
+	}
+	postid := request.URL.Query().Get("postid")
+	if postid == "" {
+		handleError("error getting post id from query", http.StatusBadRequest, response)
 		return
 	}
 	herostr := request.URL.Query().Get("hero")
@@ -252,16 +286,21 @@ func getBlogPicture(response http.ResponseWriter, request *http.Request) {
 		handleError("hero is not a boolean", http.StatusBadRequest, response)
 		return
 	}
-	pictureid := request.URL.Query().Get("pictureid")
-	if pictureid == "" {
+	imageid := request.URL.Query().Get("imageid")
+	if imageid == "" {
 		if hero {
-			pictureid = "hero"
+			imageid = "hero"
 		} else {
 			handleError("no hero and no picture id", http.StatusBadRequest, response)
 			return
 		}
 	}
-	fileobj := blogImageBucket.Object(blogPictureIndex + "/" + blogid + "/" + pictureid)
+	var fileobj *storage.ObjectHandle
+	if thetype == "blog" {
+		fileobj = imageBucket.Object(blogImageIndex + "/" + postid + "/" + imageid)
+	} else {
+		fileobj = imageBucket.Object(projectImageIndex + "/" + postid + "/" + imageid)
+	}
 	filereader, err := fileobj.NewReader(ctxStorage)
 	if err != nil {
 		handleError("error reading file: "+err.Error(), http.StatusBadRequest, response)

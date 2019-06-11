@@ -10,7 +10,7 @@
               @keyup.enter.native="
                 evt => {
                   evt.preventDefault()
-                  searchBlogs()
+                  searchPosts()
                 }
               "
             ></b-form-input>
@@ -144,11 +144,11 @@ export default Vue.extend({
   mounted() {
     /* eslint-disable */
     this.updateCount()
-    this.searchBlogs()
+    this.searchPosts()
   },
   methods: {
     updateCount() {
-      this.$axios.put('/countBlogs', {
+      this.$axios.put('/countPosts', {
         searchterm: this.search
       }).then(res => {
         if (res.status === 200) {
@@ -169,7 +169,7 @@ export default Vue.extend({
         console.error(`got error: ${err}`)
       })
     },
-    searchBlogs() {
+    searchPosts() {
       this.currentPage = 1
       this.updateCount()
       const sort = (this.sortBy ? this.sortBy : this.sortOptions[0]).value
@@ -177,14 +177,14 @@ export default Vue.extend({
       console.log(sort)
       this.$axios.get('/graphql', {
         params: {
-          query: `{blogs(perpage:${this.perPage},page:${this.currentPage - 1},searchterm:"${this.search}",sort:"${sort}",ascending:${!this.sortDesc}){title views id author date}}`
+          query: `{posts(type:"blog",perpage:${this.perPage},page:${this.currentPage - 1},searchterm:"${this.search}",sort:"${sort}",ascending:${!this.sortDesc}){title views id author date}}`
         }
       }).then(res => {
         if (res.status === 200) {
           if (res.data) {
-            if (res.data.data && res.data.data.blogs) {
-              this.items = res.data.data.blogs
-              console.log(res.data.data.blogs)
+            if (res.data.data && res.data.data.posts) {
+              this.items = res.data.data.posts
+              console.log(res.data.data.posts)
             } else if (res.data.errors) {
               console.log(`found errors:`)
               console.log(res.data.errors)

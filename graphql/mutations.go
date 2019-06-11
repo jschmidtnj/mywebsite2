@@ -1,20 +1,25 @@
 package main
 
 import (
+	"cloud.google.com/go/storage"
 	"errors"
 	"github.com/graphql-go/graphql"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func rootMutation() *graphql.Object {
 	return graphql.NewObject(graphql.ObjectConfig{
 		Name: "Mutation",
 		Fields: graphql.Fields{
-			"addBlog": &graphql.Field{
-				Type:        BlogType,
-				Description: "Create a Blog Post",
+			"addPost": &graphql.Field{
+				Type:        PostType,
+				Description: "Create a Post Post",
 				Args: graphql.FieldConfigArgument{
+					"type": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
 					"title": &graphql.ArgumentConfig{
 						Type: graphql.String,
 					},
@@ -45,7 +50,21 @@ func rootMutation() *graphql.Object {
 					if !ok {
 						return nil, errors.New("problem casting content to string")
 					}
-					blogData := bson.M{
+					thetype, ok := params.Args["type"].(string)
+					if !ok {
+						return nil, errors.New("problem casting type to string")
+					}
+					if !validType(thetype) {
+						return nil, errors.New("invalid type given")
+					}
+					var mongoCollection *mongo.Collection
+					if thetype == "blog" {
+						mongoCollection = blogCollection
+					} else {
+						mongoCollection = projectCollection
+					}
+					var postElasticIndex = thetype
+					postData := bson.M{
 						"title":     title,
 						"content":   content,
 						"author":    author,
@@ -53,32 +72,35 @@ func rootMutation() *graphql.Object {
 						"heroimage": "",
 						"images":    []string{},
 					}
-					res, err := blogCollection.InsertOne(ctxMongo, blogData)
+					res, err := mongoCollection.InsertOne(ctxMongo, postData)
 					if err != nil {
 						return nil, err
 					}
 					id := res.InsertedID.(primitive.ObjectID)
 					idstring := id.Hex()
 					timestamp := objectidtimestamp(id)
-					blogData["date"] = timestamp.Unix()
+					postData["date"] = timestamp.Unix()
 					_, err = elasticClient.Index().
-						Index(blogElasticIndex).
-						Type("blog").
+						Index(postElasticIndex).
+						Type("post").
 						Id(idstring).
-						BodyJson(blogData).
+						BodyJson(postData).
 						Do(ctxElastic)
 					if err != nil {
 						return nil, err
 					}
-					blogData["date"] = timestamp.Format(dateFormat)
-					blogData["id"] = idstring
-					return blogData, nil
+					postData["date"] = timestamp.Format(dateFormat)
+					postData["id"] = idstring
+					return postData, nil
 				},
 			},
-			"updateBlog": &graphql.Field{
-				Type:        BlogType,
-				Description: "Update a Blog Post",
+			"updatePost": &graphql.Field{
+				Type:        PostType,
+				Description: "Update a Post Post",
 				Args: graphql.FieldConfigArgument{
+					"type": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
 					"id": &graphql.ArgumentConfig{
 						Type: graphql.String,
 					},
@@ -98,7 +120,7 @@ func rootMutation() *graphql.Object {
 						return nil, err
 					}
 					if params.Args["id"] == nil {
-						return nil, errors.New("blog id not provided")
+						return nil, errors.New("post id not provided")
 					}
 					idstring, ok := params.Args["id"].(string)
 					if !ok {
@@ -130,16 +152,30 @@ func rootMutation() *graphql.Object {
 						}
 						updateData["content"] = content
 					}
+					thetype, ok := params.Args["type"].(string)
+					if !ok {
+						return nil, errors.New("problem casting type to string")
+					}
+					if !validType(thetype) {
+						return nil, errors.New("invalid type given")
+					}
+					var mongoCollection *mongo.Collection
+					if thetype == "blog" {
+						mongoCollection = blogCollection
+					} else {
+						mongoCollection = projectCollection
+					}
+					var postElasticIndex = thetype
 					_, err = elasticClient.Update().
-						Index(blogElasticIndex).
-						Type("blog").
+						Index(postElasticIndex).
+						Type("post").
 						Id(idstring).
 						Doc(updateData).
 						Do(ctxElastic)
 					if err != nil {
 						return nil, err
 					}
-					_, err = blogCollection.UpdateOne(ctxMongo, bson.M{
+					_, err = mongoCollection.UpdateOne(ctxMongo, bson.M{
 						"_id": id,
 					}, bson.M{
 						"$set": updateData,
@@ -147,39 +183,42 @@ func rootMutation() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
-					cursor, err := blogCollection.Find(ctxMongo, bson.M{
+					cursor, err := mongoCollection.Find(ctxMongo, bson.M{
 						"_id": id,
 					})
 					defer cursor.Close(ctxMongo)
 					if err != nil {
 						return nil, err
 					}
-					var blogData map[string]interface{}
+					var postData map[string]interface{}
 					var foundstuff = false
 					for cursor.Next(ctxMongo) {
-						blogPrimitive := &bson.D{}
-						err = cursor.Decode(blogPrimitive)
+						postPrimitive := &bson.D{}
+						err = cursor.Decode(postPrimitive)
 						if err != nil {
 							return nil, err
 						}
-						blogData = blogPrimitive.Map()
-						id := blogData["_id"].(primitive.ObjectID)
-						blogData["date"] = objectidtimestamp(id).Format(dateFormat)
-						blogData["id"] = id.Hex()
-						delete(blogData, "_id")
+						postData = postPrimitive.Map()
+						id := postData["_id"].(primitive.ObjectID)
+						postData["date"] = objectidtimestamp(id).Format(dateFormat)
+						postData["id"] = id.Hex()
+						delete(postData, "_id")
 						foundstuff = true
 						break
 					}
 					if !foundstuff {
-						return nil, errors.New("blog not found with given id")
+						return nil, errors.New("post not found with given id")
 					}
-					return blogData, nil
+					return postData, nil
 				},
 			},
-			"deleteBlog": &graphql.Field{
-				Type:        BlogType,
-				Description: "Delete a Blog Post",
+			"deletePost": &graphql.Field{
+				Type:        PostType,
+				Description: "Delete a Post Post",
 				Args: graphql.FieldConfigArgument{
+					"type": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
 					"id": &graphql.ArgumentConfig{
 						Type: graphql.String,
 					},
@@ -189,8 +228,22 @@ func rootMutation() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
+					thetype, ok := params.Args["type"].(string)
+					if !ok {
+						return nil, errors.New("problem casting type to string")
+					}
+					if !validType(thetype) {
+						return nil, errors.New("invalid type given")
+					}
+					var mongoCollection *mongo.Collection
+					if thetype == "blog" {
+						mongoCollection = blogCollection
+					} else {
+						mongoCollection = projectCollection
+					}
+					var postElasticIndex = thetype
 					if params.Args["id"] == nil {
-						return nil, errors.New("blog id not provided")
+						return nil, errors.New("post id not provided")
 					}
 					idstring, ok := params.Args["id"].(string)
 					if !ok {
@@ -200,56 +253,61 @@ func rootMutation() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
-					cursor, err := blogCollection.Find(ctxMongo, bson.M{
+					cursor, err := mongoCollection.Find(ctxMongo, bson.M{
 						"_id": id,
 					})
 					if err != nil {
 						return nil, err
 					}
 					defer cursor.Close(ctxMongo)
-					var blogData map[string]interface{}
+					var postData map[string]interface{}
 					idstr := id.Hex()
 					var foundstuff = false
 					for cursor.Next(ctxMongo) {
-						blogPrimitive := &bson.D{}
-						err = cursor.Decode(blogPrimitive)
+						postPrimitive := &bson.D{}
+						err = cursor.Decode(postPrimitive)
 						if err != nil {
 							return nil, err
 						}
-						blogData = blogPrimitive.Map()
-						id := blogData["_id"].(primitive.ObjectID)
-						blogData["date"] = objectidtimestamp(id).Format(dateFormat)
-						blogData["id"] = idstr
-						delete(blogData, "_id")
+						postData = postPrimitive.Map()
+						id := postData["_id"].(primitive.ObjectID)
+						postData["date"] = objectidtimestamp(id).Format(dateFormat)
+						postData["id"] = idstr
+						delete(postData, "_id")
 						foundstuff = true
 						break
 					}
 					if !foundstuff {
-						return nil, errors.New("blog not found with given id")
+						return nil, errors.New("post not found with given id")
 					}
-					_, err = blogCollection.DeleteOne(ctxMongo, bson.M{
+					_, err = mongoCollection.DeleteOne(ctxMongo, bson.M{
 						"_id": id,
 					})
 					if err != nil {
 						return nil, err
 					}
 					_, err = elasticClient.Delete().
-						Index(blogElasticIndex).
-						Type("blog").
+						Index(postElasticIndex).
+						Type("post").
 						Id(idstring).
 						Do(ctxElastic)
 					if err != nil {
 						return nil, err
 					}
-					pictureids := blogData["images"].([]string)
-					for _, pictureid := range pictureids {
-						logger.Info("pictureid: " + pictureid + ", blogid: " + idstr)
-						fileobj := blogImageBucket.Object(blogPictureIndex + "/" + idstr + "/" + pictureid)
+					imageids := postData["images"].([]string)
+					for _, imageid := range imageids {
+						logger.Info("imageid: " + imageid + ", postid: " + idstr)
+						var fileobj *storage.ObjectHandle
+						if thetype == "blog" {
+							fileobj = imageBucket.Object(blogImageIndex + "/" + idstr + "/" + imageid)
+						} else {
+							fileobj = imageBucket.Object(projectImageIndex + "/" + idstr + "/" + imageid)
+						}
 						if err := fileobj.Delete(ctxStorage); err != nil {
 							return nil, err
 						}
 					}
-					return blogData, nil
+					return postData, nil
 				},
 			},
 			"deleteUser": &graphql.Field{

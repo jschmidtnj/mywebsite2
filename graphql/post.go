@@ -4,9 +4,9 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
-// BlogType graphql blog type is a blog object
-var BlogType *graphql.Object = graphql.NewObject(graphql.ObjectConfig{
-	Name: "Blog",
+// PostType graphql post type is a post object
+var PostType *graphql.Object = graphql.NewObject(graphql.ObjectConfig{
+	Name: "Post",
 	Fields: graphql.Fields{
 		"id": &graphql.Field{
 			Type: graphql.String,

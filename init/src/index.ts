@@ -1,7 +1,7 @@
 import express = require('express')
 import bodyParser = require('body-parser')
 import { codes, adminconfig, mongoconfig } from './config'
-import { initializeblogs } from './blogs'
+import { initializeposts } from './posts'
 import * as mongodb from 'mongodb'
 
 const MongoClient = mongodb.MongoClient
@@ -77,15 +77,15 @@ adminApp.post('/addAdmin', (req, res) => {
   }
 })
 
-adminApp.post('/initializeBlogs', (req, res) => {
+adminApp.post('/initializePosts', (req, res) => {
   if (req.body.token === adminconfig.token) {
-    initializeblogs(db).then(res1 => {
+    initializeposts(db).then(res1 => {
       res.json({
         message: res1
       }).status(codes.success)
     }).catch(err => {
       res.json({
-        message: `blog init failed: ${err}`
+        message: `post init failed: ${err}`
       })
         .status(codes.error)
     })

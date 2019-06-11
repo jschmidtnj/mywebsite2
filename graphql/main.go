@@ -34,21 +34,40 @@ var database = "testing"
 
 var userCollection *mongo.Collection
 
+var userMongoName = "users"
+
 var blogCollection *mongo.Collection
+
+var blogMongoName = "blogs"
+
+var projectCollection *mongo.Collection
+
+var projectMongoName = "projects"
 
 var elasticClient *elastic.Client
 
 var ctxElastic context.Context
 
-var blogElasticIndex = "blogs"
+var blogElasticIndex = "blog"
+
+var projectElasticIndex = "project"
+
+var validTypes = []string{
+	"blog",
+	"project",
+}
 
 var ctxStorage context.Context
 
 var storageClient *storage.Client
 
-var blogImageBucket *storage.BucketHandle
+var imageBucket *storage.BucketHandle
 
-var blogPictureIndex = "blogs"
+var bucketName = "images"
+
+var blogImageIndex = "posts"
+
+var projectImageIndex = "posts"
 
 var logger *zap.Logger
 
@@ -103,8 +122,9 @@ func main() {
 	if err != nil {
 		logger.Fatal(err.Error())
 	}
-	userCollection = mongoClient.Database(database).Collection("users")
-	blogCollection = mongoClient.Database(database).Collection("blogs")
+	userCollection = mongoClient.Database(database).Collection(userMongoName)
+	projectCollection = mongoClient.Database(database).Collection(projectMongoName)
+	blogCollection = mongoClient.Database(database).Collection(blogMongoName)
 	elasticuri := os.Getenv("ELASTICURI")
 	elasticClient, err = elastic.NewClient(elastic.SetSniff(false), elastic.SetURL(elasticuri))
 	if err != nil {
@@ -123,12 +143,12 @@ func main() {
 	if err != nil {
 		logger.Fatal(err.Error())
 	}
-	blogImageBucket = storageClient.Bucket("blogimages")
 	gcpprojectid, ok := storageconfigjson["project_id"].(string)
 	if !ok {
 		logger.Fatal("could not cast gcp project id to string")
 	}
-	if err := blogImageBucket.Create(ctxStorage, gcpprojectid, nil); err != nil {
+	imageBucket = storageClient.Bucket(bucketName)
+	if err := imageBucket.Create(ctxStorage, gcpprojectid, nil); err != nil {
 		logger.Info(err.Error())
 	}
 	port := ":" + os.Getenv("PORT")
@@ -153,7 +173,7 @@ func main() {
 		response.Header().Set("content-type", "application/json")
 		json.NewEncoder(response).Encode(result)
 	})
-	http.HandleFunc("/countBlogs", countBlogs)
+	http.HandleFunc("/countPosts", countPosts)
 	http.HandleFunc("/sendTestEmail", sendTestEmail)
 	http.HandleFunc("/loginEmailPassword", loginEmailPassword)
 	http.HandleFunc("/logoutEmailPassword", logoutEmailPassword)
@@ -162,10 +182,10 @@ func main() {
 	http.HandleFunc("/sendResetEmail", sendPasswordResetEmail)
 	http.HandleFunc("/reset", resetPassword)
 	http.HandleFunc("/hello", hello)
-	http.HandleFunc("/createBlogPicture", createBlogPicture)
-	http.HandleFunc("/updateBlogPicture", updateBlogPicture)
-	http.HandleFunc("/deleteBlogPictures", deleteBlogPictures)
-	http.HandleFunc("/getBlogPicture", getBlogPicture)
+	http.HandleFunc("/createPostPicture", createPostPicture)
+	http.HandleFunc("/updatePostPicture", updatePostPicture)
+	http.HandleFunc("/deletePostPictures", deletePostPictures)
+	http.HandleFunc("/getPostPicture", getPostPicture)
 	http.ListenAndServe(port, nil)
 	logger.Info("Starting the application at " + port + " 🚀")
 }
@@ -189,4 +209,13 @@ func manageCors(w http.ResponseWriter, r *http.Request) bool {
 		return false
 	}
 	return true
+}
+
+func validType(thetype string) bool {
+	for _, b := range validTypes {
+		if b == thetype {
+			return true
+		}
+	}
+	return false
 }

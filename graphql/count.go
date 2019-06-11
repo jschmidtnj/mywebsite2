@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func countBlogs(response http.ResponseWriter, request *http.Request) {
+func countPosts(response http.ResponseWriter, request *http.Request) {
 	if !manageCors(response, request) {
 		return
 	}
@@ -27,6 +27,20 @@ func countBlogs(response http.ResponseWriter, request *http.Request) {
 		handleError("error parsing request body: "+err.Error(), http.StatusBadRequest, response)
 		return
 	}
+	var thetype string
+	if countdata["type"] != nil {
+		var ok bool
+		thetype, ok = countdata["type"].(string)
+		if !ok {
+			handleError("type cannot be cast to string", http.StatusBadRequest, response)
+			return
+		}
+		if !validType(thetype) {
+			handleError("invalid type given", http.StatusBadRequest, response)
+			return
+		}
+	}
+	var postElasticIndex = thetype
 	var searchterm string
 	if countdata["searchterm"] != nil {
 		var ok bool
@@ -40,13 +54,13 @@ func countBlogs(response http.ResponseWriter, request *http.Request) {
 	if len(searchterm) > 0 {
 		queryString := elastic.NewQueryStringQuery(searchterm)
 		count, err = elasticClient.Count().
-			Index(blogElasticIndex).
+			Index(postElasticIndex).
 			Query(queryString).
 			Pretty(false).
 			Do(ctxElastic)
 	} else {
 		count, err = elasticClient.Count().
-			Index(blogElasticIndex).
+			Index(postElasticIndex).
 			Query(nil).
 			Pretty(false).
 			Do(ctxElastic)
