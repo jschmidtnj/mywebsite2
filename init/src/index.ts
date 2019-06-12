@@ -4,6 +4,11 @@ import { codes, adminconfig, mongoconfig } from './config'
 import { initializeposts } from './posts'
 import * as mongodb from 'mongodb'
 
+const blogIndexName = 'blogs'
+const blogDocType = 'blog'
+const projectIndexName = 'projects'
+const projectDocType = 'project'
+
 const MongoClient = mongodb.MongoClient
 const ObjectID = mongodb.ObjectID
 
@@ -79,10 +84,17 @@ adminApp.post('/addAdmin', (req, res) => {
 
 adminApp.post('/initializePosts', (req, res) => {
   if (req.body.token === adminconfig.token) {
-    initializeposts(db).then(res1 => {
-      res.json({
-        message: res1
-      }).status(codes.success)
+    initializeposts(db, blogIndexName, blogDocType).then(res1 => {
+      initializeposts(db, projectIndexName, projectDocType).then(res2 => {
+        res.json({
+          message: res1
+        }).status(codes.success)
+      }).catch(err => {
+        res.json({
+          message: `post init failed: ${err}`
+        })
+          .status(codes.error)
+      })
     }).catch(err => {
       res.json({
         message: `post init failed: ${err}`

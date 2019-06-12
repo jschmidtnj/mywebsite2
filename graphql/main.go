@@ -48,9 +48,9 @@ var elasticClient *elastic.Client
 
 var ctxElastic context.Context
 
-var blogElasticIndex = "blog"
+var blogElasticIndex = "blogs"
 
-var projectElasticIndex = "project"
+var projectElasticIndex = "projects"
 
 var validTypes = []string{
 	"blog",
@@ -62,8 +62,6 @@ var ctxStorage context.Context
 var storageClient *storage.Client
 
 var imageBucket *storage.BucketHandle
-
-var bucketName = "images"
 
 var blogImageIndex = "posts"
 
@@ -143,14 +141,8 @@ func main() {
 	if err != nil {
 		logger.Fatal(err.Error())
 	}
-	gcpprojectid, ok := storageconfigjson["project_id"].(string)
-	if !ok {
-		logger.Fatal("could not cast gcp project id to string")
-	}
+	bucketName := os.Getenv("STORAGEBUCKETNAME")
 	imageBucket = storageClient.Bucket(bucketName)
-	if err := imageBucket.Create(ctxStorage, gcpprojectid, nil); err != nil {
-		logger.Info(err.Error())
-	}
 	port := ":" + os.Getenv("PORT")
 	schema, err := graphql.NewSchema(graphql.SchemaConfig{
 		Query:    rootQuery(),

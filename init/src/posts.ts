@@ -5,8 +5,6 @@ import { elasticuri } from './config'
  * post functions - initialize posts
  */
 
-const postindexname = 'posts'
-const postdoctype = 'post'
 const postmappings = {
   properties: {
     title: {
@@ -37,7 +35,7 @@ const writeclient = new elasticsearch.Client({
   host: elasticuri
 })
 
-export const initializeposts = db => {
+export const initializeposts = (db, postindexname, postdoctype) => {
   return new Promise((resolve, reject) => {
     writeclient
       .ping({
