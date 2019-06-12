@@ -50,7 +50,11 @@ var ctxElastic context.Context
 
 var blogElasticIndex = "blogs"
 
+var blogElasticType = "blog"
+
 var projectElasticIndex = "projects"
+
+var projectElasticType = "project"
 
 var validTypes = []string{
 	"blog",
@@ -68,6 +72,10 @@ var blogImageIndex = "posts"
 var projectImageIndex = "posts"
 
 var logger *zap.Logger
+
+type tokenKeyType string
+
+var tokenKey tokenKeyType
 
 func hello(response http.ResponseWriter, request *http.Request) {
 	if !manageCors(response, request) {
@@ -155,12 +163,11 @@ func main() {
 		if !manageCors(response, request) {
 			return
 		}
-		type contextKey string
-		var authToken = contextKey("token")
+		tokenKey = tokenKeyType("token")
 		result := graphql.Do(graphql.Params{
 			Schema:        schema,
 			RequestString: request.URL.Query().Get("query"),
-			Context:       context.WithValue(context.Background(), authToken, getAuthToken(request)),
+			Context:       context.WithValue(context.Background(), tokenKey, getAuthToken(request)),
 		})
 		response.Header().Set("content-type", "application/json")
 		json.NewEncoder(response).Encode(result)

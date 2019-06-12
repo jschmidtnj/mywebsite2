@@ -25,7 +25,7 @@ func rootQuery() *graphql.Object {
 				Type:        AccountType,
 				Description: "Get your account info",
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					accountdata, err := validateLoggedIn(params.Context.Value("token").(string))
+					accountdata, err := validateLoggedIn(params.Context.Value(tokenKey).(string))
 					if err != nil {
 						return nil, err
 					}
@@ -68,7 +68,7 @@ func rootQuery() *graphql.Object {
 					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					accountdata, err := validateAdmin(params.Context.Value("token").(string))
+					accountdata, err := validateAdmin(params.Context.Value(tokenKey).(string))
 					if err != nil {
 						return nil, err
 					}
@@ -170,6 +170,9 @@ func rootQuery() *graphql.Object {
 					if !ok {
 						return nil, errors.New("ascending could not be cast to boolean")
 					}
+					if params.Args["type"] == nil {
+						return nil, errors.New("type is undefined")
+					}
 					thetype, ok := params.Args["type"].(string)
 					if !ok {
 						return nil, errors.New("problem casting type to string")
@@ -177,12 +180,11 @@ func rootQuery() *graphql.Object {
 					if !validType(thetype) {
 						return nil, errors.New("invalid type given")
 					}
-					var postElasticIndex = thetype
-					fields := params.Info.FieldASTs
-					fieldstr := make([]string, len(fields))
-					for _, field := range fields {
-						logger.Info(field.Name.Value)
-						fieldstr = append(fieldstr, field.Name.Value)
+					var postElasticIndex string
+					if thetype == "blog" {
+						postElasticIndex = blogElasticIndex
+					} else {
+						postElasticIndex = projectElasticIndex
 					}
 					var searchResult *elastic.SearchResult
 					var err error
@@ -194,7 +196,6 @@ func rootQuery() *graphql.Object {
 							Sort(sort, ascending).
 							From(page).Size(perpage).
 							Pretty(false).
-							Source(fieldstr).
 							Do(ctxElastic)
 					} else {
 						searchResult, err = elasticClient.Search().
@@ -203,7 +204,6 @@ func rootQuery() *graphql.Object {
 							Sort(sort, ascending).
 							From(page).Size(perpage).
 							Pretty(false).
-							Source(fieldstr).
 							Do(ctxElastic)
 					}
 					if err != nil {
@@ -211,7 +211,6 @@ func rootQuery() *graphql.Object {
 					}
 					var posts []map[string]interface{}
 					for _, hit := range searchResult.Hits.Hits {
-						// Deserialize hit.Source into a Tweet (could also be just a map[string]interface{}).
 						var postData map[string]interface{}
 						err := json.Unmarshal(*hit.Source, &postData)
 						if err != nil {
@@ -241,6 +240,9 @@ func rootQuery() *graphql.Object {
 					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+					if params.Args["type"] == nil {
+						return nil, errors.New("type is undefined")
+					}
 					thetype, ok := params.Args["type"].(string)
 					if !ok {
 						return nil, errors.New("problem casting type to string")
@@ -249,12 +251,17 @@ func rootQuery() *graphql.Object {
 						return nil, errors.New("invalid type given")
 					}
 					var mongoCollection *mongo.Collection
+					var postElasticIndex string
+					var postElasticType string
 					if thetype == "blog" {
 						mongoCollection = blogCollection
+						postElasticIndex = blogElasticIndex
+						postElasticType = blogElasticType
 					} else {
 						mongoCollection = projectCollection
+						postElasticIndex = projectElasticIndex
+						postElasticType = projectElasticType
 					}
-					var postElasticIndex = thetype
 					if params.Args["id"] == nil {
 						return nil, errors.New("no id argument found")
 					}
@@ -303,7 +310,7 @@ func rootQuery() *graphql.Object {
 					}
 					_, err = elasticClient.Update().
 						Index(postElasticIndex).
-						Type("post").
+						Type(postElasticType).
 						Id(idstring).
 						Doc(bson.M{
 							"views": int(postData["views"].(int32)),

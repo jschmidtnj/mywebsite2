@@ -31,12 +31,12 @@ func rootMutation() *graphql.Object {
 					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					_, err := validateAdmin(params.Context.Value("token").(string))
+					_, err := validateAdmin(params.Context.Value(tokenKey).(string))
 					if err != nil {
 						return nil, err
 					}
-					if params.Args["title"] == nil || params.Args["content"] == nil || params.Args["author"] == nil {
-						return nil, errors.New("title or content or author not provided")
+					if params.Args["title"] == nil || params.Args["content"] == nil || params.Args["author"] == nil || params.Args["type"] == nil {
+						return nil, errors.New("title or content or author or type not provided")
 					}
 					title, ok := params.Args["title"].(string)
 					if !ok {
@@ -58,12 +58,17 @@ func rootMutation() *graphql.Object {
 						return nil, errors.New("invalid type given")
 					}
 					var mongoCollection *mongo.Collection
+					var postElasticIndex string
+					var postElasticType string
 					if thetype == "blog" {
 						mongoCollection = blogCollection
+						postElasticIndex = blogElasticIndex
+						postElasticType = blogElasticType
 					} else {
 						mongoCollection = projectCollection
+						postElasticIndex = projectElasticIndex
+						postElasticType = projectElasticType
 					}
-					var postElasticIndex = thetype
 					postData := bson.M{
 						"title":     title,
 						"content":   content,
@@ -82,7 +87,7 @@ func rootMutation() *graphql.Object {
 					postData["date"] = timestamp.Unix()
 					_, err = elasticClient.Index().
 						Index(postElasticIndex).
-						Type("post").
+						Type(postElasticType).
 						Id(idstring).
 						BodyJson(postData).
 						Do(ctxElastic)
@@ -115,12 +120,12 @@ func rootMutation() *graphql.Object {
 					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					_, err := validateAdmin(params.Context.Value("token").(string))
+					_, err := validateAdmin(params.Context.Value(tokenKey).(string))
 					if err != nil {
 						return nil, err
 					}
-					if params.Args["id"] == nil {
-						return nil, errors.New("post id not provided")
+					if params.Args["id"] == nil || params.Args["type"] == nil {
+						return nil, errors.New("post id or type not provided")
 					}
 					idstring, ok := params.Args["id"].(string)
 					if !ok {
@@ -160,15 +165,20 @@ func rootMutation() *graphql.Object {
 						return nil, errors.New("invalid type given")
 					}
 					var mongoCollection *mongo.Collection
+					var postElasticIndex string
+					var postElasticType string
 					if thetype == "blog" {
 						mongoCollection = blogCollection
+						postElasticIndex = blogElasticIndex
+						postElasticType = blogElasticType
 					} else {
 						mongoCollection = projectCollection
+						postElasticIndex = projectElasticIndex
+						postElasticType = projectElasticType
 					}
-					var postElasticIndex = thetype
 					_, err = elasticClient.Update().
 						Index(postElasticIndex).
-						Type("post").
+						Type(postElasticType).
 						Id(idstring).
 						Doc(updateData).
 						Do(ctxElastic)
@@ -224,9 +234,12 @@ func rootMutation() *graphql.Object {
 					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					_, err := validateAdmin(params.Context.Value("token").(string))
+					_, err := validateAdmin(params.Context.Value(tokenKey).(string))
 					if err != nil {
 						return nil, err
+					}
+					if params.Args["id"] == nil || params.Args["type"] == nil {
+						return nil, errors.New("post id or type not provided")
 					}
 					thetype, ok := params.Args["type"].(string)
 					if !ok {
@@ -236,14 +249,16 @@ func rootMutation() *graphql.Object {
 						return nil, errors.New("invalid type given")
 					}
 					var mongoCollection *mongo.Collection
+					var postElasticIndex string
+					var postElasticType string
 					if thetype == "blog" {
 						mongoCollection = blogCollection
+						postElasticIndex = blogElasticIndex
+						postElasticType = blogElasticType
 					} else {
 						mongoCollection = projectCollection
-					}
-					var postElasticIndex = thetype
-					if params.Args["id"] == nil {
-						return nil, errors.New("post id not provided")
+						postElasticIndex = projectElasticIndex
+						postElasticType = projectElasticType
 					}
 					idstring, ok := params.Args["id"].(string)
 					if !ok {
@@ -288,7 +303,7 @@ func rootMutation() *graphql.Object {
 					}
 					_, err = elasticClient.Delete().
 						Index(postElasticIndex).
-						Type("post").
+						Type(postElasticType).
 						Id(idstring).
 						Do(ctxElastic)
 					if err != nil {
@@ -319,7 +334,7 @@ func rootMutation() *graphql.Object {
 					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-					_, err := validateAdmin(params.Context.Value("token").(string))
+					_, err := validateAdmin(params.Context.Value(tokenKey).(string))
 					if err != nil {
 						return nil, err
 					}

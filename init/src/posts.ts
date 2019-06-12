@@ -119,7 +119,7 @@ export const initializeposts = (db, postindexname, postdoctype) => {
                                       )}`
                                     )
                                     db
-                                      .collection('posts')
+                                      .collection(postindexname)
                                       .find({})
                                       .toArray()
                                       .then(docs => {

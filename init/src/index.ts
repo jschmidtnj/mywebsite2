@@ -4,6 +4,7 @@ import { codes, adminconfig, mongoconfig } from './config'
 import { initializeposts } from './posts'
 import * as mongodb from 'mongodb'
 
+// indexname must match mongodb name
 const blogIndexName = 'blogs'
 const blogDocType = 'blog'
 const projectIndexName = 'projects'
@@ -87,7 +88,7 @@ adminApp.post('/initializePosts', (req, res) => {
     initializeposts(db, blogIndexName, blogDocType).then(res1 => {
       initializeposts(db, projectIndexName, projectDocType).then(res2 => {
         res.json({
-          message: res1
+          message: `res1: ${res1}, res2: ${res2}`
         }).status(codes.success)
       }).catch(err => {
         res.json({

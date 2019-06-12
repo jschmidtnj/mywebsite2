@@ -40,7 +40,12 @@ func countPosts(response http.ResponseWriter, request *http.Request) {
 			return
 		}
 	}
-	var postElasticIndex = thetype
+	var postElasticIndex string
+	if thetype == "blog" {
+		postElasticIndex = blogElasticIndex
+	} else {
+		postElasticIndex = projectElasticIndex
+	}
 	var searchterm string
 	if countdata["searchterm"] != nil {
 		var ok bool
