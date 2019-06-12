@@ -9,29 +9,29 @@
                 <span class="card-text">
                   <h2 class="mb-4">{{ mode }} Post</h2>
                   <b-form-group>
-                    <label>Title</label>
+                    <label>Content</label>
                     <span>
                       <b-form-textarea
-                        v-model="post.title"
+                        v-model="post.content"
                         type="text"
-                        :state="!$v.post.title.$invalid"
+                        :state="!$v.post.content.$invalid"
                         class="form-control"
-                        aria-describedby="titlefeedback"
-                        placeholder="Enter title..."
+                        aria-describedby="contentfeedback"
+                        placeholder="Enter content..."
                         rows="5"
                         max-rows="15"
                       />
                     </span>
                     <b-form-invalid-feedback
-                      id="titlefeedback"
-                      :state="!$v.post.title.$invalid"
+                      id="contentfeedback"
+                      :state="!$v.post.content.$invalid"
                     >
-                      <div v-if="!$v.post.title.required">
-                        title is required
+                      <div v-if="!$v.post.content.required">
+                        content is required
                       </div>
-                      <div v-else-if="!$v.post.title.minLength">
-                        title must have at least
-                        {{ $v.post.title.$params.minLength.min }} characters
+                      <div v-else-if="!$v.post.content.minLength">
+                        content must have at least
+                        {{ $v.post.content.$params.minLength.min }} characters
                       </div>
                     </b-form-invalid-feedback>
                   </b-form-group>
@@ -62,28 +62,28 @@
                     </b-form-invalid-feedback>
                   </b-form-group>
                   <b-form-group>
-                    <label class="form-required">Content</label>
+                    <label class="form-required">Title</label>
                     <span>
                       <b-form-input
-                        id="content"
-                        v-model="post.content"
-                        :state="!$v.post.content.$invalid"
+                        id="title"
+                        v-model="post.title"
+                        :state="!$v.post.title.$invalid"
                         type="text"
                         class="form-control"
-                        aria-describedby="contentfeedback"
+                        aria-describedby="titlefeedback"
                         placeholder
                       />
                     </span>
                     <b-form-invalid-feedback
-                      id="contentfeedback"
-                      :state="!$v.post.content.$invalid"
+                      id="titlefeedback"
+                      :state="!$v.post.title.$invalid"
                     >
-                      <div v-if="!$v.post.content.required">
-                        content is required
+                      <div v-if="!$v.post.title.required">
+                        title is required
                       </div>
-                      <div v-else-if="!$v.post.content.minLength">
-                        content must have at least
-                        {{ $v.post.content.$params.minLength.min }} characters
+                      <div v-else-if="!$v.post.title.minLength">
+                        title must have at least
+                        {{ $v.post.title.$params.minLength.min }} characters
                       </div>
                     </b-form-invalid-feedback>
                   </b-form-group>
@@ -107,26 +107,26 @@
                     </b-form-invalid-feedback>
                   </b-form-group>
                   <b-form-group>
-                    <label class="form-required">Case Number</label>
+                    <label class="form-required">Views</label>
                     <span>
                       <b-form-input
-                        v-model="post.casenumber"
+                        v-model="post.views"
                         type="number"
-                        :state="!$v.post.casenumber.$invalid"
+                        :state="!$v.post.views.$invalid"
                         class="form-control mb-2"
-                        aria-describedby="casenumberfeedback"
+                        aria-describedby="viewsfeedback"
                         placeholder
                       />
                     </span>
                     <b-form-invalid-feedback
-                      id="casenumberfeedback"
-                      :state="!$v.post.casenumber.$invalid"
+                      id="viewsfeedback"
+                      :state="!$v.post.views.$invalid"
                     >
-                      <div v-if="!$v.post.casenumber.required">
-                        case number is required
+                      <div v-if="!$v.post.views.required">
+                        views is required
                       </div>
-                      <div v-else-if="!$v.post.casenumber.integer">
-                        case number must be an integer
+                      <div v-else-if="!$v.post.views.integer">
+                        views must be an integer
                       </div>
                     </b-form-invalid-feedback>
                   </b-form-group>
@@ -431,6 +431,7 @@ export default Vue.extend({
   // @ts-ignore
   data() {
     return {
+      type: null,
       validtypes: ['blog', 'project'],
       modetypes: modetypes,
       mode: modetypes.add,
@@ -483,6 +484,7 @@ export default Vue.extend({
         minLength: minLength(3)
       },
       author: {
+        required,
         minLength: minLength(3)
       },
       content: {
@@ -492,6 +494,9 @@ export default Vue.extend({
       views: {
         required,
         integer
+      },
+      date: {
+        required
       },
       heroimage: {
         file: {
@@ -526,16 +531,18 @@ export default Vue.extend({
       links: links
     }
   },
+  /* eslint-disable */
   mounted() {
+    console.log(`got type ${this.$route.params.type}`)
+    this.type = this.$route.params.type
     if (!(this.type && this.validtypes.includes(this.type))) {
       this.$toasted.global.error({
         message: `invalid type given: ${this.type}`
       })
       // default to blog
-      this.$router.push('/admin/blog')
+      // this.$router.push('/admin/posts/blog')
     }
   },
-  /* eslint-disable */
   methods: {
     updateCodeHighlighting() {
       this.$nextTick(() => {
@@ -546,8 +553,8 @@ export default Vue.extend({
       return uuid()
     },
     getHeroImageTag() {
-      // @ts-ignore
       const url = encodeURIComponent(
+        // @ts-ignore
         `${process.env.apiurl}/getPostPicture?type=${this.type}&postid=${
           this.postid
         }&hero=true`
@@ -555,8 +562,8 @@ export default Vue.extend({
       return `<img src="${url}"></img>`
     },
     getImageTag(imageid) {
-      // @ts-ignore
       const url = encodeURIComponent(
+        // @ts-ignore
         `${process.env.apiurl}/getPostPicture?type=${this.type}&postid=${
           this.postid
         }&imageid=${imageid}`

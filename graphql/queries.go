@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/graphql-go/graphql"
-	"github.com/graphql-go/graphql/language/ast"
 	"github.com/olivere/elastic"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -136,6 +135,8 @@ func rootQuery() *graphql.Object {
 					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+					// see this: https://github.com/olivere/elastic/issues/483
+					// for potential fix to source issue (tried gave null pointer error)
 					if params.Args["perpage"] == nil {
 						return nil, errors.New("no perpage argument found")
 					}
@@ -187,21 +188,6 @@ func rootQuery() *graphql.Object {
 					} else {
 						postElasticIndex = projectElasticIndex
 					}
-					fieldarray := params.Info.FieldASTs
-					var posts []map[string]interface{}
-					if len(fieldarray) == 0 {
-						return posts, nil
-					}
-					fields := fieldarray[0].SelectionSet.Selections
-					fieldstr := make([]string, len(fields))
-					for _, field := range fields {
-						fieldast, ok := field.(*ast.Field)
-						if !ok {
-							return nil, errors.New("field cannot be converted to *ast.FIeld")
-						}
-						logger.Info(fieldast.Name.Value)
-						fieldstr = append(fieldstr, fieldast.Name.Value)
-					}
 					var searchResult *elastic.SearchResult
 					var err error
 					logger.Info("start search")
@@ -213,7 +199,6 @@ func rootQuery() *graphql.Object {
 							Sort(sort, ascending).
 							From(page).Size(perpage).
 							Pretty(false).
-							Source(fieldstr).
 							Do(ctxElastic)
 					} else {
 						searchResult, err = elasticClient.Search().
@@ -222,13 +207,12 @@ func rootQuery() *graphql.Object {
 							Sort(sort, ascending).
 							From(page).Size(perpage).
 							Pretty(false).
-							StoredFields(fieldstr...).
 							Do(ctxElastic)
 					}
 					if err != nil {
 						return nil, err
 					}
-					logger.Info("finished search")
+					var posts []map[string]interface{}
 					for _, hit := range searchResult.Hits.Hits {
 						if *hit.Source == nil {
 							return nil, errors.New("no hit source found")
@@ -238,7 +222,6 @@ func rootQuery() *graphql.Object {
 						if err != nil {
 							return nil, err
 						}
-						logger.Info("unmarshal worked")
 						id, err := primitive.ObjectIDFromHex(hit.Id)
 						if err != nil {
 							return nil, err

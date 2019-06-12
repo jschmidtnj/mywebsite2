@@ -79,7 +79,8 @@ module.exports = {
     { src: '~/plugins/font-awesome', ssr: false },
     { src: '~/plugins/vuelidate', ssr: false },
     { src: '~/plugins/vuex-persist', ssr: false },
-    { src: '~/plugins/axios', ssr: false }
+    { src: '~/plugins/axios', ssr: false },
+    { src: '~/plugins/toast', ssr: false }
   ],
 
   /*
