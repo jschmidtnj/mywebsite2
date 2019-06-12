@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/graphql-go/graphql"
+	"github.com/graphql-go/graphql/language/ast"
 	"github.com/olivere/elastic"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -186,8 +187,24 @@ func rootQuery() *graphql.Object {
 					} else {
 						postElasticIndex = projectElasticIndex
 					}
+					fieldarray := params.Info.FieldASTs
+					var posts []map[string]interface{}
+					if len(fieldarray) == 0 {
+						return posts, nil
+					}
+					fields := fieldarray[0].SelectionSet.Selections
+					fieldstr := make([]string, len(fields))
+					for _, field := range fields {
+						fieldast, ok := field.(*ast.Field)
+						if !ok {
+							return nil, errors.New("field cannot be converted to *ast.FIeld")
+						}
+						logger.Info(fieldast.Name.Value)
+						fieldstr = append(fieldstr, fieldast.Name.Value)
+					}
 					var searchResult *elastic.SearchResult
 					var err error
+					logger.Info("start search")
 					if len(searchterm) > 0 {
 						queryString := elastic.NewQueryStringQuery(searchterm)
 						searchResult, err = elasticClient.Search().
@@ -196,6 +213,7 @@ func rootQuery() *graphql.Object {
 							Sort(sort, ascending).
 							From(page).Size(perpage).
 							Pretty(false).
+							Source(fieldstr).
 							Do(ctxElastic)
 					} else {
 						searchResult, err = elasticClient.Search().
@@ -204,18 +222,23 @@ func rootQuery() *graphql.Object {
 							Sort(sort, ascending).
 							From(page).Size(perpage).
 							Pretty(false).
+							StoredFields(fieldstr...).
 							Do(ctxElastic)
 					}
 					if err != nil {
 						return nil, err
 					}
-					var posts []map[string]interface{}
+					logger.Info("finished search")
 					for _, hit := range searchResult.Hits.Hits {
+						if *hit.Source == nil {
+							return nil, errors.New("no hit source found")
+						}
 						var postData map[string]interface{}
 						err := json.Unmarshal(*hit.Source, &postData)
 						if err != nil {
 							return nil, err
 						}
+						logger.Info("unmarshal worked")
 						id, err := primitive.ObjectIDFromHex(hit.Id)
 						if err != nil {
 							return nil, err
