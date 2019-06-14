@@ -3,7 +3,7 @@
     <b-container v-if="post">
       <h1>{{ post.title }}</h1>
       <p>{{ post.author }}</p>
-      <p v-if="post.date">{{ formatDate(post.date, 'M/D/YYYY') }}</p>
+      <p v-if="post.id">{{ formatDate(mongoidToDate(post.id), 'M/D/YYYY') }}</p>
       <p>{{ post.views }}</p>
       <vue-markdown
         :source="post.content"
@@ -113,6 +113,9 @@ export default Vue.extend({
     },
     formatDate(dateUTC, formatStr) {
       return format(dateUTC, formatStr)
+    },
+    mongoidToDate(id) {
+      return parseInt(id.substring(0,8), 16) * 1000
     }
   }
 })

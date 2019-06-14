@@ -268,6 +268,14 @@ func rootMutation() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
+					_, err = elasticClient.Delete().
+						Index(postElasticIndex).
+						Type(postElasticType).
+						Id(idstring).
+						Do(ctxElastic)
+					if err != nil {
+						return nil, err
+					}
 					cursor, err := mongoCollection.Find(ctxMongo, bson.M{
 						"_id": id,
 					})
@@ -301,16 +309,12 @@ func rootMutation() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
-					_, err = elasticClient.Delete().
-						Index(postElasticIndex).
-						Type(postElasticType).
-						Id(idstring).
-						Do(ctxElastic)
-					if err != nil {
-						return nil, err
+					primativeimageids, ok := postData["images"].(primitive.A)
+					if !ok {
+						return nil, errors.New("cannot convert imageids to primitive")
 					}
-					imageids := postData["images"].([]string)
-					for _, imageid := range imageids {
+					for _, primativeimageid := range primativeimageids {
+						imageid := primativeimageid.(string)
 						logger.Info("imageid: " + imageid + ", postid: " + idstr)
 						var fileobj *storage.ObjectHandle
 						if thetype == "blog" {

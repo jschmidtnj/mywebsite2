@@ -88,25 +88,6 @@
                     </b-form-invalid-feedback>
                   </b-form-group>
                   <b-form-group>
-                    <label class="form-required">Date</label>
-                    <span>
-                      <b-form-input
-                        v-model="post.date"
-                        type="date"
-                        :state="!$v.post.date.$invalid"
-                        class="form-control mb-2"
-                        aria-describedby="datefeedback"
-                        placeholder
-                      />
-                    </span>
-                    <b-form-invalid-feedback
-                      id="datefeedback"
-                      :state="!$v.post.date.$invalid"
-                    >
-                      <div v-if="!$v.post.date.required">date is required</div>
-                    </b-form-invalid-feedback>
-                  </b-form-group>
-                  <b-form-group>
                     <label class="form-required">Views</label>
                     <span>
                       <b-form-input
@@ -253,7 +234,7 @@
                         <b-btn
                           variant="primary"
                           class="mr-2 mt-2"
-                          :disabled="post.images.length === 1"
+                          :disabled="post.images.length === 0"
                           @click="post.images.pop()"
                         >
                           <no-ssr>
@@ -371,20 +352,20 @@
                 :current-page="currentpage"
                 :per-page="numperpage"
               >
-                <template slot="name" slot-scope="row">
-                  {{ row.value }}
-                </template>
+                <template slot="name" slot-scope="row">{{
+                  row.value
+                }}</template>
+                <template slot="date" slot-scope="row">{{
+                  row.value
+                }}</template>
                 <template slot="id" slot-scope="row">{{ row.value }}</template>
                 <template slot="actions" slot-scope="row">
-                  <b-button
-                    size="sm"
-                    class="mr-1"
-                    @click="editPost(row.item)"
-                    >{{ modetypes.edit }}</b-button
+                  <b-button size="sm" class="mr-1" @click="editPost(row.item)"
+                    >Edit</b-button
                   >
-                  <b-button size="sm" @click="deletePost(row.item)">
-                    {{ modetypes.delete }}
-                  </b-button>
+                  <b-button size="sm" @click="deletePost(row.item)"
+                    >Del</b-button
+                  >
                 </template>
               </b-table>
               <b-row class="mb-2">
@@ -411,6 +392,7 @@ import { validationMixin } from 'vuelidate'
 import { required, minLength, integer } from 'vuelidate/lib/validators'
 import VueMarkdown from 'vue-markdown'
 import Prism from 'prismjs'
+import { format } from 'date-fns'
 import uuid from 'uuid/v1'
 /**
  * posts edit
@@ -447,6 +429,11 @@ export default Vue.extend({
           sortable: true
         },
         {
+          key: 'date',
+          label: 'Date',
+          sortable: true
+        },
+        {
           key: 'id',
           label: 'ID',
           sortable: true
@@ -462,7 +449,6 @@ export default Vue.extend({
         content: '',
         author: '',
         views: null,
-        date: null,
         heroimage: {
           uploaded: false,
           file: null,
@@ -495,13 +481,8 @@ export default Vue.extend({
         required,
         integer
       },
-      date: {
-        required
-      },
       heroimage: {
-        file: {
-          required
-        }
+        file: {}
       },
       images: {
         $each: {
@@ -552,6 +533,12 @@ export default Vue.extend({
     createId() {
       return uuid()
     },
+    mongoidToDate(id) {
+      return parseInt(id.substring(0,8), 16) * 1000
+    },
+    formatDate(dateUTC, formatStr) {
+      return format(dateUTC, formatStr)
+    },
     getHeroImageTag() {
       const url = encodeURIComponent(
         // @ts-ignore
@@ -579,7 +566,8 @@ export default Vue.extend({
       })
     },
     editPost(searchresult) {
-      this.postid = searchresult._id
+      this.postid = searchresult.id
+      console.log(searchresult.id)
       console.log(`id: ${this.postid}`)
 
       // get images
@@ -589,6 +577,7 @@ export default Vue.extend({
         let cont = true
         const finishedGets = () => {
           this.mode = this.modetypes.edit
+          this.post = thepost
           this.$toasted.global.success({
             message: `edit ${this.type} with id ${this.postid}`
           })
@@ -605,68 +594,26 @@ export default Vue.extend({
             type: mimetype
           })
         }
-        this.$axios
-          .get('/getPostPicture', {
-            params: {
-              type: this.type,
-              postid: this.postid,
-              hero: true
-            }
-          })
-          .then(res => {
-            if (!cont) return
-            if (res.status == 200) {
-              if (res.data) {
-                thepost.heroimage.file = base64ToFile(res.data)
-                thepost.heroimage.uploaded = true
-                thepost.heroimage.update = true
-                gothero = true
-                if (thepost.images.length === getimagecount) {
-                  this.post = thepost
-                  finishedGets()
-                }
-              } else {
-                this.$toasted.global.error({
-                  message: 'could not get image data'
-                })
-              }
-            } else {
-              this.$toasted.global.error({
-                message: `got status code of ${res.status} on image upload`
-              })
-            }
-          })
-          .catch(err => {
-            this.$toasted.global.error({
-              message: `got error on image get: ${err}`
-            })
-          })
-        for (let i = 0; i < thepost.images.length; i++) {
-          if (!cont) break
+        let hashero = false
+        if (thepost.heroimage.length > 0) {
+          hashero = true
           this.$axios
             .get('/getPostPicture', {
               params: {
                 type: this.type,
                 postid: this.postid,
-                imageid: thepost.images[i]
+                hero: true
               }
             })
             .then(res => {
               if (!cont) return
               if (res.status == 200) {
                 if (res.data) {
-                  const name = thepost.images[getimagecount].split(
-                    /\.(?=[^\.]+$)/
-                  )[0]
-                  thepost.images[getimagecount] = {
-                    id: thepost.images[getimagecount],
-                    name: name,
-                    uploaded: true,
-                    file: base64ToFile(res.data),
-                    update: true
-                  }
-                  getimagecount++
-                  if (thepost.images.length === getimagecount && gothero) {
+                  thepost.heroimage.file = base64ToFile(res.data)
+                  thepost.heroimage.uploaded = true
+                  thepost.heroimage.update = true
+                  gothero = true
+                  if (thepost.images.length === getimagecount) {
                     finishedGets()
                   }
                 } else {
@@ -685,28 +632,94 @@ export default Vue.extend({
                 message: `got error on image get: ${err}`
               })
             })
+        } else {
+          thepost.heroimage = {
+            uploaded: false,
+            file: null,
+            update: false
+          }
+        }
+        if (thepost.images.length > 0) {
+          for (let i = 0; i < thepost.images.length; i++) {
+            if (!cont) break
+            this.$axios
+              .get('/getPostPicture', {
+                params: {
+                  type: this.type,
+                  postid: this.postid,
+                  imageid: thepost.images[i]
+                }
+              })
+              .then(res => {
+                if (!cont) return
+                if (res.status == 200) {
+                  if (res.data) {
+                    // split at last period
+                    const name = thepost.images[getimagecount].split(
+                      /\.(?=[^\.]+$)/
+                    )[0]
+                    thepost.images[getimagecount] = {
+                      id: thepost.images[getimagecount],
+                      name: name,
+                      uploaded: true,
+                      file: base64ToFile(res.data),
+                      update: true
+                    }
+                    getimagecount++
+                    if (thepost.images.length === getimagecount && gothero) {
+                      finishedGets()
+                    }
+                  } else {
+                    this.$toasted.global.error({
+                      message: 'could not get image data'
+                    })
+                  }
+                } else {
+                  this.$toasted.global.error({
+                    message: `got status code of ${res.status} on image upload`
+                  })
+                }
+              })
+              .catch(err => {
+                this.$toasted.global.error({
+                  message: `got error on image get: ${err}`
+                })
+              })
+          }
+        } else {
+          if (!hashero) {
+            finishedGets()
+          }
         }
       }
-
+      console.log(`type: ${this.type}`)
       // get post data first
       this.$axios
         .get('/graphql', {
           params: {
             query: `{post(type:"${this.type}",id:"${
               this.postid
-            }"){title content id author views images}}`
+            }"){title content id author views images heroimage}}`
           }
         })
         .then(res => {
           if (res.status === 200) {
+            console.log('got 200')
             if (res.data) {
+              console.log('got data')
               if (res.data.data && res.data.data.post) {
+                console.log('got data and post')
                 const thepost: any = res.data.data.post
+                thepost.content = decodeURIComponent(thepost.content)
+                thepost.author = decodeURIComponent(thepost.author)
+                thepost.title = decodeURIComponent(thepost.title)
                 getimages(thepost)
               } else if (res.data.errors) {
+                console.log('got error')
                 this.$toasted.global.error({
                   message: `found errors: ${JSON.stringify(res.data.errors)}`
                 })
+                console.log(res.data)
               } else {
                 this.$toasted.global.error({
                   message: 'could not find data or errors'
@@ -730,18 +743,18 @@ export default Vue.extend({
         })
     },
     deletePost(searchresult) {
-      const id = searchresult._id
+      const id = searchresult.id
       console.log(`id: ${id}`)
       this.$axios
-        .put('/graphql', {
+        .delete('/graphql', {
           params: {
-            query: `mutation{deletePost(type:"${this.type}",id:"${id}"){}}`
+            query: `mutation{deletePost(type:"${this.type}",id:"${id}"){id}}`
           }
         })
         .then(res => {
           if (res.status === 200) {
             if (res.data) {
-              if (res.data.data && res.data.data.post) {
+              if (res.data.data && res.data.data.deletePost) {
                 this.searchresults.splice(
                   this.searchresults.indexOf(searchresult),
                   1
@@ -750,6 +763,7 @@ export default Vue.extend({
                   message: 'post deleted'
                 })
               } else if (res.data.errors) {
+                console.log(res.data)
                 this.$toasted.global.error({
                   message: `found errors: ${JSON.stringify(res.data.errors)}`
                 })
@@ -789,6 +803,7 @@ export default Vue.extend({
           if (res.status === 200) {
             if (res.data) {
               if (res.data.data && res.data.data.posts) {
+                res.data.data.posts.map(post => post.date = this.formatDate(this.mongoidToDate(post.id), 'M/D/YYYY'))
                 this.searchresults = res.data.data.posts
                 this.$toasted.global.success({
                   message: `found ${this.searchresults.length} result${
@@ -833,7 +848,6 @@ export default Vue.extend({
         content: '',
         author: '',
         views: null,
-        date: null,
         heroimage: {
           uploaded: false,
           file: null,
@@ -855,6 +869,13 @@ export default Vue.extend({
         let totaluploads =
           (this.post.heroimage.uploaded ? 1 : 0) +
           this.post.images.filter(image => image.uploaded).length
+        const successMessage = () => {
+          this.resetposts(evt)
+          this.$toasted.global.success({
+            message: `${this.mode}ed ${this.type} with id ${postid}`
+          })
+          this.mode = this.modetypes.add
+        }
         const uploadImage = (image, imageid, update) => {
           if (!cont) return
           const formData = new FormData()
@@ -876,11 +897,7 @@ export default Vue.extend({
               if (res.status == 200) {
                 imageuploadcount++
                 if (totaluploads === imageuploadcount) {
-                  this.resetposts(evt)
-                  this.$toasted.global.success({
-                    message: `${this.mode}ed ${this.type} with id ${postid}`
-                  })
-                  this.mode = this.modetypes.add
+                  successMessage()
                 }
               } else {
                 this.$toasted.global.error({
@@ -894,7 +911,9 @@ export default Vue.extend({
               })
             })
         }
-        if (!this.post.heroimage.uploaded) {
+        let uploadinghero = false
+        if (!this.post.heroimage.uploaded && this.post.heroimage.file) {
+          uploadinghero = true
           this.post.heroimage.file = new File(
             [this.post.heroimage.file],
             'hero',
@@ -908,22 +927,26 @@ export default Vue.extend({
             this.post.heroimage.update
           )
         }
-        for (let i = 0; i < this.post.images.length; i++) {
-          if (!cont) break
-          if (!this.post.images[i].uploaded) {
-            this.post.images[i].file = new File(
-              [this.post.images[i].file],
-              this.post.images[i].name,
-              {
-                type: this.post.images[i].file.type
-              }
-            )
-            uploadImage(
-              this.post.images[i].file,
-              `${this.post.images[i].name}.${this.post.images[i].id}`,
-              this.post.images[i].update
-            )
+        if (this.post.images.length > 0) {
+          for (let i = 0; i < this.post.images.length; i++) {
+            if (!cont) break
+            if (!this.post.images[i].uploaded) {
+              this.post.images[i].file = new File(
+                [this.post.images[i].file],
+                this.post.images[i].name,
+                {
+                  type: this.post.images[i].file.type
+                }
+              )
+              uploadImage(
+                this.post.images[i].file,
+                `${this.post.images[i].name}.${this.post.images[i].id}`,
+                this.post.images[i].update
+              )
+            }
           }
+        } else if (!uploadinghero) {
+          successMessage()
         }
       }
 
@@ -933,26 +956,34 @@ export default Vue.extend({
       postdata.images = []
       if (this.mode === this.modetypes.add) {
         this.$axios
-          .post('/graphql', {
-            params: {
-              query: `mutation{addPost(type:"${this.type}",title:"${
-                this.post.title
-              }",content:"${this.post.content}",author:"${
-                this.post.author
-              }"){id}}`
+          .post(
+            '/graphql',
+            {},
+            {
+              params: {
+                query: `mutation{addPost(type:"${
+                  this.type
+                }",title:"${encodeURIComponent(
+                  this.post.title
+                )}",content:"${encodeURIComponent(
+                  this.post.content
+                )}",author:"${encodeURIComponent(this.post.author)}"){id}}`
+              }
             }
-          })
+          )
           .then(res => {
             if (res.status === 200) {
               if (res.data) {
-                if (res.data.data && res.data.data.post) {
-                  postid = res.data.data.post.id
+                if (res.data.data && res.data.data.addPost) {
+                  postid = res.data.data.addPost.id
                   uploadImages()
                 } else if (res.data.errors) {
+                  console.log(res.data)
                   this.$toasted.global.error({
                     message: `found errors: ${JSON.stringify(res.data.errors)}`
                   })
                 } else {
+                  console.log(res.data)
                   this.$toasted.global.error({
                     message: 'could not find data or errors'
                   })
@@ -975,15 +1006,21 @@ export default Vue.extend({
           })
       } else {
         this.$axios
-          .put('/graphql', {
-            params: {
-              query: `mutation{updatePost(type:"${this.type}",id:"${
-                this.postid
-              }",title:"${this.post.title}",content:"${
-                this.post.content
-              }",author:"${this.post.author}"){}}`
+          .put(
+            '/graphql',
+            {},
+            {
+              params: {
+                query: `mutation{updatePost(type:"${this.type}",id:"${
+                  this.postid
+                }",title:"${encodeURIComponent(
+                  this.post.title
+                )}",content:"${encodeURIComponent(
+                  this.post.content
+                )}",author:"${encodeURIComponent(this.post.author)}"){}}`
+              }
             }
-          })
+          )
           .then(res => {
             if (res.status === 200) {
               if (res.data) {
