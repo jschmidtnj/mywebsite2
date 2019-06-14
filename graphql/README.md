@@ -24,3 +24,10 @@ app engine: `gcloud app deploy`
 - `http://localhost:port/graphql?query={account{id email}}`
 - `http://localhost:port/graphql?query={user(id:"id"){email id password}}`
 - `http://localhost:port/graphql?query=mutation{deleteUser(id:"id"){id email}}`
+
+## upload pictures plan
+
+- upload pictures on picture add, remove on picture remove
+- delete all pictures on clear, clear on page leave
+- on submit, add pictures by id in array to post
+- on picture add, get url to add to content
