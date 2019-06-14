@@ -356,7 +356,7 @@
                   row.value
                 }}</template>
                 <template slot="date" slot-scope="row">{{
-                  row.value
+                  formatDate(row.value, 'M/D/YYYY')
                 }}</template>
                 <template slot="id" slot-scope="row">{{ row.value }}</template>
                 <template slot="actions" slot-scope="row">
@@ -803,7 +803,7 @@ export default Vue.extend({
           if (res.status === 200) {
             if (res.data) {
               if (res.data.data && res.data.data.posts) {
-                res.data.data.posts.map(post => post.date = this.formatDate(this.mongoidToDate(post.id), 'M/D/YYYY'))
+                res.data.data.posts.map(post => post.date = this.mongoidToDate(post.id))
                 this.searchresults = res.data.data.posts
                 this.$toasted.global.success({
                   message: `found ${this.searchresults.length} result${
