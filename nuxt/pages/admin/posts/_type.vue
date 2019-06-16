@@ -599,6 +599,10 @@ export default Vue.extend({
             file: null,
             update: false
           }
+          gothero = true
+          if (thepost.images.length === getimagecount) {
+            finishedGets()
+          }
         }
         if (thepost.images.length > 0) {
           for (let i = 0; i < thepost.images.length; i++) {
@@ -815,7 +819,7 @@ export default Vue.extend({
         let imageuploadcount = 0
         let imageuploads = this.post.images.filter(image => !image.uploaded)
         let totaluploads =
-          (this.post.heroimage.uploaded ? 0 : 1) + imageuploads.length
+          (!this.post.heroimage.uploaded && this.post.heroimage.file ? 1 : 0) + imageuploads.length
         const successMessage = () => {
           this.resetposts(evt)
           this.$toasted.global.success({
@@ -1008,7 +1012,7 @@ export default Vue.extend({
 })
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import '~/node_modules/prismjs/themes/prism.css';
 
 .markdown {

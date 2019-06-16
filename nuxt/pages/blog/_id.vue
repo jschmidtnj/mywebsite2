@@ -11,6 +11,7 @@
         @rendered="updateCodeHighlighting"
       />
     </b-container>
+    <loading v-else />
   </div>
 </template>
 
@@ -18,28 +19,28 @@
 import Vue from 'vue'
 import { format } from 'date-fns'
 import VueMarkdown from 'vue-markdown'
+import Loading from '~/components/Loading.vue'
 import Prism from 'prismjs'
 export default Vue.extend({
   name: 'Post',
   components: {
-    VueMarkdown
+    VueMarkdown,
+    Loading
+  },
+  data() {
+    return {
+      id: null,
+      post: null
+    }
   },
   /* eslint-disable */
-  // @ts-ignore
-  asyncData(context) {
-    // @ts-ignore
-    const handleErrors = () => {
-      return {
-        id: null,
-        post: {}
-      }
-    }
-    if (context.params && context.params.id) {
-      const id = context.params.id
-      return context.app.$axios
+  mounted() {
+    if (this.$route.params && this.$route.params.id) {
+      this.id = this.$route.params.id
+      this.$axios
         .get('/graphql', {
           params: {
-            query: `{post(type:"blog",id:"${id}"){title content id author views}}`
+            query: `{post(type:"blog",id:"${this.id}"){title content id author views}}`
           }
         })
         .then(res => {
@@ -48,33 +49,36 @@ export default Vue.extend({
               if (res.data.data && res.data.data.post) {
                 const post = res.data.data.post
                 post.content = decodeURIComponent(post.content)
-                return {
-                  id: id,
-                  post: post
-                }
+                this.post = post
               } else if (res.data.errors) {
-                console.log(`found errors: ${JSON.stringify(res.data.errors)}`)
-                return handleErrors()
+                this.$toasted.global.error({
+                  message: `found errors: ${JSON.stringify(res.data.errors)}`
+                })
               } else {
-                console.log('could not find data or errors')
-                return handleErrors()
+                this.$toasted.global.error({
+                  message: 'could not find data or errors'
+                })
               }
             } else {
-              console.log('could not get data')
-              return handleErrors()
+              this.$toasted.global.error({
+                message: 'could not get data'
+              })
             }
           } else {
-            console.log(`status code of ${res.status}`)
-            return handleErrors()
+            this.$toasted.global.error({
+              message: `status code of ${res.status}`
+            })
           }
         })
         .catch(err => {
-          console.error(`got error: ${err}`)
-          return handleErrors()
+          this.$toasted.global.error({
+            message: `got error: ${err}`
+          })
         })
     } else {
-      console.log('could not find id in params')
-      return handleErrors()
+      this.$toasted.global.error({
+        message: 'could not find id in params'
+      })
     }
   },
   // @ts-ignore
@@ -121,6 +125,6 @@ export default Vue.extend({
 })
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import '~/node_modules/prismjs/themes/prism.css';
 </style>

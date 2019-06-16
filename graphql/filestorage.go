@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 func createPostPicture(response http.ResponseWriter, request *http.Request) {
@@ -38,12 +37,11 @@ func createPostPicture(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 	var filebuffer bytes.Buffer
-	file, header, err := request.FormFile("file")
+	file, _, err := request.FormFile("file")
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
-	name := strings.Split(header.Filename, ".")
 	io.Copy(&filebuffer, file)
 	var fileobj *storage.ObjectHandle
 	if thetype == "blog" {
@@ -92,12 +90,11 @@ func updatePostPicture(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 	var filebuffer bytes.Buffer
-	file, header, err := request.FormFile("file")
+	file, _, err := request.FormFile("file")
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
-	name := strings.Split(header.Filename, ".")
 	io.Copy(&filebuffer, file)
 	var fileobj *storage.ObjectHandle
 	if thetype == "blog" {

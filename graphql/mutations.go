@@ -349,14 +349,16 @@ func rootMutation() *graphql.Object {
 					if !ok {
 						return nil, errors.New("cannot convert heroimage to string")
 					}
-					var herofileobj *storage.ObjectHandle
-					if thetype == "blog" {
-						herofileobj = imageBucket.Object(blogImageIndex + "/" + heroimageid)
-					} else {
-						herofileobj = imageBucket.Object(projectImageIndex + "/" + heroimageid)
-					}
-					if err := herofileobj.Delete(ctxStorage); err != nil {
-						return nil, err
+					if len(heroimageid) > 0 {
+						var herofileobj *storage.ObjectHandle
+						if thetype == "blog" {
+							herofileobj = imageBucket.Object(blogImageIndex + "/" + heroimageid)
+						} else {
+							herofileobj = imageBucket.Object(projectImageIndex + "/" + heroimageid)
+						}
+						if err := herofileobj.Delete(ctxStorage); err != nil {
+							return nil, err
+						}
 					}
 					primativeimageids, ok := postData["images"].(primitive.A)
 					if !ok {

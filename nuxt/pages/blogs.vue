@@ -156,25 +156,30 @@ export default Vue.extend({
             if (res.data.count !== null) {
               this.totalRows = res.data.count
             } else {
-              console.log('could not find count data')
-              console.log(res.data)
+              this.$toasted.global.error({
+                message: 'could not find count data'
+              })
             }
           } else {
-            console.log('could not get data')
+            this.$toasted.global.error({
+              message: 'could not get data'
+            })
           }
         } else {
-          console.log(`status code of ${res.status}`)
+          this.$toasted.global.error({
+            message: `status code of ${res.status}`
+          })
         }
       }).catch(err => {
-        console.error(`got error: ${err}`)
+        this.$toasted.global.error({
+          message: `got error: ${err}`
+        })
       })
     },
     searchPosts() {
       this.currentPage = 1
       this.updateCount()
       const sort = (this.sortBy ? this.sortBy : this.sortOptions[0]).value
-      console.log(`sort`)
-      console.log(sort)
       this.$axios.get('/graphql', {
         params: {
           query: `{posts(type:"blog",perpage:${this.perPage},page:${this.currentPage - 1},searchterm:"${this.search}",sort:"${sort}",ascending:${!this.sortDesc}){title views id author date}}`
@@ -184,14 +189,13 @@ export default Vue.extend({
           if (res.data) {
             if (res.data.data && res.data.data.posts) {
               this.items = res.data.data.posts
-              console.log(res.data.data.posts)
             } else if (res.data.errors) {
-              console.log(`found errors:`)
-              console.log(res.data.errors)
-            } else {
-              console.log('could not find data or errors')
               this.$toasted.global.error({
-                message: 'could not get data'
+                message: `found errors: ${JSON.stringify(res.data.errors)}`
+              })
+            } else {
+              this.$toasted.global.error({
+                message: 'could not find data or errors'
               })
             }
           } else {
