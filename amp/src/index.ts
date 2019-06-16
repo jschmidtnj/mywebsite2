@@ -37,7 +37,7 @@ ampApp.get('/projecttemplate', (req, res) => {
     .status(codes.success)
 })
 
-ampApp.get('/blog/:id', (req, res) => {
+const handlePostRequest = (req, res, type) => {
   if (req.params.id) {
     const id = req.params.id
     let date
@@ -53,25 +53,27 @@ ampApp.get('/blog/:id', (req, res) => {
     }
     axios.get(config.apiurl + '/graphql', {
       params: {
-        query: `{post(type:"blog",id:"${id}"){title content author views}}`
+        query: `{post(type:"${type}",id:"${id}"){title content author views}}`
       }
     }).then(res1 => {
       if (res1.status === 200) {
         if (res1.data) {
           if (res1.data.data && res1.data.data.post) {
-            const blogdata = res1.data.data.post
-            const $ = cheerio.load(blogtemplate)
+            const postdata = res1.data.data.post
+            const posttemplate = type === 'blog' ? blogtemplate : projecttemplate
+            const $ = cheerio.load(posttemplate)
             $('link[rel=canonical]').attr('href', config.websiteurl)
-            $('#title').text(blogdata.title)
-            $('#author').text(blogdata.author)
+            $('#title').text(postdata.title)
+            $('#author').text(postdata.author)
             const markdownconverter = new showdown.Converter()
-            const blogcontenthtml = markdownconverter.makeHtml(blogdata.content)
-            $('#content').text(blogcontenthtml)
-            $('#views').text(blogdata.views)
+            const postcontenthtml = markdownconverter.makeHtml(decodeURIComponent(postdata.content))
+            $('#content').html(postcontenthtml)
+            $('img').each((i, item) => (item.tagName = 'amp-img'))
+            $('#views').text(postdata.views)
             $('#date').text(date)
-            $('#mainsite').attr('href', `${config.websiteurl}/blog/${id}`)
-            $('title').text(blogdata.title)
-            $('meta[name=description]').attr('content', `${blogdata.title} blog by ${blogdata.author}`)
+            $('#mainsite').attr('href', `${config.websiteurl}/${type}/${id}`)
+            $('title').text(postdata.title)
+            $('meta[name=description]').attr('content', `${postdata.title} ${type} by ${postdata.author}`)
             const html = $.html()
             res.send(html).status(codes.success)
           } else if (res1.data.errors) {
@@ -109,80 +111,14 @@ ampApp.get('/blog/:id', (req, res) => {
       message: 'could not find id'
     }).status(codes.error)
   }
+}
+
+ampApp.get('/blog/:id', (req, res) => {
+  handlePostRequest(req, res, 'blog')
 })
 
 ampApp.get('/project/:id', (req, res) => {
-  if (req.params.id) {
-    const id = req.params.id
-    let date
-    try {
-      const timestamp = id.toString().substring(0,8)
-      date = format(parseInt(timestamp, 16) * 1000, 'M/D/YYYY')
-    } catch(err) {
-      res.json({
-        code: codes.error,
-        message: `error with timestamp parsing: ${err}`
-      }).status(codes.error)
-      return
-    }
-    axios.get(config.apiurl + '/graphql', {
-      params: {
-        query: `{post(type:"project",id:"${id}"){title content author views}}`
-      }
-    }).then(res1 => {
-      if (res1.status === 200) {
-        if (res1.data) {
-          if (res1.data.data && res1.data.data.post) {
-            const projectdata = res1.data.data.post
-            const $ = cheerio.load(blogtemplate)
-            $('link[rel=canonical]').attr('href', config.websiteurl)
-            $('#title').text(projectdata.title)
-            $('#author').text(projectdata.author)
-            const markdownconverter = new showdown.Converter()
-            const projectcontenthtml = markdownconverter.makeHtml(projectdata.content)
-            $('#content').text(projectcontenthtml)
-            $('#views').text(projectdata.views)
-            $('#date').text(date)
-            $('#mainsite').attr('href', `${config.websiteurl}/project/${id}`)
-            $('title').text(projectdata.title)
-            $('meta[name=description]').attr('content', `${projectdata.title} project by ${projectdata.author}`)
-            const html = $.html()
-            res.send(html).status(codes.success)
-          } else if (res1.data.errors) {
-            res.json({
-              code: codes.error,
-              message: `found errors: ${JSON.stringify(res1.data.errors)}`
-            }).status(codes.error)
-          } else {
-            res.json({
-              code: codes.error,
-              message: 'could not find data or errors'
-            }).status(codes.error)
-          }
-        } else {
-          res.json({
-            code: codes.error,
-            message: 'could not get data'
-          }).status(codes.error)
-        }
-      } else {
-        res.json({
-          code: res1.status,
-          message: `status code of ${res1.status}`
-        }).status(res1.status)
-      }
-    }).catch(err => {
-      res.json({
-        code: codes.error,
-        message: `got error ${err}`
-      }).status(codes.error)
-    })
-  } else {
-    res.json({
-      code: codes.error,
-      message: 'could not find id'
-    }).status(codes.error)
-  }
+  handlePostRequest(req, res, 'project')
 })
 
 const PORT = process.env.PORT || config.port

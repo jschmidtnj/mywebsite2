@@ -92,8 +92,16 @@
                     class="sampleimage"
                     :src="post.heroimage.src"
                   ></b-img>
-                  <p v-if="post.heroimage.file && post.heroimage.id">
-                    {{ getImageTag(`hero.${post.heroimage.id}`) }}
+                  <p
+                    v-if="
+                      post.heroimage.file &&
+                        post.heroimage.id &&
+                        post.heroimage.name &&
+                        post.heroimage.width &&
+                        post.heroimage.height
+                    "
+                  >
+                    {{ getImageTag(post.heroimage) }}
                   </p>
                   <b-form-group>
                     <label class="form-required">Hero Image</label>
@@ -135,14 +143,12 @@
                       v-if="
                         post.images[index].file &&
                           post.images[index].name &&
+                          post.images[index].width &&
+                          post.images[index].height &&
                           post.images[index].id
                       "
                     >
-                      {{
-                        getImageTag(
-                          `${post.images[index].name}.${post.images[index].id}`
-                        )
-                      }}
+                      {{ getImageTag(post.images[index]) }}
                     </p>
                     <b-form-group class="mb-2">
                       <label class="form-required">Image Name</label>
@@ -205,7 +211,9 @@
                               uploaded: false,
                               id: createId(),
                               update: false,
-                              src: null
+                              src: null,
+                              width: null,
+                              height: null
                             })
                           "
                         >
@@ -390,6 +398,16 @@ const modetypes = {
   edit: 'Edit',
   delete: 'Delete'
 }
+const originalHero = {
+  name: 'hero',
+  uploaded: false,
+  file: null,
+  update: false,
+  id: uuid(),
+  src: null,
+  width: null,
+  height: null
+}
 export default Vue.extend({
   name: 'Posts',
   // @ts-ignore
@@ -436,13 +454,7 @@ export default Vue.extend({
         title: '',
         content: '',
         author: '',
-        heroimage: {
-          uploaded: false,
-          file: null,
-          update: false,
-          id: uuid(),
-          src: null
-        },
+        heroimage: Object.assign({}, originalHero),
         images: []
       }
     }
@@ -523,15 +535,27 @@ export default Vue.extend({
     formatDate(dateUTC, formatStr) {
       return format(dateUTC, formatStr)
     },
-    getImageTag(imageid) {
-      return `<img src="${cloudStorageURLs[this.type]}/${imageid}"></img>`
+    getImageTag(image) {
+      return `<img src="${cloudStorageURLs[this.type]}/${image.name}.${image.id}" alt="${image.name}" width="${image.width}" height="${image.height}" layout="responsive"></img>`
     },
     updateImageSrc(image) {
+      console.log('start image src')
       if (!image.file) return
+      const img = new Image()
+      img.onload = () => {
+        console.log('image loaded')
+        image.width = img.width
+        image.height = img.height
+        console.log(`image width: ${image.width}, height: ${image.height}`)
+      }
       const reader = new FileReader()
-      // @ts-ignore
-      reader.onload = e => image.src = e.target.result
+      reader.onload = e => {
+        // @ts-ignore
+        image.src = e.target.result
+        img.src = image.src
+      }
       reader.readAsDataURL(image.file)
+      console.log('done')
     },
     editPost(searchresult) {
       this.postid = searchresult.id
@@ -566,11 +590,14 @@ export default Vue.extend({
                 if (res.data) {
                   const nameid = getNameId(thepost.heroimage)
                   thepost.heroimage = {
+                    name: 'hero',
                     file: res.data,
                     uploaded: true,
                     update: true,
                     id: nameid[1],
-                    src: null
+                    src: null,
+                    width: null,
+                    height: null
                   }
                   this.updateImageSrc(thepost.heroimage)
                   gothero = true
@@ -594,11 +621,8 @@ export default Vue.extend({
               })
             })
         } else {
-          thepost.heroimage = {
-            uploaded: false,
-            file: null,
-            update: false
-          }
+          thepost.heroimage = Object.assign({}, originalHero)
+          thepost.heroimage.id = this.createId()
           gothero = true
           if (thepost.images.length === getimagecount) {
             finishedGets()
@@ -621,7 +645,9 @@ export default Vue.extend({
                       uploaded: true,
                       file: res.data,
                       update: true,
-                      src: null
+                      src: null,
+                      width: null,
+                      height: null
                     }
                     this.updateImageSrc(thepost.images[getimagecount])
                     getimagecount++
@@ -798,14 +824,10 @@ export default Vue.extend({
         title: '',
         content: '',
         author: '',
-        heroimage: {
-          uploaded: false,
-          file: null,
-          update: false,
-          id: this.createId()
-        },
+        heroimage: Object.assign({}, originalHero),
         images: []
       }
+      this.post.heroimage.id = this.createId()
       this.mode = this.modetypes.add
       this.postid = null
     },
