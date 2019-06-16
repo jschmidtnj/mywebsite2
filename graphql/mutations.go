@@ -29,14 +29,22 @@ func rootMutation() *graphql.Object {
 					"author": &graphql.ArgumentConfig{
 						Type: graphql.String,
 					},
+					"heroimage": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
+					"images": &graphql.ArgumentConfig{
+						Type: graphql.NewList(graphql.String),
+					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 					_, err := validateAdmin(params.Context.Value(tokenKey).(string))
 					if err != nil {
 						return nil, err
 					}
-					if params.Args["title"] == nil || params.Args["content"] == nil || params.Args["author"] == nil || params.Args["type"] == nil {
-						return nil, errors.New("title or content or author or type not provided")
+					if params.Args["title"] == nil || params.Args["content"] == nil ||
+						params.Args["author"] == nil || params.Args["type"] == nil ||
+						params.Args["heroimage"] == nil || params.Args["images"] == nil {
+						return nil, errors.New("title or content or author or type or heroimage or images not provided")
 					}
 					title, ok := params.Args["title"].(string)
 					if !ok {
@@ -53,6 +61,14 @@ func rootMutation() *graphql.Object {
 					thetype, ok := params.Args["type"].(string)
 					if !ok {
 						return nil, errors.New("problem casting type to string")
+					}
+					heroimage, ok := params.Args["heroimage"].(string)
+					if !ok {
+						return nil, errors.New("problem casting heroimage to string")
+					}
+					images, ok := params.Args["images"].([]interface{})
+					if !ok {
+						return nil, errors.New("problem casting images to string array")
 					}
 					if !validType(thetype) {
 						return nil, errors.New("invalid type given")
@@ -74,8 +90,8 @@ func rootMutation() *graphql.Object {
 						"content":   content,
 						"author":    author,
 						"views":     0,
-						"heroimage": "",
-						"images":    []string{},
+						"heroimage": heroimage,
+						"images":    images,
 					}
 					res, err := mongoCollection.InsertOne(ctxMongo, postData)
 					if err != nil {
@@ -101,7 +117,7 @@ func rootMutation() *graphql.Object {
 			},
 			"updatePost": &graphql.Field{
 				Type:        PostType,
-				Description: "Update a Post Post",
+				Description: "Update a Post",
 				Args: graphql.FieldConfigArgument{
 					"type": &graphql.ArgumentConfig{
 						Type: graphql.String,
@@ -117,6 +133,12 @@ func rootMutation() *graphql.Object {
 					},
 					"author": &graphql.ArgumentConfig{
 						Type: graphql.String,
+					},
+					"heroimage": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
+					"images": &graphql.ArgumentConfig{
+						Type: graphql.NewList(graphql.String),
 					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
@@ -156,6 +178,20 @@ func rootMutation() *graphql.Object {
 							return nil, errors.New("problem casting content to string")
 						}
 						updateData["content"] = content
+					}
+					if params.Args["heroimage"] != nil {
+						heroimage, ok := params.Args["heroimage"].(string)
+						if !ok {
+							return nil, errors.New("problem casting heroimage to string")
+						}
+						updateData["heroimage"] = heroimage
+					}
+					if params.Args["images"] != nil {
+						images, ok := params.Args["images"].([]interface{})
+						if !ok {
+							return nil, errors.New("problem casting images to string array")
+						}
+						updateData["images"] = images
 					}
 					thetype, ok := params.Args["type"].(string)
 					if !ok {
@@ -309,18 +345,30 @@ func rootMutation() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
+					heroimageid, ok := postData["heroimage"].(string)
+					if !ok {
+						return nil, errors.New("cannot convert heroimage to string")
+					}
+					var herofileobj *storage.ObjectHandle
+					if thetype == "blog" {
+						herofileobj = imageBucket.Object(blogImageIndex + "/" + heroimageid)
+					} else {
+						herofileobj = imageBucket.Object(projectImageIndex + "/" + heroimageid)
+					}
+					if err := herofileobj.Delete(ctxStorage); err != nil {
+						return nil, err
+					}
 					primativeimageids, ok := postData["images"].(primitive.A)
 					if !ok {
 						return nil, errors.New("cannot convert imageids to primitive")
 					}
 					for _, primativeimageid := range primativeimageids {
 						imageid := primativeimageid.(string)
-						logger.Info("imageid: " + imageid + ", postid: " + idstr)
 						var fileobj *storage.ObjectHandle
 						if thetype == "blog" {
-							fileobj = imageBucket.Object(blogImageIndex + "/" + idstr + "/" + imageid)
+							fileobj = imageBucket.Object(blogImageIndex + "/" + imageid)
 						} else {
-							fileobj = imageBucket.Object(projectImageIndex + "/" + idstr + "/" + imageid)
+							fileobj = imageBucket.Object(projectImageIndex + "/" + imageid)
 						}
 						if err := fileobj.Delete(ctxStorage); err != nil {
 							return nil, err

@@ -67,9 +67,9 @@ var storageClient *storage.Client
 
 var imageBucket *storage.BucketHandle
 
-var blogImageIndex = "posts"
+var blogImageIndex = "blogs"
 
-var projectImageIndex = "posts"
+var projectImageIndex = "projects"
 
 var logger *zap.Logger
 
@@ -151,6 +151,13 @@ func main() {
 	}
 	bucketName := os.Getenv("STORAGEBUCKETNAME")
 	imageBucket = storageClient.Bucket(bucketName)
+	gcpprojectid, ok := storageconfigjson["project_id"].(string)
+	if !ok {
+		logger.Fatal("could not cast gcp project id to string")
+	}
+	if err := imageBucket.Create(ctxStorage, gcpprojectid, nil); err != nil {
+		logger.Info(err.Error())
+	}
 	port := ":" + os.Getenv("PORT")
 	schema, err := graphql.NewSchema(graphql.SchemaConfig{
 		Query:    rootQuery(),

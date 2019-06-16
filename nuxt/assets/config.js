@@ -1,3 +1,8 @@
+export const cloudStorageURLs = {
+  blog: 'https://storage.googleapis.com/mywebsite2imagestorage/blogs',
+  project: 'https://storage.googleapis.com/mywebsite2imagestorage/projects'
+}
+
 export const codes = {
   error: 400,
   success: 200,

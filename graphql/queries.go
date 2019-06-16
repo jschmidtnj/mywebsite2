@@ -190,7 +190,6 @@ func rootQuery() *graphql.Object {
 					}
 					var searchResult *elastic.SearchResult
 					var err error
-					logger.Info("start search")
 					if len(searchterm) > 0 {
 						queryString := elastic.NewQueryStringQuery(searchterm)
 						searchResult, err = elasticClient.Search().
@@ -268,7 +267,6 @@ func rootQuery() *graphql.Object {
 						postElasticIndex = projectElasticIndex
 						postElasticType = projectElasticType
 					}
-					logger.Info("got type " + thetype)
 					if params.Args["id"] == nil {
 						return nil, errors.New("no id argument found")
 					}
@@ -276,7 +274,6 @@ func rootQuery() *graphql.Object {
 					if !ok {
 						return nil, errors.New("cannot cast id to string")
 					}
-					logger.Info("got id " + idstring)
 					id, err := primitive.ObjectIDFromHex(idstring)
 					if err != nil {
 						return nil, err
@@ -301,7 +298,6 @@ func rootQuery() *graphql.Object {
 					var postData map[string]interface{}
 					var foundstuff = false
 					for cursor.Next(ctxMongo) {
-						logger.Info("found something")
 						postPrimitive := &bson.D{}
 						err = cursor.Decode(postPrimitive)
 						if err != nil {

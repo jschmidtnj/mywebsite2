@@ -47,7 +47,7 @@ export default Vue.extend({
             if (res.data) {
               if (res.data.data && res.data.data.post) {
                 const post = res.data.data.post
-                console.log(res.data.data.post)
+                post.content = decodeURIComponent(post.content)
                 return {
                   id: id,
                   post: post
@@ -121,6 +121,6 @@ export default Vue.extend({
 })
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @import '~/node_modules/prismjs/themes/prism.css';
 </style>

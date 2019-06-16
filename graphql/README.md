@@ -31,3 +31,7 @@ app engine: `gcloud app deploy`
 - delete all pictures on clear, clear on page leave
 - on submit, add pictures by id in array to post
 - on picture add, get url to add to content
+
+## edit CORS
+
+The file `cors.json` is needed to allow file downloads from Firebase Storage. To configure CORS, download the [gsutil utility](https://cloud.google.com/storage/docs/gsutil_install) on your computer (again, linux preferred), and run `gcloud init` to sign in. Then run `export BOTO_CONFIG=/dev/null` on linux to prevent a bug in the program. Finally, run `gsutil cors set rules/cors.json gs://<your-cloud-storage-bucket>` in the parent directory to add the CORS rules, obviously changing the command for your storage bucket.

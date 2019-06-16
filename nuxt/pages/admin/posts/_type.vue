@@ -87,36 +87,13 @@
                       </div>
                     </b-form-invalid-feedback>
                   </b-form-group>
-                  <b-form-group>
-                    <label class="form-required">Views</label>
-                    <span>
-                      <b-form-input
-                        v-model="post.views"
-                        type="number"
-                        :state="!$v.post.views.$invalid"
-                        class="form-control mb-2"
-                        aria-describedby="viewsfeedback"
-                        placeholder
-                      />
-                    </span>
-                    <b-form-invalid-feedback
-                      id="viewsfeedback"
-                      :state="!$v.post.views.$invalid"
-                    >
-                      <div v-if="!$v.post.views.required">
-                        views is required
-                      </div>
-                      <div v-else-if="!$v.post.views.integer">
-                        views must be an integer
-                      </div>
-                    </b-form-invalid-feedback>
-                  </b-form-group>
                   <b-img
-                    v-if="post.heroimage.file"
-                    :src="fileToUrl(post.heroimage.file)"
+                    v-if="post.heroimage.file && post.heroimage.src"
+                    class="sampleimage"
+                    :src="post.heroimage.src"
                   ></b-img>
-                  <p v-if="postid && post.heroimage.file">
-                    {{ getHeroImageTag() }}
+                  <p v-if="post.heroimage.file && post.heroimage.id">
+                    {{ getImageTag(`hero.${post.heroimage.id}`) }}
                   </p>
                   <b-form-group>
                     <label class="form-required">Hero Image</label>
@@ -129,7 +106,10 @@
                         aria-describedby="heroimagefeedback"
                         placeholder="Choose an image..."
                         drop-placeholder="Drop image here..."
-                        @change="post.heroimage.uploaded = false"
+                        @input="
+                          post.heroimage.uploaded = false
+                          updateImageSrc(post.heroimage)
+                        "
                       />
                     </span>
                     <b-form-invalid-feedback
@@ -147,13 +127,14 @@
                     :key="`file-${index}`"
                   >
                     <b-img
-                      v-if="post.images[index].file"
-                      :src="fileToUrl(post.images[index].file)"
+                      v-if="post.images[index].file && post.images[index].src"
+                      class="sampleimage"
+                      :src="post.images[index].src"
                     ></b-img>
                     <p
                       v-if="
-                        postid &&
-                          post.images[index].file &&
+                        post.images[index].file &&
+                          post.images[index].name &&
                           post.images[index].id
                       "
                     >
@@ -190,12 +171,16 @@
                       <label class="form-required">Image</label>
                       <span>
                         <b-form-file
-                          v-model.trim="post.images[index].file"
+                          v-model="post.images[index].file"
                           accept="image/*"
                           :state="!imagevalue.file.$invalid"
                           class="mb-2 form-control"
                           placeholder="Choose an image..."
                           drop-placeholder="Drop image here..."
+                          @input="
+                            post.images[post.images.length - 1].uploaded = false
+                            updateImageSrc(post.images[post.images.length - 1])
+                          "
                         />
                       </span>
                       <b-form-invalid-feedback
@@ -219,7 +204,8 @@
                               file: null,
                               uploaded: false,
                               id: createId(),
-                              update: false
+                              update: false,
+                              src: null
                             })
                           "
                         >
@@ -389,11 +375,13 @@
 <script lang="ts">
 import Vue from 'vue'
 import { validationMixin } from 'vuelidate'
-import { required, minLength, integer } from 'vuelidate/lib/validators'
+import { required, minLength } from 'vuelidate/lib/validators'
 import VueMarkdown from 'vue-markdown'
 import Prism from 'prismjs'
 import { format } from 'date-fns'
 import uuid from 'uuid/v1'
+import axios from 'axios'
+import { cloudStorageURLs } from '~/assets/config'
 /**
  * posts edit
  */
@@ -448,11 +436,12 @@ export default Vue.extend({
         title: '',
         content: '',
         author: '',
-        views: null,
         heroimage: {
           uploaded: false,
           file: null,
-          update: false
+          update: false,
+          id: uuid(),
+          src: null
         },
         images: []
       }
@@ -476,10 +465,6 @@ export default Vue.extend({
       content: {
         required,
         minLength: minLength(10)
-      },
-      views: {
-        required,
-        integer
       },
       heroimage: {
         file: {}
@@ -514,7 +499,6 @@ export default Vue.extend({
   },
   /* eslint-disable */
   mounted() {
-    console.log(`got type ${this.$route.params.type}`)
     this.type = this.$route.params.type
     if (!(this.type && this.validtypes.includes(this.type))) {
       this.$toasted.global.error({
@@ -539,36 +523,18 @@ export default Vue.extend({
     formatDate(dateUTC, formatStr) {
       return format(dateUTC, formatStr)
     },
-    getHeroImageTag() {
-      const url = encodeURIComponent(
-        // @ts-ignore
-        `${process.env.apiurl}/getPostPicture?type=${this.type}&postid=${
-          this.postid
-        }&hero=true`
-      )
-      return `<img src="${url}"></img>`
-    },
     getImageTag(imageid) {
-      const url = encodeURIComponent(
-        // @ts-ignore
-        `${process.env.apiurl}/getPostPicture?type=${this.type}&postid=${
-          this.postid
-        }&imageid=${imageid}`
-      )
-      return `<img src="${url}"></img>`
+      return `<img src="${cloudStorageURLs[this.type]}/${imageid}"></img>`
     },
-    async fileToUrl(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        // @ts-ignore
-        reader.onload = e => resolve(e.target.result)
-        reader.readAsDataURL(file)
-      })
+    updateImageSrc(image) {
+      if (!image.file) return
+      const reader = new FileReader()
+      // @ts-ignore
+      reader.onload = e => image.src = e.target.result
+      reader.readAsDataURL(image.file)
     },
     editPost(searchresult) {
       this.postid = searchresult.id
-      console.log(searchresult.id)
-      console.log(`id: ${this.postid}`)
 
       // get images
       const getimages = thepost => {
@@ -582,36 +548,31 @@ export default Vue.extend({
             message: `edit ${this.type} with id ${this.postid}`
           })
         }
-        const base64ToFile = data => {
-          const splitdata = data.split(',')
-          const mimetype = splitdata[0]
-          const binary = atob(splitdata)[1]
-          const array = []
-          for (let i = 0; i < binary.length; i++) {
-            array.push(binary.charCodeAt(i))
-          }
-          return new Blob([new Uint8Array(array)], {
-            type: mimetype
-          })
+        const getNameId = id => {
+          // split at last period
+          return id.split(
+            /\.(?=[^\.]+$)/
+          )
         }
         let hashero = false
         if (thepost.heroimage.length > 0) {
           hashero = true
-          this.$axios
-            .get('/getPostPicture', {
-              params: {
-                type: this.type,
-                postid: this.postid,
-                hero: true
-              }
-            })
+          axios.get(`${cloudStorageURLs[this.type]}/${thepost.heroimage}`, {
+            responseType: 'blob'
+          })
             .then(res => {
               if (!cont) return
               if (res.status == 200) {
                 if (res.data) {
-                  thepost.heroimage.file = base64ToFile(res.data)
-                  thepost.heroimage.uploaded = true
-                  thepost.heroimage.update = true
+                  const nameid = getNameId(thepost.heroimage)
+                  thepost.heroimage = {
+                    file: res.data,
+                    uploaded: true,
+                    update: true,
+                    id: nameid[1],
+                    src: null
+                  }
+                  this.updateImageSrc(thepost.heroimage)
                   gothero = true
                   if (thepost.images.length === getimagecount) {
                     finishedGets()
@@ -642,29 +603,23 @@ export default Vue.extend({
         if (thepost.images.length > 0) {
           for (let i = 0; i < thepost.images.length; i++) {
             if (!cont) break
-            this.$axios
-              .get('/getPostPicture', {
-                params: {
-                  type: this.type,
-                  postid: this.postid,
-                  imageid: thepost.images[i]
-                }
-              })
+            axios.get(`${cloudStorageURLs[this.type]}/${thepost.images[i]}`, {
+              responseType: 'blob'
+            })
               .then(res => {
                 if (!cont) return
                 if (res.status == 200) {
                   if (res.data) {
-                    // split at last period
-                    const name = thepost.images[getimagecount].split(
-                      /\.(?=[^\.]+$)/
-                    )[0]
+                    const nameid = getNameId(thepost.images[getimagecount])
                     thepost.images[getimagecount] = {
-                      id: thepost.images[getimagecount],
-                      name: name,
+                      id: nameid[1],
+                      name: nameid[0],
                       uploaded: true,
-                      file: base64ToFile(res.data),
-                      update: true
+                      file: res.data,
+                      update: true,
+                      src: null
                     }
+                    this.updateImageSrc(thepost.images[getimagecount])
                     getimagecount++
                     if (thepost.images.length === getimagecount && gothero) {
                       finishedGets()
@@ -692,7 +647,6 @@ export default Vue.extend({
           }
         }
       }
-      console.log(`type: ${this.type}`)
       // get post data first
       this.$axios
         .get('/graphql', {
@@ -704,22 +658,17 @@ export default Vue.extend({
         })
         .then(res => {
           if (res.status === 200) {
-            console.log('got 200')
             if (res.data) {
-              console.log('got data')
               if (res.data.data && res.data.data.post) {
-                console.log('got data and post')
                 const thepost: any = res.data.data.post
                 thepost.content = decodeURIComponent(thepost.content)
                 thepost.author = decodeURIComponent(thepost.author)
                 thepost.title = decodeURIComponent(thepost.title)
                 getimages(thepost)
               } else if (res.data.errors) {
-                console.log('got error')
                 this.$toasted.global.error({
                   message: `found errors: ${JSON.stringify(res.data.errors)}`
                 })
-                console.log(res.data)
               } else {
                 this.$toasted.global.error({
                   message: 'could not find data or errors'
@@ -744,7 +693,6 @@ export default Vue.extend({
     },
     deletePost(searchresult) {
       const id = searchresult.id
-      console.log(`id: ${id}`)
       this.$axios
         .delete('/graphql', {
           params: {
@@ -763,7 +711,6 @@ export default Vue.extend({
                   message: 'post deleted'
                 })
               } else if (res.data.errors) {
-                console.log(res.data)
                 this.$toasted.global.error({
                   message: `found errors: ${JSON.stringify(res.data.errors)}`
                 })
@@ -847,11 +794,11 @@ export default Vue.extend({
         title: '',
         content: '',
         author: '',
-        views: null,
         heroimage: {
           uploaded: false,
           file: null,
-          update: false
+          update: false,
+          id: this.createId()
         },
         images: []
       }
@@ -866,9 +813,9 @@ export default Vue.extend({
       const uploadImages = () => {
         let cont = true
         let imageuploadcount = 0
+        let imageuploads = this.post.images.filter(image => !image.uploaded)
         let totaluploads =
-          (this.post.heroimage.uploaded ? 1 : 0) +
-          this.post.images.filter(image => image.uploaded).length
+          (this.post.heroimage.uploaded ? 0 : 1) + imageuploads.length
         const successMessage = () => {
           this.resetposts(evt)
           this.$toasted.global.success({
@@ -882,10 +829,9 @@ export default Vue.extend({
           formData.append('file', image)
           const endpoint = update ? '/updatePostPicture' : '/createPostPicture'
           this.$axios
-            .put('/updatePostPicture', formData, {
+            .put(endpoint, formData, {
               params: {
                 type: this.type,
-                postid: postid,
                 imageid: imageid
               },
               headers: {
@@ -903,12 +849,14 @@ export default Vue.extend({
                 this.$toasted.global.error({
                   message: `got status code of ${res.status} on image upload`
                 })
+                cont = false
               }
             })
             .catch(err => {
               this.$toasted.global.error({
                 message: `got error on image upload: ${err}`
               })
+              cont = false
             })
         }
         let uploadinghero = false
@@ -923,27 +871,24 @@ export default Vue.extend({
           )
           uploadImage(
             this.post.heroimage.file,
-            'hero',
+            `hero.${this.post.heroimage.id}`,
             this.post.heroimage.update
           )
         }
-        if (this.post.images.length > 0) {
-          for (let i = 0; i < this.post.images.length; i++) {
-            if (!cont) break
-            if (!this.post.images[i].uploaded) {
-              this.post.images[i].file = new File(
-                [this.post.images[i].file],
-                this.post.images[i].name,
-                {
-                  type: this.post.images[i].file.type
-                }
-              )
-              uploadImage(
-                this.post.images[i].file,
-                `${this.post.images[i].name}.${this.post.images[i].id}`,
-                this.post.images[i].update
-              )
-            }
+        if (imageuploads.length > 0) {
+          for (let i = 0; i < imageuploads.length; i++) {
+            imageuploads[i].file = new File(
+              [imageuploads[i].file],
+              imageuploads[i].name,
+              {
+                type: imageuploads[i].file.type
+              }
+            )
+            uploadImage(
+              imageuploads[i].file,
+              `${imageuploads[i].name}.${imageuploads[i].id}`,
+              imageuploads[i].update
+            )
           }
         } else if (!uploadinghero) {
           successMessage()
@@ -967,7 +912,11 @@ export default Vue.extend({
                   this.post.title
                 )}",content:"${encodeURIComponent(
                   this.post.content
-                )}",author:"${encodeURIComponent(this.post.author)}"){id}}`
+                )}",author:"${encodeURIComponent(this.post.author)}",heroimage:"${
+                  this.post.heroimage.file ? `hero.${this.post.heroimage.id}` : ''
+                }",images:${
+                  JSON.stringify(this.post.images.map(image => `${image.name}.${image.id}`))
+                }){id}}`
               }
             }
           )
@@ -978,12 +927,10 @@ export default Vue.extend({
                   postid = res.data.data.addPost.id
                   uploadImages()
                 } else if (res.data.errors) {
-                  console.log(res.data)
                   this.$toasted.global.error({
                     message: `found errors: ${JSON.stringify(res.data.errors)}`
                   })
                 } else {
-                  console.log(res.data)
                   this.$toasted.global.error({
                     message: 'could not find data or errors'
                   })
@@ -1017,14 +964,18 @@ export default Vue.extend({
                   this.post.title
                 )}",content:"${encodeURIComponent(
                   this.post.content
-                )}",author:"${encodeURIComponent(this.post.author)}"){}}`
+                )}",author:"${encodeURIComponent(this.post.author)}",heroimage:"${
+                  this.post.heroimage.file ? `hero.${this.post.heroimage.id}` : ''
+                }",images:${
+                  JSON.stringify(this.post.images.map(image => `${image.name}.${image.id}`))
+                }){id}}`
               }
             }
           )
           .then(res => {
             if (res.status === 200) {
               if (res.data) {
-                if (res.data.data && res.data.data.post) {
+                if (res.data.data && res.data.data.updatePost) {
                   uploadImages()
                 } else if (res.data.errors) {
                   this.$toasted.global.error({
@@ -1057,6 +1008,14 @@ export default Vue.extend({
 })
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @import '~/node_modules/prismjs/themes/prism.css';
+
+.markdown {
+  overflow: auto;
+  max-height: 20rem;
+}
+.sampleimage {
+  max-width: 200px;
+}
 </style>
