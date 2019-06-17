@@ -1,3 +1,1 @@
-Map config = {
-  "apiURL": "https://api.example.com"
-};
+Map config = {"apiURL": "https://api.example.com"};
