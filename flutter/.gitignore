@@ -1,3 +1,6 @@
+# private signing key
+android/key.properties
+
 # config files
 lib/config.dart
 

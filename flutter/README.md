@@ -11,6 +11,10 @@ $ flutter emulators --launch Pixel-test
 $ flutter run
 ```
 
+## generate launch icons
+
+`flutter pub run flutter_launcher_icons:main`
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.

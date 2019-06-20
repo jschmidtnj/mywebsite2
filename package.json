@@ -8,7 +8,7 @@
   },
   "scripts": {
     "precommit": "npm run precommit --prefix nuxt && gofmt -w graphql && flutter format flutter && npm run precommit --prefix amp && npm run precommit --prefix init && npm run precommit --prefix docs && git add -A",
-    "init": "yarn install && cd nuxt && yarn install && cd ../docs && yarn install && cd ../amp && yarn install && cd ../init && yarn install && cd ..",
+    "init": "yarn install && cd flutter && flutter pub run flutter_launcher_icons:main && cd ../nuxt && yarn install && cd ../docs && yarn install && cd ../amp && yarn install && cd ../init && yarn install && cd ..",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "husky": {
