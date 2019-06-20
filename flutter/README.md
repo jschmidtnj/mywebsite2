@@ -11,9 +11,27 @@ $ flutter emulators --launch Pixel-test
 $ flutter run
 ```
 
-## generate launch icons
+## generate
+
+### launch icons
 
 `flutter pub run flutter_launcher_icons:main`
+
+### signed key file
+
+- `keytool -delete -alias key -keystore key/key.jks`
+- `keytool -genkey -v -keystore key/key.jks -keyalg RSA -keysize 2048 -validity 10000`
+
+### create release version
+
+- `flutter build apk --split-per-abi`
+- `flutter build appbundle`
+- see [this](https://flutter.dev/docs/deployment/android) for more info
+
+
+### use fastlane CI/CD:
+
+see [this](https://flutter.dev/docs/deployment/cd#other-services) for config info
 
 ## Getting Started
 
