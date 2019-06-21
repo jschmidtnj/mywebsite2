@@ -166,7 +166,7 @@ class postsState extends State<PostsPage> {
                   onPressed: () {
                     if (_formKey.currentState.validate()) {
                       Scaffold.of(context)
-                          .showSnackBar(SnackBar(content: Text('searching...')));
+                          .showSnackBar(SnackBar(content: Text('search for ${_formKey.currentState.value}')));
                       setState(() {
                         postDataSource.searchTerm = _formKey.currentState.value;
                       });
