@@ -24,22 +24,23 @@ class PostsPage extends StatefulWidget {
       : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => _PostsState();
+  State<StatefulWidget> createState() => postsState();
 }
 
 class PostDataSource extends DataTableSource {
-  List<Map<String, dynamic>> _posts;
+  List<Map<String, dynamic>> posts;
   final Function switchToPostPage;
   final String postType;
-  int _rowsPerPage = 1;
-  int _pageNum = 0;
-  bool _sortAscending = true;
-  int _sortColumnIndex = 0;
-  List<int> _availableRowsPerPage = new List<int>();
+  String searchTerm;
+  int rowsPerPage = 1;
+  int pageNum = 0;
+  bool sortAscending = true;
+  int sortColumnIndex = 0;
+  List<int> availableRowsPerPage = new List<int>();
   PostDataSource({@required this.switchToPostPage, @required this.postType});
 
   void _setAvailableRowsPerPage(List<int> newRowsPerPage) {
-    _availableRowsPerPage = newRowsPerPage;
+    availableRowsPerPage = newRowsPerPage;
   }
 
   void _goToPostPage(String postid) {
@@ -49,9 +50,13 @@ class PostDataSource extends DataTableSource {
 
   Future<List<Map<String, dynamic>>> _getPosts() async {
     print('start query');
+    String searchTermQueryString = "";
+    if (searchterm != null) {
+      searchTermQueryString = 'searchterm:"$searchTerm",';
+    }
     Map<String, String> queryParameters = {
       'query':
-          '{posts(type:"$postType",perpage:10,page:0,searchterm:"asdf",sort:"title",ascending:false){title views id author date}}',
+          '{posts(type:"$postType",perpage:$rowsPerPage,page:$pageNum,${searchTermQueryString}sort:"title",ascending:$sortAscending){title views id author date}}',
     };
     Uri uri = Uri.https(config['apiURL'], '/graphql', queryParameters);
     print('get response');
@@ -74,7 +79,7 @@ class PostDataSource extends DataTableSource {
 
   @override
   DataRow getRow(int index) {
-    Map<String, dynamic> post = _posts[index];
+    Map<String, dynamic> post = posts[index];
     print('id ${post['id']}');
     return DataRow.byIndex(index: index, cells: <DataCell>[
       DataCell(Text('title ${post['title']}'), onTap: () {
@@ -92,22 +97,22 @@ class PostDataSource extends DataTableSource {
   bool get isRowCountApproximate => false;
 
   @override
-  int get rowCount => _posts.length;
+  int get rowCount => posts.length;
 
-  void _sort(int columnIndex, bool ascending) {
+  void sort(int columnIndex, bool ascending) {
     print('sort column $columnIndex');
     notifyListeners();
   }
 
-  void _setPage(int newPageNum) {
-    _pageNum = newPageNum;
-    print('switch to page $_pageNum');
+  void setPage(int newPageNum) {
+    pageNum = newPageNum;
+    print('switch to page $pageNum');
     notifyListeners();
   }
 
-  void _setRowsPerPage(int newRowsPerPage) {
-    _rowsPerPage = newRowsPerPage;
-    print('rows per page $_rowsPerPage');
+  void setRowsPerPage(int newRowsPerPage) {
+    rowsPerPage = newRowsPerPage;
+    print('rows per page $rowsPerPage');
     notifyListeners();
   }
 
@@ -115,23 +120,24 @@ class PostDataSource extends DataTableSource {
   int get selectedRowCount => 0;
 }
 
-class _PostsState extends State<PostsPage> {
-  PostDataSource _postDataSource;
+class postsState extends State<PostsPage> {
+  PostDataSource postDataSource;
   String postType;
+  final GlobalKey<FormState> formKey = new GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
     postType = widget.postType;
     print('got post type $postType');
-    _postDataSource = PostDataSource(
+    postDataSource = PostDataSource(
       postType: postType,
       switchToPostPage: widget.switchToPostPage,
     );
-    _postDataSource._setAvailableRowsPerPage([_postDataSource._rowsPerPage]);
-    _postDataSource._getPosts().then((res) {
+    postDataSource._setAvailableRowsPerPage([postDataSource.rowsPerPage]);
+    postDataSource._getPosts().then((res) {
       setState(() {
-        _postDataSource._posts = res;
+        postDataSource.posts = res;
       });
     }).catchError((err) {
       print(err);
@@ -140,32 +146,62 @@ class _PostsState extends State<PostsPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_postDataSource._posts != null) {
+    if (postDataSource.posts != null) {
       return Container(
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              TextFormField(
+                validator: (value) {
+                  if (value.isEmpty) {
+                    return 'enter search query';
+                  }
+                  return null;
+                },
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: RaisedButton(
+                  onPressed: () {
+                    if (_formKey.currentState.validate()) {
+                      Scaffold.of(context)
+                          .showSnackBar(SnackBar(content: Text('searching...')));
+                      setState(() {
+                        postDataSource.searchTerm = _formKey.currentState.value;
+                      });
+                      postDataSource._getPosts().then((res) {
+                        setState(() {
+                          postDataSource.posts = res;
+                        });
+                      }).catchError((err) {
+                        print(err);
+                      });
+                    }
+                  },
+                  child: Text('Submit'),
+                ),
+              ),
               PaginatedDataTable(
                   header: Text('${postType}s'),
-                  availableRowsPerPage: _postDataSource._availableRowsPerPage,
-                  rowsPerPage: _postDataSource._rowsPerPage,
-                  onRowsPerPageChanged: _postDataSource._setRowsPerPage,
-                  sortColumnIndex: _postDataSource._sortColumnIndex,
-                  sortAscending: _postDataSource._sortAscending,
-                  onPageChanged: _postDataSource._setPage,
+                  availableRowsPerPage: postDataSource.availableRowsPerPage,
+                  rowsPerPage: postDataSource.rowsPerPage,
+                  onRowsPerPageChanged: postDataSource.setRowsPerPage,
+                  sortColumnIndex: postDataSource.sortColumnIndex,
+                  sortAscending: postDataSource.sortAscending,
+                  onPageChanged: postDataSource.setPage,
                   columns: <DataColumn>[
                     DataColumn(
                         label: const Text('Title'),
-                        onSort: _postDataSource._sort),
+                        onSort: postDataSource.sort),
                     DataColumn(
                         label: const Text('Date'),
-                        onSort: _postDataSource._sort),
+                        onSort: postDataSource.sort),
                     DataColumn(
                         label: const Text('Views'),
-                        onSort: _postDataSource._sort)
+                        onSort: postDataSource.sort)
                   ],
-                  source: _postDataSource)
+                  source: postDataSource)
             ],
           ),
         ),
