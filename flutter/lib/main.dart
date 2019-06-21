@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'projects.dart';
-import 'blogs.dart';
+import 'posts.dart';
+import 'post.dart';
 import 'homepage.dart';
 
 void main() => runApp(MyApp());
@@ -24,19 +24,36 @@ class Nav extends StatefulWidget {
 
 class NavState extends State<Nav> {
   int index = 0;
+  String postid;
+  bool viewPost = false;
+
+  void switchToPostPage(String newpostid) {
+    setState(() {
+      postid = newpostid;
+      viewPost = true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    StatelessWidget bodyWidget;
-    switch (this.index) {
+    Widget bodyWidget;
+    switch (index) {
       case 0:
         bodyWidget = HomePage();
         break;
       case 1:
-        bodyWidget = BlogsPage();
+        if (!viewPost) {
+          bodyWidget = BlogsPage(switchToPostPage: switchToPostPage);
+        } else {
+          bodyWidget = BlogPage(blogid: postid);
+        }
         break;
       case 2:
-        bodyWidget = ProjectsPage();
+        if (!viewPost) {
+          bodyWidget = ProjectsPage(switchToPostPage: switchToPostPage);
+        } else {
+          bodyWidget = ProjectPage(projectid: postid);
+        }
         break;
       default:
         bodyWidget = HomePage();
@@ -47,24 +64,12 @@ class NavState extends State<Nav> {
       bottomNavigationBar: BottomNavBar(
         index: index,
         callback: (newIndex) => setState(
-              () => this.index = newIndex,
+              () {
+                index = newIndex;
+                viewPost = false;
+                print('new index $index');
+              },
             ),
-      ),
-    );
-  }
-}
-
-class Body extends StatelessWidget {
-  Body(this.index);
-  final int index;
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: Center(
-        child: Text(
-          'Index $index',
-          style: Theme.of(context).textTheme.display2,
-        ),
       ),
     );
   }

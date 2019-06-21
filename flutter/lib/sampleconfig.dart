@@ -1,1 +1,1 @@
-Map config = {"apiURL": "https://api.example.com"};
+Map<String, String> config = {"apiURL": "api.joshuaschmidt.tech"};
