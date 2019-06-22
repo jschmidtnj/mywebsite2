@@ -196,7 +196,7 @@ func rootQuery() *graphql.Object {
 							Index(postElasticIndex).
 							Query(queryString).
 							Sort(sort, ascending).
-							From(page).Size(perpage).
+							From(page * perpage).Size(perpage).
 							Pretty(false).
 							Do(ctxElastic)
 					} else {
@@ -204,7 +204,7 @@ func rootQuery() *graphql.Object {
 							Index(postElasticIndex).
 							Query(nil).
 							Sort(sort, ascending).
-							From(page).Size(perpage).
+							From(page * perpage).Size(perpage).
 							Pretty(false).
 							Do(ctxElastic)
 					}

@@ -27,36 +27,63 @@ class PostsPage extends StatefulWidget {
   State<StatefulWidget> createState() => postsState();
 }
 
-class PostDataSource extends DataTableSource {
-  List<Map<String, dynamic>> posts;
-  final Function switchToPostPage;
-  final String postType;
+class postsState extends State<PostsPage> {
+  String postType;
+  int count = 0;
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  List<Map<String, dynamic>> posts = [];
+  List<Widget> footerWidgets = [];
+  bool loading = true;
   String searchTerm;
-  int rowsPerPage = 1;
   int pageNum = 0;
   bool sortAscending = true;
   int sortColumnIndex = 0;
-  List<int> availableRowsPerPage = new List<int>();
-  PostDataSource({@required this.switchToPostPage, @required this.postType});
+  List<int> availableRowsPerPage = [5, 10, 15];
+  int rowsPerPage;
+  final List<String> columns = ['title', 'date', 'views'];
 
-  void _setAvailableRowsPerPage(List<int> newRowsPerPage) {
-    availableRowsPerPage = newRowsPerPage;
+  @override
+  void initState() {
+    super.initState();
+    postType = widget.postType;
+    print('got post type $postType');
+    rowsPerPage = availableRowsPerPage[0];
+    _getPosts().then((res) {
+      _getRowCount().then((newcount) {
+        setState(() {
+          count = newcount;
+          posts = res;
+          loading = false;
+        });
+      }).catchError((err1) {
+        print(err1);
+      });
+    }).catchError((err) {
+      print(err);
+    });
   }
 
   void _goToPostPage(String postid) {
-    print('navigate to page $postid with posttype $postType');
-    switchToPostPage(postid);
+    print('navigate to page $postid');
+    widget.switchToPostPage(postid);
   }
 
-  Future<List<Map<String, dynamic>>> _getPosts() async {
+  Future<List<Map<String, dynamic>>> _getPosts(
+      {int thePageNum, int theRowsPerPage}) async {
+    if (thePageNum == null) {
+      thePageNum = pageNum;
+    }
+    if (theRowsPerPage == null) {
+      theRowsPerPage = rowsPerPage;
+    }
     print('start query');
     String searchTermQueryString = "";
-    if (searchterm != null) {
+    if (searchTerm != null) {
       searchTermQueryString = 'searchterm:"$searchTerm",';
     }
     Map<String, String> queryParameters = {
       'query':
-          '{posts(type:"$postType",perpage:$rowsPerPage,page:$pageNum,${searchTermQueryString}sort:"title",ascending:$sortAscending){title views id author date}}',
+          '{posts(type:"$postType",perpage:$theRowsPerPage,page:$thePageNum,${searchTermQueryString}sort:"${columns[sortColumnIndex]}",ascending:$sortAscending){title views id author date}}',
     };
     Uri uri = Uri.https(config['apiURL'], '/graphql', queryParameters);
     print('get response');
@@ -77,137 +104,241 @@ class PostDataSource extends DataTableSource {
     }
   }
 
-  @override
-  DataRow getRow(int index) {
-    Map<String, dynamic> post = posts[index];
-    print('id ${post['id']}');
-    return DataRow.byIndex(index: index, cells: <DataCell>[
-      DataCell(Text('title ${post['title']}'), onTap: () {
-        print('tapped');
-        _goToPostPage(post['id']);
-      }),
-      DataCell(Text('date ${post['date']}'),
-          onTap: () => _goToPostPage(post['id'])),
-      DataCell(Text('views ${post['views']}'),
-          onTap: () => _goToPostPage(post['id']))
-    ]);
-  }
-
-  @override
-  bool get isRowCountApproximate => false;
-
-  @override
-  int get rowCount => posts.length;
-
   void sort(int columnIndex, bool ascending) {
-    print('sort column $columnIndex');
-    notifyListeners();
-  }
-
-  void setPage(int newPageNum) {
-    pageNum = newPageNum;
-    print('switch to page $pageNum');
-    notifyListeners();
-  }
-
-  void setRowsPerPage(int newRowsPerPage) {
-    rowsPerPage = newRowsPerPage;
-    print('rows per page $rowsPerPage');
-    notifyListeners();
-  }
-
-  @override
-  int get selectedRowCount => 0;
-}
-
-class postsState extends State<PostsPage> {
-  PostDataSource postDataSource;
-  String postType;
-  final GlobalKey<FormState> formKey = new GlobalKey<FormState>();
-
-  @override
-  void initState() {
-    super.initState();
-    postType = widget.postType;
-    print('got post type $postType');
-    postDataSource = PostDataSource(
-      postType: postType,
-      switchToPostPage: widget.switchToPostPage,
-    );
-    postDataSource._setAvailableRowsPerPage([postDataSource.rowsPerPage]);
-    postDataSource._getPosts().then((res) {
+    sortColumnIndex = columnIndex;
+    print('sort column $sortColumnIndex');
+    sortAscending = ascending;
+    _getPosts().then((res) {
       setState(() {
-        postDataSource.posts = res;
+        posts = res;
+        loading = false;
       });
     }).catchError((err) {
       print(err);
     });
   }
 
+  void setRowsPerPage(int newRowsPerPage) {
+    print('rows per page $newRowsPerPage');
+    _getPosts(theRowsPerPage: newRowsPerPage).then((res) {
+      _getRowCount().then((newcount) {
+        setState(() {
+          rowsPerPage = newRowsPerPage;
+          posts = res;
+          count = newcount;
+          loading = false;
+        });
+      }).catchError((err1) {
+        print(err1);
+      });
+    }).catchError((err) {
+      print(err);
+    });
+  }
+
+  Future<int> _getRowCount() async {
+    print('start query');
+    Map<String, String> bodyDataMap = {'type': postType};
+    if (searchTerm != null) {
+      bodyDataMap['searchterm'] = searchTerm;
+    }
+    Map<String, String> queryParameters = {};
+    Uri uri = Uri.https(config['apiURL'], '/countPosts', queryParameters);
+    print('get response');
+    final response = await http.put(uri,
+        headers: {
+          HttpHeaders.contentTypeHeader: 'application/json',
+          HttpHeaders.acceptEncodingHeader: 'application/json'
+        },
+        body: json.encode(bodyDataMap));
+    if (response.statusCode == 200) {
+      print(response.body);
+      Map<String, dynamic> resdata = json.decode(response.body);
+      if (resdata['count'] != null) {
+        return resdata['count'];
+      } else {
+        throw Exception('count not found');
+      }
+    } else {
+      print('error');
+      throw Exception('Failed to load post');
+    }
+  }
+
+  void setPage(int newPageNum) {
+    print('switch to page $newPageNum');
+    _getPosts(thePageNum: newPageNum).then((res) {
+      List<Map<String, dynamic>> newPosts = res;
+      print('len newposts ${newPosts.length}');
+      _getRowCount().then((newcount) {
+        print('got count $newcount');
+        setState(() {
+          count = newcount;
+          posts = newPosts;
+          pageNum = newPageNum;
+          loading = false;
+        });
+      }).catchError((err1) {
+        print(err1);
+      });
+    }).catchError((err) {
+      print(err);
+    });
+  }
+
+  void handlePrevious() {
+    setPage(pageNum - 1);
+  }
+
+  void handleNext() {
+    setPage(pageNum + 1);
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (postDataSource.posts != null) {
-      return Container(
+    Widget datatable;
+    if (!loading) {
+      if (posts.isEmpty) {
+        datatable = Text('no posts found');
+      } else {
+        datatable = DataTable(
+            columns: <DataColumn>[
+              DataColumn(label: const Text('Title'), onSort: sort),
+              DataColumn(label: const Text('Date'), onSort: sort),
+              DataColumn(label: const Text('Views'), onSort: sort)
+            ],
+            rows: posts
+                .map(
+                  (post) => DataRow(
+                        cells: [
+                          DataCell(Text(post['title']),
+                              onTap: () => _goToPostPage(post['id'])),
+                          DataCell(Text(post['date']),
+                              onTap: () => _goToPostPage(post['id'])),
+                          DataCell(Text('${post['views']}'),
+                              onTap: () => _goToPostPage(post['id']))
+                        ],
+                      ),
+                )
+                .toList(),
+            sortColumnIndex: sortColumnIndex,
+            sortAscending: sortAscending);
+        final List<Widget> availableRowsPerPageWidget =
+            availableRowsPerPage.map<DropdownMenuItem<int>>((int option) {
+          return DropdownMenuItem<int>(
+            value: option,
+            child: Text('$option'),
+          );
+        }).toList();
+        footerWidgets = [
+          Container(
+              width:
+                  14.0), // to match trailing padding in case we overflow and end up scrolling
+          Text('num per page'),
+          ConstrainedBox(
+            constraints: const BoxConstraints(
+                minWidth: 64.0), // 40.0 for the text, 24.0 for the icon
+            child: Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<int>(
+                  items: availableRowsPerPageWidget,
+                  value: rowsPerPage,
+                  onChanged: setRowsPerPage,
+                  iconSize: 24.0,
+                ),
+              ),
+            ),
+          ),
+          Container(width: 32.0),
+          Text('page ${pageNum + 1}'),
+          Container(width: 32.0),
+          IconButton(
+            icon: const Icon(Icons.chevron_left),
+            padding: EdgeInsets.zero,
+            onPressed: pageNum <= 0 ? null : handlePrevious,
+          ),
+          Container(width: 24.0),
+          IconButton(
+            icon: const Icon(Icons.chevron_right),
+            padding: EdgeInsets.zero,
+            onPressed: (rowsPerPage == posts.length &&
+                    count > rowsPerPage * (pageNum + 1))
+                ? handleNext
+                : null,
+          ),
+          Container(width: 14.0),
+        ];
+      }
+    } else {
+      datatable = CircularProgressIndicator();
+    }
+    return Container(
+      child: SingleChildScrollView(
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              TextFormField(
-                validator: (value) {
-                  if (value.isEmpty) {
-                    return 'enter search query';
-                  }
-                  return null;
-                },
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: RaisedButton(
-                  onPressed: () {
-                    if (_formKey.currentState.validate()) {
-                      Scaffold.of(context)
-                          .showSnackBar(SnackBar(content: Text('search for ${_formKey.currentState.value}')));
-                      setState(() {
-                        postDataSource.searchTerm = _formKey.currentState.value;
-                      });
-                      postDataSource._getPosts().then((res) {
-                        setState(() {
-                          postDataSource.posts = res;
-                        });
-                      }).catchError((err) {
-                        print(err);
-                      });
-                    }
-                  },
-                  child: Text('Submit'),
+              Padding(padding: EdgeInsets.only(top: 40.0)),
+              Form(
+                key: formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    TextFormField(
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return 'enter search query';
+                        }
+                        return null;
+                      },
+                      onSaved: (String val) => searchTerm = val,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      child: RaisedButton(
+                        onPressed: () {
+                          if (formKey.currentState.validate()) {
+                            formKey.currentState.save();
+                            Scaffold.of(context).showSnackBar(SnackBar(
+                                content: Text('search for $searchTerm')));
+                            setState(() {
+                              loading = true;
+                            });
+                            _getPosts().then((res) {
+                              setState(() {
+                                posts = res;
+                                loading = false;
+                              });
+                            }).catchError((err) {
+                              print(err);
+                            });
+                          }
+                        },
+                        child: Text('Submit'),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              PaginatedDataTable(
-                  header: Text('${postType}s'),
-                  availableRowsPerPage: postDataSource.availableRowsPerPage,
-                  rowsPerPage: postDataSource.rowsPerPage,
-                  onRowsPerPageChanged: postDataSource.setRowsPerPage,
-                  sortColumnIndex: postDataSource.sortColumnIndex,
-                  sortAscending: postDataSource.sortAscending,
-                  onPageChanged: postDataSource.setPage,
-                  columns: <DataColumn>[
-                    DataColumn(
-                        label: const Text('Title'),
-                        onSort: postDataSource.sort),
-                    DataColumn(
-                        label: const Text('Date'),
-                        onSort: postDataSource.sort),
-                    DataColumn(
-                        label: const Text('Views'),
-                        onSort: postDataSource.sort)
-                  ],
-                  source: postDataSource)
+              datatable,
+              IconTheme.merge(
+                data: const IconThemeData(opacity: 0.54),
+                child: Container(
+                  height: 56.0,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    reverse: true,
+                    child: Row(
+                      children: footerWidgets,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
-      );
-    } else {
-      return CircularProgressIndicator();
-    }
+      ),
+    );
   }
 }
