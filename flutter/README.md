@@ -19,8 +19,8 @@ $ flutter run
 
 ### signed key file
 
-- `keytool -delete -alias key -keystore key/key.jks`
-- `keytool -genkey -v -keystore key/key.jks -keyalg RSA -keysize 2048 -validity 10000`
+- `keytool -delete -alias key -keystore android/key/key.jks`
+- `keytool -genkey -v -alias key -keystore android/key/key.jks -keyalg RSA -keysize 2048 -validity 10000`
 
 ### create release version
 
