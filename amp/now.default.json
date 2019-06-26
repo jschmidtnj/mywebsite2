@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "lib/*.js",
+      "use": "@now/node-server",
+      "config": {
+        "maxLambdaSize": "50mb"
+      }
+    }
+  ]
+}
