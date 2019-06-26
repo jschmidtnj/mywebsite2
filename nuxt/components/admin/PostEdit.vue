@@ -389,7 +389,7 @@ import Prism from 'prismjs'
 import { format } from 'date-fns'
 import uuid from 'uuid/v1'
 import axios from 'axios'
-import { cloudStorageURLs } from '~/assets/config'
+import { cloudStorageURLs, validTypes } from '~/assets/config'
 /**
  * posts edit
  */
@@ -416,11 +416,17 @@ export default Vue.extend({
     VueMarkdown
   },
   mixins: [validationMixin],
+  props: {
+    type: {
+      default: null,
+      type: String,
+      required: true,
+      validator: val => validTypes.includes(val)
+    }
+  },
   // @ts-ignore
   data() {
     return {
-      type: null,
-      validtypes: ['blog', 'project'],
       modetypes: modetypes,
       mode: modetypes.add,
       postid: null,
@@ -510,16 +516,6 @@ export default Vue.extend({
     }
   },
   /* eslint-disable */
-  mounted() {
-    this.type = this.$route.params.type
-    if (!(this.type && this.validtypes.includes(this.type))) {
-      this.$toasted.global.error({
-        message: `invalid type given: ${this.type}`
-      })
-      // default to blog
-      // this.$router.push('/admin/posts/blog')
-    }
-  },
   methods: {
     updateCodeHighlighting() {
       this.$nextTick(() => {

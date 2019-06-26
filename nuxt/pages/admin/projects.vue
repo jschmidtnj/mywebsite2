@@ -1,14 +1,14 @@
 <template>
-  <post-data type="blog" />
+  <admin-post-edit type="project" />
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
-import PostData from '~/components/PostData.vue'
+import AdminPostEdit from '~/components/admin/PostEdit.vue'
 export default Vue.extend({
-  name: 'Blog',
+  name: 'ProjectEdit',
   components: {
-    PostData
+    AdminPostEdit
   },
   data() {
     return {}

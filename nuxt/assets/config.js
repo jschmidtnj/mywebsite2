@@ -15,3 +15,5 @@ export const toasts = {
   duration: 2000,
   theme: 'bubble'
 }
+
+export const validTypes = ['blog', 'project']

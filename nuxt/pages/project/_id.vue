@@ -1,12 +1,12 @@
 <template>
-  <post-data type="blog" />
+  <post-data type="project" />
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
 import PostData from '~/components/PostData.vue'
 export default Vue.extend({
-  name: 'Blog',
+  name: 'Project',
   components: {
     PostData
   },

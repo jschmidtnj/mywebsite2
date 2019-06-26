@@ -7,7 +7,7 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import AdminNavbar from '~/components/AdminNavbar.vue'
+import AdminNavbar from '~/components/admin/Navbar.vue'
 export default Vue.extend({
   name: 'Admin',
   // @ts-ignore
