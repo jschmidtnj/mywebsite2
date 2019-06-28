@@ -7,6 +7,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"github.com/russross/blackfriday"
+	meduim "github.com/medium/medium-sdk-go"
 )
 
 func rootMutation() *graphql.Object {
@@ -112,6 +114,17 @@ func rootMutation() *graphql.Object {
 					}
 					postData["date"] = timestamp.Format(dateFormat)
 					postData["id"] = idstring
+					mediumContentHTML := blackfriday.MarkdownCommon([]byte(content))
+					mediumPost, err := mediumClient.CreatePost(medium.CreatePostOptions{
+            UserID: mediumUser.ID,
+            Title: title,
+            Content: mediumContentHTML,
+            ContentFormat: medium.ContentFormatHTML,
+            PublishStatus: medium.PublishStatusDraft,
+          })
+          if err != nil {
+            return nil, err
+          }
 					return postData, nil
 				},
 			},
@@ -254,7 +267,18 @@ func rootMutation() *graphql.Object {
 					}
 					if !foundstuff {
 						return nil, errors.New("post not found with given id")
-					}
+          }
+          mediumContentHTML := blackfriday.MarkdownCommon([]byte(postData["content"]))
+					mediumPost, err := mediumClient.CreatePost(medium.EditPostOptions{
+            UserID: mediumUser.ID,
+            Title: title,
+            Content: mediumContentHTML,
+            ContentFormat: medium.ContentFormatHTML,
+            PublishStatus: medium.PublishStatusDraft,
+          })
+          if err != nil {
+            return nil, err
+          }
 					return postData, nil
 				},
 			},
@@ -375,7 +399,14 @@ func rootMutation() *graphql.Object {
 						if err := fileobj.Delete(ctxStorage); err != nil {
 							return nil, err
 						}
-					}
+          }
+					mediumPost, err := mediumClient.DeletePost(medium.DeletePostOptions{
+            UserID: mediumUser.ID,
+            ID: postData["id"],
+          })
+          if err != nil {
+            return nil, err
+          }
 					return postData, nil
 				},
 			},
