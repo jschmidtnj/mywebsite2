@@ -44,18 +44,13 @@
         <b-form-group label-cols-sm="3" label="Per page" class="mb-0">
           <b-form-select
             v-model="perPage"
-            @change="searchPosts"
             :options="pageOptions"
+            @change="searchPosts"
           ></b-form-select>
         </b-form-group>
       </b-col>
     </b-row>
-    <b-table
-      show-empty
-      stacked="md"
-      :items="items"
-      :fields="fields"
-    >
+    <b-table show-empty stacked="md" :items="items" :fields="fields">
       <template slot="title" slot-scope="row">{{ row.value }}</template>
       <template slot="author" slot-scope="row">{{ row.value }}</template>
       <template slot="date" slot-scope="row">{{
@@ -87,6 +82,14 @@ import Vue from 'vue'
 import { format } from 'date-fns'
 import { validTypes } from '~/assets/config'
 export default Vue.extend({
+  props: {
+    type: {
+      default: null,
+      type: String,
+      required: true,
+      validator: val => validTypes.includes(val)
+    }
+  },
   data() {
     return {
       items: [],
@@ -130,14 +133,6 @@ export default Vue.extend({
       search: ''
     }
   },
-  props: {
-    type: {
-      default: null,
-      type: String,
-      required: true,
-      validator: val => validTypes.includes(val)
-    }
-  },
   computed: {
     sortOptions() {
       // Create an options list from our fields
@@ -153,70 +148,81 @@ export default Vue.extend({
   },
   methods: {
     updateCount() {
-      this.$axios.put('/countPosts', {
-        searchterm: this.search
-      }).then(res => {
-        if (res.status === 200) {
-          if (res.data) {
-            if (res.data.count !== null) {
-              this.totalRows = res.data.count
+      this.$axios
+        .put('/countPosts', {
+          searchterm: this.search
+        })
+        .then(res => {
+          if (res.status === 200) {
+            if (res.data) {
+              if (res.data.count !== null) {
+                this.totalRows = res.data.count
+              } else {
+                this.$toasted.global.error({
+                  message: 'could not find count data'
+                })
+              }
             } else {
               this.$toasted.global.error({
-                message: 'could not find count data'
+                message: 'could not get data'
               })
             }
           } else {
             this.$toasted.global.error({
-              message: 'could not get data'
+              message: `status code of ${res.status}`
             })
           }
-        } else {
-          this.$toasted.global.error({
-            message: `status code of ${res.status}`
-          })
-        }
-      }).catch(err => {
-        this.$toasted.global.error({
-          message: `got error: ${err}`
         })
-      })
+        .catch(err => {
+          this.$toasted.global.error({
+            message: `got error: ${err}`
+          })
+        })
     },
     searchPosts() {
       this.updateCount()
       const sort = (this.sortBy ? this.sortBy : this.sortOptions[0]).value
-      this.$axios.get('/graphql', {
-        params: {
-          query: `{posts(type:"${this.type}",perpage:${this.perPage},page:${this.currentPage - 1},searchterm:"${this.search}",sort:"${sort}",ascending:${!this.sortDesc}){title views id author date}}`
-        }
-      }).then(res => {
-        if (res.status === 200) {
-          if (res.data) {
-            if (res.data.data && res.data.data.posts) {
-              this.items = res.data.data.posts
-            } else if (res.data.errors) {
-              this.$toasted.global.error({
-                message: `found errors: ${JSON.stringify(res.data.errors)}`
-              })
+      this.$axios
+        .get('/graphql', {
+          params: {
+            query: `{posts(type:"${this.type}",perpage:${
+              this.perPage
+            },page:${this.currentPage - 1},searchterm:"${
+              this.search
+            }",sort:"${sort}",ascending:${!this
+              .sortDesc}){title views id author date}}`
+          }
+        })
+        .then(res => {
+          if (res.status === 200) {
+            if (res.data) {
+              if (res.data.data && res.data.data.posts) {
+                this.items = res.data.data.posts
+              } else if (res.data.errors) {
+                this.$toasted.global.error({
+                  message: `found errors: ${JSON.stringify(res.data.errors)}`
+                })
+              } else {
+                this.$toasted.global.error({
+                  message: 'could not find data or errors'
+                })
+              }
             } else {
               this.$toasted.global.error({
-                message: 'could not find data or errors'
+                message: 'could not get data'
               })
             }
           } else {
             this.$toasted.global.error({
-              message: 'could not get data'
+              message: `status code of ${res.status}`
             })
           }
-        } else {
-          this.$toasted.global.error({
-            message: `status code of ${res.status}`
-          })
-        }
-      }).catch(err => {
-        this.$toasted.global.error({
-          message: err
         })
-      })
+        .catch(err => {
+          this.$toasted.global.error({
+            message: err
+          })
+        })
     },
     formatDate(dateUTC, formatStr) {
       return format(dateUTC, formatStr)
@@ -225,5 +231,4 @@ export default Vue.extend({
 })
 </script>
 
-<style lang="scss">
-</style>
+<style lang="scss"></style>

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"github.com/graphql-go/graphql"
 	"github.com/joho/godotenv"
+	meduim "github.com/medium/medium-sdk-go"
 	"github.com/olivere/elastic"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -76,6 +77,10 @@ var logger *zap.Logger
 type tokenKeyType string
 
 var tokenKey tokenKeyType
+
+var mediumClient *medium.Client
+
+var mediumUser *medium.User
 
 func hello(response http.ResponseWriter, request *http.Request) {
 	if !manageCors(response, request) {
@@ -157,6 +162,12 @@ func main() {
 	}
 	if err := imageBucket.Create(ctxStorage, gcpprojectid, nil); err != nil {
 		logger.Info(err.Error())
+	}
+	mediumAccessToken := os.Getenv("MEDIUMACCESSTOKEN")
+	mediumClient = medium.NewClientWithAccessToken(mediumAccessToken)
+	mediumUser, err := mediumClient.GetUser("")
+	if err != nil {
+		logger.Fatal(err.Error())
 	}
 	port := ":" + os.Getenv("PORT")
 	schema, err := graphql.NewSchema(graphql.SchemaConfig{
