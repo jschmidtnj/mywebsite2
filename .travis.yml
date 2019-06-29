@@ -24,6 +24,8 @@ matrix:
     - flutter test
     - build_number="$(git rev-list --count master)"
     - flutter build apk --build-number=$build_number
+    - flutter emulators --create --name Pixel-test
+    - flutter emulators --launch Pixel-test
     - cd android && bundle exec fastlane alpha
     cache:
       bundler: true

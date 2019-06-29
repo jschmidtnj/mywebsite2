@@ -6,7 +6,6 @@ Flutter app for android / ios (if apple wouldn't charge $100 a year 😢).
 
 ```bash
 $ flutter emulators --create --name Pixel-test
-Emulator 'Pixel-test' created successfully.
 $ flutter emulators --launch Pixel-test
 $ flutter run
 ```
