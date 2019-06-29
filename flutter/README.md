@@ -1,6 +1,6 @@
 # joshuaschmidt
 
-Flutter app for android / ios (if apple wouldn't charge $100 a year 😢).
+Flutter app for android / ios (if apple wouldn't charge $100 a year 😢). This is a native version of the web app.
 
 ## get emulator working
 
