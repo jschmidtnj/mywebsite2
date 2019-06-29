@@ -1,6 +1,6 @@
 # joshuaschmidt
 
-A new Flutter project.
+Flutter app for android / ios (if apple wouldn't charge $100 a year :().
 
 ## get emulator working
 
