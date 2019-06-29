@@ -26,6 +26,11 @@ Runs all the tests
 fastlane android analytics
 ```
 Submit a new Build to Crashlytics Beta
+### android createscreenshots
+```
+fastlane android createscreenshots
+```
+Add new screen shots
 ### android alpha
 ```
 fastlane android alpha
