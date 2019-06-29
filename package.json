@@ -14,7 +14,7 @@
   "husky": {
     "hooks": {
       "pre-commit": "npm run precommit",
-      "pre-push": "sh ./flutter/checkchanges.sh"
+      "prepare-commit-msg": "sh ./checkflutterchanges.sh"
     }
   },
   "repository": {
