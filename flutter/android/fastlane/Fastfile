@@ -35,6 +35,19 @@ platform :android do
 
   desc "Deploy new alpha version to the Google Play"
   lane :alpha do
+    build_android_app(
+      task: 'assemble',
+      build_type: 'Debug'
+    )
+    build_android_app(
+      task: 'assemble',
+      build_type: 'AndroidTest'
+    )
+    screengrab(
+      clear_previous_screenshots: true,
+      app_apk_path: '../build/app/outputs/apk/debug/app-debug.apk',
+      tests_apk_path: '../build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk'
+    )
     screengrab
     # screenshots can only be run on linux
     upload_to_play_store(track: 'alpha', apk: '../build/app/outputs/apk/release/app-release.apk')
@@ -42,7 +55,19 @@ platform :android do
 
   desc "Deploy new version to internal testers on Google Play"
   lane :internal do
-    screengrab
+    build_android_app(
+      task: 'assemble',
+      build_type: 'Debug'
+    )
+    build_android_app(
+      task: 'assemble',
+      build_type: 'AndroidTest'
+    )
+    screengrab(
+      clear_previous_screenshots: true,
+      app_apk_path: '../build/app/outputs/apk/debug/app-debug.apk',
+      tests_apk_path: '../build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk'
+    )
     # screenshots can only be run on linux
     upload_to_play_store(track: 'internal', apk: '../build/app/outputs/apk/release/app-release.apk')
   end
