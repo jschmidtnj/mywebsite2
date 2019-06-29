@@ -22,8 +22,9 @@ matrix:
     - flutter packages get
     - flutter pub run flutter_launcher_icons:main
     - flutter test
-    - echo "build number " $TRAVIS_BUILD_NUMBER
-    - flutter build apk --build-number=$TRAVIS_BUILD_NUMBER
+    - build_number=$(($TRAVIS_BUILD_NUMBER + 100))
+    - echo "build number " $build_number
+    - flutter build apk --build-number=$build_number
     - cd android && bundle exec fastlane alpha
     cache:
       bundler: true
