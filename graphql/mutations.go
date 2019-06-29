@@ -4,7 +4,7 @@ import (
 	"cloud.google.com/go/storage"
 	"errors"
 	"github.com/graphql-go/graphql"
-	meduim "github.com/medium/medium-sdk-go"
+	medium "github.com/medium/medium-sdk-go"
 	"github.com/russross/blackfriday"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -268,7 +268,7 @@ func rootMutation() *graphql.Object {
 					if !foundstuff {
 						return nil, errors.New("post not found with given id")
 					}
-					mediumContentHTML := blackfriday.MarkdownCommon([]byte(postData["content"]))
+					mediumContentHTML := blackfriday.MarkdownCommon([]byte(postData["content"].(string)))
 					mediumPost, err := mediumClient.CreatePost(medium.EditPostOptions{
 						UserID:        mediumUser.ID,
 						Title:         title,

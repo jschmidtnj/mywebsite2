@@ -1,0 +1,8 @@
+# ignore fastlane service account json file
+fastlane/serviceAccount.json
+
+# ignore generated keytool file
+key/*.jks
+
+# ignore key file
+key.properties

@@ -11,12 +11,15 @@ require (
 	github.com/graphql-go/graphql v0.7.8
 	github.com/joho/godotenv v1.3.0
 	github.com/mailru/easyjson v0.0.0-20190403194419-1ea4449da983 // indirect
+	github.com/medium/medium-sdk-go v0.0.0-20171230201202-4daca056cf6a
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/mongodb/mongo-go-driver v1.0.2
 	github.com/olivere/elastic v6.2.18+incompatible
 	github.com/pkg/errors v0.8.1 // indirect
+	github.com/russross/blackfriday v2.0.0+incompatible
 	github.com/sendgrid/rest v2.4.1+incompatible
 	github.com/sendgrid/sendgrid-go v3.4.1+incompatible
+	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
 	github.com/xdg/stringprep v1.0.0 // indirect
 	go.mongodb.org/mongo-driver v1.0.2

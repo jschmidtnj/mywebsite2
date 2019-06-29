@@ -22,6 +22,16 @@ $ flutter run
 - `keytool -delete -alias key -keystore android/key/key.jks`
 - `keytool -genkey -v -alias key -keystore android/key/key.jks -keyalg RSA -keysize 2048 -validity 10000`
 
+### create ssh key for git allowing fastlane ios to work with match (ios)
+
+see [this](https://help.github.com/en/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) for instructions
+
+### encrypt secret files android
+
+- `tar cvf secrets.tar lib/config.dart android/key.properties android/fastlane/serviceAccount.json android/key/key.jks`
+- `gem install travis`
+- `travis encrypt-file secrets.tar`
+
 ### create release version
 
 - `flutter build apk --split-per-abi`

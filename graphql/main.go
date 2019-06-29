@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"github.com/graphql-go/graphql"
 	"github.com/joho/godotenv"
-	meduim "github.com/medium/medium-sdk-go"
+	medium "github.com/medium/medium-sdk-go"
 	"github.com/olivere/elastic"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -78,9 +78,9 @@ type tokenKeyType string
 
 var tokenKey tokenKeyType
 
-var mediumClient *medium.Client
+var mediumClient *medium.Medium
 
-var mediumUser *medium.User
+var mediumUser *medium.Medium
 
 func hello(response http.ResponseWriter, request *http.Request) {
 	if !manageCors(response, request) {

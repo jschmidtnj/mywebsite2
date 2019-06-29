@@ -10,8 +10,7 @@
 #     https://docs.fastlane.tools/plugins/available-plugins
 #
 
-# Uncomment the line if you want fastlane to automatically update itself
-# update_fastlane
+update_fastlane
 
 default_platform(:android)
 
@@ -21,24 +20,30 @@ platform :android do
     gradle(task: "test")
   end
 
-  desc "Submit a new Beta Build to Crashlytics Beta"
-  lane :beta do
-    gradle(task: "clean assembleRelease")
-    crashlytics
-  
-    # sh "your_script.sh"
+  desc "Submit a new Build to Crashlytics Beta"
+  lane :analytics do
+    crashlytics(
+      crashlytics_path: 'path/to/Crashlytics.framework',
+      api_token: 'aip_token',
+      build_secret: 'build_secret',
+      ipa_path: 'path/to/ipa',
+      notes: 'latest beta build',
+      groups: ['internal-testers']
+    )
     # You can also use other beta testing services here
   end
 
-  desc "Deploy a new version to the Google Play"
-  lane :deploy do
-    gradle(task: "clean assembleRelease")
-    upload_to_play_store
+  desc "Deploy new alpha version to the Google Play"
+  lane :alpha do
+    screengrab
+    # screenshots can only be run on linux
+    upload_to_play_store(track: 'alpha', apk: '../build/app/outputs/apk/release/app-release.apk')
   end
-end
 
-lane :alpha do
-  # screengrab
-  # screenshots can only be run on linux
-  upload_to_play_store(track: 'alpha', apk: '../build/app/outputs/apk/release/app-release.apk')
+  desc "Deploy new version to internal testers on Google Play"
+  lane :internal do
+    screengrab
+    # screenshots can only be run on linux
+    upload_to_play_store(track: 'internal', apk: '../build/app/outputs/apk/release/app-release.apk')
+  end
 end

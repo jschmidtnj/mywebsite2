@@ -1,5 +1,5 @@
-# private signing key
-android/key.properties
+# ignore secrets file
+secrets.tar
 
 # config files
 lib/config.dart
