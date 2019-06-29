@@ -22,7 +22,7 @@ matrix:
     - flutter packages get
     - flutter pub run flutter_launcher_icons:main
     - flutter test
-    - build_number="$(git rev-list --count master)"
+    - build_number=$(git rev-list --count master)
     - flutter build apk --build-number=$build_number
     - cd android && bundle exec fastlane alpha
     cache:
