@@ -93,7 +93,7 @@ func sendEmailVerification(email string) (*rest.Response, error) {
 }
 
 func sendPasswordResetEmail(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(response, request) {
+	if !manageCors(&response, request) {
 		return
 	}
 	if request.Method != http.MethodPut {
@@ -204,7 +204,7 @@ func sendPasswordResetEmail(response http.ResponseWriter, request *http.Request)
 }
 
 func sendTestEmail(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(response, request) {
+	if !manageCors(&response, request) {
 		return
 	}
 	if request.Method != http.MethodPost {

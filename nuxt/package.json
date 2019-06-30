@@ -12,7 +12,7 @@
     "build": "npm run email:build && nuxt build",
     "build:spa": "nuxt build --spa",
     "start": "cross-env NODE_ENV=production node server/index.js",
-    "generate": "nuxt generate --spa",
+    "generate": "nuxt generate --no-lock",
     "lint": "eslint --ext .js,.vue --fix --ignore-path .eslintignore .",
     "precommit": "npm run lint",
     "predeploy": "npm run precommit && npm run email:build && npm run generate",

@@ -11,7 +11,7 @@ import (
 )
 
 func createPostPicture(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(response, request) {
+	if !manageCors(&response, request) {
 		return
 	}
 	if request.Method != http.MethodPut {
@@ -64,7 +64,7 @@ func createPostPicture(response http.ResponseWriter, request *http.Request) {
 }
 
 func updatePostPicture(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(response, request) {
+	if !manageCors(&response, request) {
 		return
 	}
 	if request.Method != http.MethodPut {
@@ -117,7 +117,7 @@ func updatePostPicture(response http.ResponseWriter, request *http.Request) {
 }
 
 func deletePostPictures(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(response, request) {
+	if !manageCors(&response, request) {
 		return
 	}
 	if request.Method != http.MethodDelete {
@@ -174,7 +174,7 @@ func deletePostPictures(response http.ResponseWriter, request *http.Request) {
 }
 
 func getPostPicture(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(response, request) {
+	if !manageCors(&response, request) {
 		return
 	}
 	if request.Method != http.MethodGet {

@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"github.com/graphql-go/graphql"
 	"github.com/joho/godotenv"
-	medium "github.com/medium/medium-sdk-go"
+	// medium "github.com/medium/medium-sdk-go"
 	"github.com/olivere/elastic"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -78,12 +78,12 @@ type tokenKeyType string
 
 var tokenKey tokenKeyType
 
-var mediumClient *medium.Medium
+// var mediumClient *medium.Medium
 
-var mediumUser *medium.Medium
+// var mediumUser *medium.User
 
 func hello(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(response, request) {
+	if !manageCors(&response, request) {
 		return
 	}
 	response.Header().Set("content-type", "application/json")
@@ -163,12 +163,15 @@ func main() {
 	if err := imageBucket.Create(ctxStorage, gcpprojectid, nil); err != nil {
 		logger.Info(err.Error())
 	}
-	mediumAccessToken := os.Getenv("MEDIUMACCESSTOKEN")
-	mediumClient = medium.NewClientWithAccessToken(mediumAccessToken)
-	mediumUser, err := mediumClient.GetUser("")
-	if err != nil {
-		logger.Fatal(err.Error())
-	}
+	/*
+		mediumAccessToken := os.Getenv("MEDIUMACCESSTOKEN")
+		mediumClient = medium.NewClientWithAccessToken(mediumAccessToken)
+		mediumUser, err := mediumClient.GetUser("")
+		if err != nil {
+			logger.Fatal(err.Error())
+		}
+		logger.Info("medium id " + mediumUser.ID)
+	*/
 	port := ":" + os.Getenv("PORT")
 	schema, err := graphql.NewSchema(graphql.SchemaConfig{
 		Query:    rootQuery(),
@@ -178,7 +181,7 @@ func main() {
 		logger.Fatal(err.Error())
 	}
 	http.HandleFunc("/graphql", func(response http.ResponseWriter, request *http.Request) {
-		if !manageCors(response, request) {
+		if !manageCors(&response, request) {
 			return
 		}
 		tokenKey = tokenKeyType("token")
@@ -216,13 +219,13 @@ func getAuthToken(request *http.Request) string {
 	return authToken
 }
 
-func manageCors(w http.ResponseWriter, r *http.Request) bool {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
-	if r.Method == "OPTIONS" {
-		w.Header().Set("Access-Control-Max-Age", "86400")
-		w.WriteHeader(http.StatusOK)
+func manageCors(w *http.ResponseWriter, r *http.Request) bool {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	(*w).Header().Set("Access-Control-Allow-Headers", "*")
+	if (*r).Method == "OPTIONS" {
+		(*w).Header().Set("Access-Control-Max-Age", "86400")
+		(*w).WriteHeader(http.StatusOK)
 		return false
 	}
 	return true

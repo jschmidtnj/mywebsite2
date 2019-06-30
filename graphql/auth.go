@@ -27,7 +27,7 @@ type loginClaims struct {
 }
 
 func register(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(response, request) {
+	if !manageCors(&response, request) {
 		return
 	}
 	if request.Method != http.MethodPost {
@@ -101,7 +101,7 @@ func register(response http.ResponseWriter, request *http.Request) {
 }
 
 func loginEmailPassword(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(response, request) {
+	if !manageCors(&response, request) {
 		return
 	}
 	if request.Method != http.MethodPut {
@@ -187,7 +187,7 @@ func loginEmailPassword(response http.ResponseWriter, request *http.Request) {
 }
 
 func logoutEmailPassword(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(response, request) {
+	if !manageCors(&response, request) {
 		return
 	}
 	if request.Method != http.MethodPut {
@@ -204,7 +204,7 @@ func logoutEmailPassword(response http.ResponseWriter, request *http.Request) {
 }
 
 func verifyEmail(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(response, request) {
+	if !manageCors(&response, request) {
 		return
 	}
 	if request.Method != http.MethodPost {
@@ -310,7 +310,7 @@ func verifyEmail(response http.ResponseWriter, request *http.Request) {
 }
 
 func resetPassword(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(response, request) {
+	if !manageCors(&response, request) {
 		return
 	}
 	if request.Method != http.MethodPost {

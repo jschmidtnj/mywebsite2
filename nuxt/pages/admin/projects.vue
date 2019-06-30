@@ -7,6 +7,8 @@ import Vue from 'vue'
 import AdminPostEdit from '~/components/admin/PostEdit.vue'
 export default Vue.extend({
   name: 'ProjectEdit',
+  // @ts-ignore
+  layout: 'admin',
   components: {
     AdminPostEdit
   },

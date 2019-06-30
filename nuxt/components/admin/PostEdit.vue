@@ -421,7 +421,7 @@ export default Vue.extend({
       default: null,
       type: String,
       required: true,
-      validator: val => validTypes.includes(val)
+      validator: val => validTypes.includes(String(val))
     }
   },
   // @ts-ignore

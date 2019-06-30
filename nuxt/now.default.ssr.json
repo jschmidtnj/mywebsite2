@@ -26,8 +26,8 @@
     "env": {
       "SEOCONFIG": "{\"url\":\"https://url.com\",\"twitterhandle\":\"handle\",\"googleanalyticstrackingid\":\"UA-id-1\"}",
       "AUTHCONFIG": "{\"google\":{\"client_id\":\"id\"}}",
-      "APIURL": "https://<appname>.appspot.com",
-      "AMPURL": "https://<appname>.herokuapp.com"
+      "APIURL": "https://api.example.com",
+      "AMPURL": "https://amp.example.com"
     }
   }
 }

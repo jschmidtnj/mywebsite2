@@ -10,12 +10,19 @@
               @keyup.enter.native="
                 evt => {
                   evt.preventDefault()
-                  searchPosts()
+                  pageNum = 1
+                  searchPosts(currentPage)
                 }
               "
             ></b-form-input>
             <b-input-group-append>
-              <b-button :disabled="!search" @click="search = ''"
+              <b-button
+                :disabled="!search"
+                @click="
+                  search = ''
+                  pageNum = 1
+                  searchPosts(currentPage)
+                "
                 >Clear</b-button
               >
             </b-input-group-append>
@@ -25,14 +32,24 @@
       <b-col md="6" class="my-1">
         <b-form-group label-cols-sm="3" label="Sort" class="mb-0">
           <b-input-group>
-            <b-form-select v-model="sortBy" :options="sortOptions">
+            <b-form-select
+              v-model="sortBy"
+              :options="sortOptions"
+              @change="
+                currentPage = 1
+                searchPosts(currentPage)
+              "
+            >
               <option slot="first" :value="null">-- none --</option>
             </b-form-select>
             <b-form-select
               slot="prepend"
               v-model="sortDesc"
               :disabled="!sortBy"
-              @change="searchPosts"
+              @change="
+                currentPage = 1
+                searchPosts(currentPage)
+              "
             >
               <option :value="false">Asc</option>
               <option :value="true">Desc</option>
@@ -45,7 +62,10 @@
           <b-form-select
             v-model="perPage"
             :options="pageOptions"
-            @change="searchPosts"
+            @change="
+              currentPage = 1
+              searchPosts(currentPage)
+            "
           ></b-form-select>
         </b-form-group>
       </b-col>
@@ -84,10 +104,10 @@ import { validTypes } from '~/assets/config'
 export default Vue.extend({
   props: {
     type: {
-      default: null,
       type: String,
+      default: null,
       required: true,
-      validator: val => validTypes.includes(val)
+      validator: val => validTypes.includes(String(val))
     }
   },
   data() {
@@ -144,13 +164,16 @@ export default Vue.extend({
     }
   },
   mounted() {
-    this.searchPosts()
+    this.searchPosts(this.currentPage)
   },
   methods: {
     updateCount() {
       this.$axios
-        .put('/countPosts', {
-          searchterm: this.search
+        .get('/countPosts', {
+          params: {
+            searchterm: this.search,
+            type: this.type
+          }
         })
         .then(res => {
           if (res.status === 200) {
@@ -179,15 +202,15 @@ export default Vue.extend({
           })
         })
     },
-    searchPosts() {
+    searchPosts(pageNum) {
       this.updateCount()
-      const sort = (this.sortBy ? this.sortBy : this.sortOptions[0]).value
+      const sort = this.sortBy ? this.sortBy : this.sortOptions[0].value
       this.$axios
         .get('/graphql', {
           params: {
             query: `{posts(type:"${this.type}",perpage:${
               this.perPage
-            },page:${this.currentPage - 1},searchterm:"${
+            },page:${pageNum - 1},searchterm:"${
               this.search
             }",sort:"${sort}",ascending:${!this
               .sortDesc}){title views id author date}}`

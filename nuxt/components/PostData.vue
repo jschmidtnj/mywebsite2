@@ -32,10 +32,10 @@ export default Vue.extend({
   },
   props: {
     type: {
-      default: null,
       type: String,
+      default: null,
       required: true,
-      validator: val => validTypes.includes(val)
+      validator: val => validTypes.includes(String(val))
     }
   },
   data() {
@@ -48,9 +48,9 @@ export default Vue.extend({
   mounted() {
     if (this.$route.params && this.$route.params.id) {
       this.id = this.$route.params.id
-      // update document canonical for spa
+      // update document amphtml for spa
       // @ts-ignore
-      document.head.querySelector("link[rel='canonical']").href = `${ampurl}/blog/${this.id}`
+      document.head.querySelector("link[rel='amphtml']").href = `${ampurl}/blog/${this.id}`
       this.$axios
         .get('/graphql', {
           params: {

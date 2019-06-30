@@ -4,11 +4,12 @@ import (
 	"cloud.google.com/go/storage"
 	"errors"
 	"github.com/graphql-go/graphql"
-	medium "github.com/medium/medium-sdk-go"
-	"github.com/russross/blackfriday"
+	// medium "github.com/medium/medium-sdk-go"
+	// "gopkg.in/russross/blackfriday.v2"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	// "github.com/Depado/bfchroma"
 )
 
 func rootMutation() *graphql.Object {
@@ -114,17 +115,19 @@ func rootMutation() *graphql.Object {
 					}
 					postData["date"] = timestamp.Format(dateFormat)
 					postData["id"] = idstring
-					mediumContentHTML := blackfriday.MarkdownCommon([]byte(content))
-					mediumPost, err := mediumClient.CreatePost(medium.CreatePostOptions{
-						UserID:        mediumUser.ID,
-						Title:         title,
-						Content:       mediumContentHTML,
-						ContentFormat: medium.ContentFormatHTML,
-						PublishStatus: medium.PublishStatusDraft,
-					})
-					if err != nil {
-						return nil, err
-					}
+					/*
+						mediumContentHTML := string(blackfriday.Run([]byte(content), blackfriday.WithRenderer(bfchroma.NewRenderer())))
+						_, err = mediumClient.CreatePost(medium.CreatePostOptions{
+							UserID:        mediumUser.ID,
+							Title:         title,
+							Content:       mediumContentHTML,
+							ContentFormat: medium.ContentFormatHTML,
+							PublishStatus: medium.PublishStatusDraft,
+						})
+						if err != nil {
+							return nil, err
+						}
+					*/
 					return postData, nil
 				},
 			},
@@ -268,14 +271,6 @@ func rootMutation() *graphql.Object {
 					if !foundstuff {
 						return nil, errors.New("post not found with given id")
 					}
-					mediumContentHTML := blackfriday.MarkdownCommon([]byte(postData["content"].(string)))
-					mediumPost, err := mediumClient.CreatePost(medium.EditPostOptions{
-						UserID:        mediumUser.ID,
-						Title:         title,
-						Content:       mediumContentHTML,
-						ContentFormat: medium.ContentFormatHTML,
-						PublishStatus: medium.PublishStatusDraft,
-					})
 					if err != nil {
 						return nil, err
 					}
@@ -400,10 +395,6 @@ func rootMutation() *graphql.Object {
 							return nil, err
 						}
 					}
-					mediumPost, err := mediumClient.DeletePost(medium.DeletePostOptions{
-						UserID: mediumUser.ID,
-						ID:     postData["id"],
-					})
 					if err != nil {
 						return nil, err
 					}
