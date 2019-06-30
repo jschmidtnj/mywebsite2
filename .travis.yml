@@ -10,9 +10,10 @@ matrix:
     before_script:
     - choco install nodejs
     - choco install yarn
-    - cd electron
-    - openssl aes-256-cbc -K $encrypted_83cd05f036ed_key -iv $encrypted_83cd05f036ed_iv 
-      -in config.ts.enc -out src\config.ts -d    
+    - cd electron/src
+    - openssl aes-256-cbc -K $encrypted_7db527e407fc_key -iv $encrypted_7db527e407fc_iv 
+      -in config.ts.enc -out config.ts -d 
+    - cd ..
     script:
     - ./windowsbuild.bat
   exclude:
@@ -49,9 +50,10 @@ matrix:
     - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.16.0
     - export PATH="$HOME/.yarn/bin:$PATH"
     before_script:
-    - cd electron
-    - openssl aes-256-cbc -K $encrypted_83cd05f036ed_key -iv $encrypted_83cd05f036ed_iv 
-      -in config.ts.enc -out src/config.ts -d
+    - cd electron/src
+    - openssl aes-256-cbc -K $encrypted_7db527e407fc_key -iv $encrypted_7db527e407fc_iv 
+      -in config.ts.enc -out config.ts -d 
+    - cd ..
     - yarn install
     - yarn build
     script:
@@ -66,9 +68,10 @@ matrix:
     - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.16.0
     - export PATH="$HOME/.yarn/bin:$PATH"
     before_script:
-    - cd electron
-    - openssl aes-256-cbc -K $encrypted_83cd05f036ed_key -iv $encrypted_83cd05f036ed_iv 
-      -in config.ts.enc -out src/config.ts -d
+    - cd electron/src
+    - openssl aes-256-cbc -K $encrypted_7db527e407fc_key -iv $encrypted_7db527e407fc_iv 
+      -in config.ts.enc -out config.ts -d 
+    - cd ..
     - yarn install
     - yarn build
     script:
