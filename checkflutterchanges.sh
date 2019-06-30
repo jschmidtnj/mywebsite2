@@ -4,7 +4,7 @@
 set -e
 
 changes() {
-  git diff --name-only --diff-filter=ADMR @~..@
+  git diff --name-only
 }
 
 travis_ignore="[skip ci]"
