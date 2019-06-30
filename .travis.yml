@@ -41,9 +41,8 @@ matrix:
     language: bash
     cache: yarn
     before_script:
-    - cinst nodejs
-    - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.16.0
-    - export PATH="$HOME/.yarn/bin:$PATH"
+    - choco install nodejs
+    - choco install yarn
     - cd electron
     - openssl aes-256-cbc -K $encrypted_83cd05f036ed_key -iv $encrypted_83cd05f036ed_iv 
       -in config.ts.enc -out src/config.ts -d
