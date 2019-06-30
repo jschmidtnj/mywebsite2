@@ -23,7 +23,7 @@ $ flutter run
 
 ### create ssh key for git allowing fastlane ios to work with match (ios)
 
-see [this](https://help.github.com/en/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) for instructions.
+see [this](https://help.github.com/en/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) for instructions
 
 ### encrypt secret files android - run in linux!
 
