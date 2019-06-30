@@ -19,8 +19,7 @@
     "serve": "node staticserver.js",
     "now-build": "npm run predeploy",
     "deploy:gcp": "gcloud app deploy",
-    "deploy:heroku:windows": "deployheroku.sh",
-    "deploy:heroku:linux": "./deployheroku.sh",
+    "deploy:heroku": "sh ./deployheroku.sh",
     "test": "jest"
   },
   "dependencies": {

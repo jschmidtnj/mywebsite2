@@ -71,7 +71,7 @@ const handlePostRequest = (req, res, type) => {
             $('img').each((i, item) => (item.tagName = 'amp-img'))
             $('#views').text(postdata.views)
             $('#date').text(date)
-            $('#mainsite').attr('href', `${config.websiteurl}/${type}/${id}`)
+            $('#mainsite').attr('href', `${config.websiteurl}/${type}?id=${id}`)
             $('title').text(postdata.title)
             $('meta[name=description]').attr('content', `${postdata.title} ${type} by ${postdata.author}`)
             const html = $.html()

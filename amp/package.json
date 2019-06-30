@@ -9,8 +9,7 @@
     "gcp-build": "npm run build",
     "start": "node lib/index.js",
     "deploy:gcp": "gcloud app deploy",
-    "deploy:heroku:windows": "deployheroku.sh",
-    "deploy:heroku:linux": "./deployheroku.sh"
+    "deploy:heroku": "sh ./deployheroku.sh"
   },
   "repository": {
     "type": "git",
