@@ -1,0 +1,39 @@
+{
+  "name": "desktop",
+  "version": "1.0.0",
+  "description": "desktop version of main website",
+  "main": "lib/index.js",
+  "scripts": {
+    "lint": "tslint --project tsconfig.json --fix",
+    "precommit": "npm run lint",
+    "build": "tsc",
+    "start": "node lib/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jschmidtnj/mywebsite2.git"
+  },
+  "keywords": [
+    "native",
+    "electron"
+  ],
+  "author": "Joshua Schmidt",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jschmidtnj/mywebsite2/issues"
+  },
+  "homepage": "https://github.com/jschmidtnj/mywebsite2#readme",
+  "private": false,
+  "dependencies": {
+    "@google-cloud/storage": "^2.5.0",
+    "archiver": "^3.0.0",
+    "nativefier": "^7.6.12"
+  },
+  "devDependencies": {
+    "@types/archiver": "^3.0.0",
+    "@types/node": "^12.0.7",
+    "tslint": "~5.8.0",
+    "typescript": "~3.3.1"
+  }
+}
