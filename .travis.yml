@@ -38,7 +38,7 @@ matrix:
     language: node_js
     cache: yarn
     before_install:
-    - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version version-number
+    - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.16.0
     - export PATH="$HOME/.yarn/bin:$PATH"
     before_script:
     - cd electron
@@ -53,7 +53,7 @@ matrix:
     language: node_js
     cache: yarn
     before_install:
-    - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version version-number
+    - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.16.0
     - export PATH="$HOME/.yarn/bin:$PATH"
     before_script:
     - cd electron
@@ -68,7 +68,7 @@ matrix:
     language: node_js
     cache: yarn
     before_install:
-    - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version version-number
+    - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.16.0
     - export PATH="$HOME/.yarn/bin:$PATH"
     before_script:
     - cd electron
