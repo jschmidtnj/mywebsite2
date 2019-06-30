@@ -1,4 +1,4 @@
-refreshenv
-yarn install
-yarn build
-yarn start
+call refreshenv
+call yarn install
+call yarn build
+call yarn start
