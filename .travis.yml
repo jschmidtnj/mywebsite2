@@ -43,9 +43,7 @@ matrix:
     before_script:
     - choco install nodejs
     - choco install yarn
-    - cmd
-    - refreshenv
-    - exit
+    - cmd "/C refreshenv"
     - cd electron
     - openssl aes-256-cbc -K $encrypted_83cd05f036ed_key -iv $encrypted_83cd05f036ed_iv 
       -in config.ts.enc -out src/config.ts -d
