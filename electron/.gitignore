@@ -3,7 +3,7 @@
 **/*.js.map
 lib/
 node_modules/
-config*
+config.ts
 
 # Typescript v1 declaration files
 typings/

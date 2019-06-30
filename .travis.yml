@@ -38,7 +38,7 @@ matrix:
     - yarn start
   - name: Windows Desktop Build
     os: windows
-    language: generic
+    language: bash
     cache: yarn
     before_script:
     - cinst nodejs
