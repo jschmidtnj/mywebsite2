@@ -4,7 +4,7 @@
 set -e
 
 changes() {
-  git diff --name-only --diff-filter=ADMR @~..@
+  git diff --stat --cached -- flutter/
 }
 
 travis_ignore="[skip ci]"
