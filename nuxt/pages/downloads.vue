@@ -38,6 +38,12 @@ export default Vue.extend({
       macosAppUrl: `${cloudStorageURLs.desktop}/darwin`,
       linuxAppUrl: `${cloudStorageURLs.desktop}/linux`
     }
+  },
+  // @ts-ignore
+  head() {
+    return {
+      title: 'Home'
+    }
   }
 })
 </script>

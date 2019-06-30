@@ -19,6 +19,12 @@ export default Vue.extend({
   data() {
     return {}
   },
+  // @ts-ignore
+  head() {
+    return {
+      title: 'Home'
+    }
+  },
   mounted() {
     /* eslint-disable */
     console.log('hello world!')

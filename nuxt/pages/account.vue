@@ -10,7 +10,13 @@
 import Vue from 'vue'
 export default Vue.extend({
   // @ts-ignore
-  layout: 'secure'
+  layout: 'secure',
+  // @ts-ignore
+  head() {
+    return {
+      title: 'Account'
+    }
+  }
 })
 </script>
 

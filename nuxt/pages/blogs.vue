@@ -12,6 +12,12 @@ export default Vue.extend({
   },
   data() {
     return {}
+  },
+  // @ts-ignore
+  head() {
+    return {
+      title: 'Blogs'
+    }
   }
 })
 </script>

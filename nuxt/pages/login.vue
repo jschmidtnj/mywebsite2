@@ -46,6 +46,12 @@ export default Vue.extend({
       password: ''
     }
   },
+  // @ts-ignore
+  head() {
+    return {
+      title: 'Login'
+    }
+  },
   methods: {
     logingoogle() {
       /* eslint-disable */
