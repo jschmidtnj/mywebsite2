@@ -1,11 +1,7 @@
-# Amp pages
+# Electron app
 
-Express web server for serving amp pages before being cached by google or cloudflare servers
+Desktop app for website.
 
-## deployment
+### travis setup
 
-currently heroku is preferred because gcp app engine is being used for the api already
-
-## framework
-
-currently using amp spectre: `https://github.com/niutech/amp-spectre`
+`travis encrypt-file src/config.ts`

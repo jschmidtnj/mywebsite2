@@ -42,6 +42,8 @@ matrix:
     - export PATH="$HOME/.yarn/bin:$PATH"
     before_script:
     - cd electron
+    - openssl aes-256-cbc -K $encrypted_83cd05f036ed_key -iv $encrypted_83cd05f036ed_iv 
+      -in config.ts.enc -out src/config.ts -d
     - yarn install
     - yarn build
     script:
@@ -55,6 +57,8 @@ matrix:
     - export PATH="$HOME/.yarn/bin:$PATH"
     before_script:
     - cd electron
+    - openssl aes-256-cbc -K $encrypted_83cd05f036ed_key -iv $encrypted_83cd05f036ed_iv 
+      -in config.ts.enc -out src/config.ts -d
     - yarn install
     - yarn build
     script:
@@ -68,6 +72,8 @@ matrix:
     - export PATH="$HOME/.yarn/bin:$PATH"
     before_script:
     - cd electron
+    - openssl aes-256-cbc -K $encrypted_83cd05f036ed_key -iv $encrypted_83cd05f036ed_iv 
+      -in config.ts.enc -out src/config.ts -d
     - yarn install
     - yarn build
     script:
