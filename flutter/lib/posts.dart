@@ -138,19 +138,20 @@ class postsState extends State<PostsPage> {
 
   Future<int> _getRowCount() async {
     print('start query');
-    Map<String, String> bodyDataMap = {'type': postType};
+    String querySearchTerm = '';
     if (searchTerm != null) {
-      bodyDataMap['searchterm'] = searchTerm;
+      querySearchTerm = searchTerm;
     }
-    Map<String, String> queryParameters = {};
+    Map<String, String> queryParameters = {
+      'type': postType,
+      'searchterm': querySearchTerm
+    };
     Uri uri = Uri.https(config['apiURL'], '/countPosts', queryParameters);
     print('get response');
-    final response = await http.put(uri,
-        headers: {
-          HttpHeaders.contentTypeHeader: 'application/json',
-          HttpHeaders.acceptEncodingHeader: 'application/json'
-        },
-        body: json.encode(bodyDataMap));
+    final response = await http.get(uri, headers: {
+      HttpHeaders.contentTypeHeader: 'application/json',
+      HttpHeaders.acceptEncodingHeader: 'application/json'
+    });
     if (response.statusCode == 200) {
       print(response.body);
       Map<String, dynamic> resdata = json.decode(response.body);
@@ -199,7 +200,7 @@ class postsState extends State<PostsPage> {
     Widget datatable;
     if (!loading) {
       if (posts.isEmpty) {
-        datatable = Text('no posts found');
+        datatable = Text('no ${postType}s found');
       } else {
         datatable = DataTable(
             columns: <DataColumn>[
