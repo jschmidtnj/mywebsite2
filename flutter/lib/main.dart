@@ -3,7 +3,7 @@ import 'posts.dart';
 import 'post.dart';
 import 'homepage.dart';
 
-/* main flutter class for app */
+/* main flutter class entry point for app. */
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
