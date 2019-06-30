@@ -24,6 +24,8 @@ import Prism from 'prismjs'
 import { validTypes } from '~/assets/config'
 // @ts-ignore
 const ampurl = process.env.ampurl
+// @ts-ignore
+const seo = JSON.parse(process.env.seoconfig)
 export default Vue.extend({
   name: 'Post',
   components: {
@@ -102,15 +104,6 @@ export default Vue.extend({
   // @ts-ignore
   head() {
     const title = this.post ? this.post.title : validTypes.includes(this.type) ? this.type : 'Post'
-    // @ts-ignore
-    if (!(process.env.seoconfig && process.env.ampurl)) {
-      return {
-        title: title,
-        link: []
-      }
-    }
-    // @ts-ignore
-    const seo = JSON.parse(process.env.seoconfig)
     return {
       title: title,
       link: [
