@@ -3,7 +3,7 @@
 # abort on errors
 set -e
 
-npm run build
+yarn build
 
 sed -i 's/config/dummy/g' .gitignore
 

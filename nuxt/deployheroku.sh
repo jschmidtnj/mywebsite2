@@ -3,8 +3,8 @@
 # abort on errors
 set -e
 
-npm run precommit
-npm run email:build
+yarn precommit
+yarn email:build
 
 sed -i 's/.env/dummy/g' .gitignore
 

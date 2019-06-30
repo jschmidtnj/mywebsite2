@@ -2,7 +2,7 @@
   "hosting": {
     "trailingSlash": false,
     "predeploy": [
-      "npm run predeploy"
+      "yarn predeploy"
     ],
     "public": "dist",
     "cleanUrls": true,

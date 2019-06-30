@@ -85,5 +85,9 @@ nativefier(options, (err, appPath) => {
   }
   console.log('App has been nativefied to', appPath)
   archive.directory(appPath, false)
-  archive.finalize()
+  archive.finalize().then(() => {
+    console.log('all finished')
+  }).catch(err1 => {
+    console.error(err1)
+  })
 })

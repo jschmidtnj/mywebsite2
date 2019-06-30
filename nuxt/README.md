@@ -9,14 +9,14 @@
 $ npm install
 
 # serve with hot reload at localhost:3000
-$ npm run dev
+$ yarn dev
 
 # build for production and launch server
-$ npm run build
+$ yarn build
 $ npm start
 
 # generate static project
-$ npm run generate
+$ yarn generate
 ```
 
 For detailed explanation on how things work, checkout [Nuxt.js docs](https://nuxtjs.org).
@@ -24,7 +24,7 @@ For detailed explanation on how things work, checkout [Nuxt.js docs](https://nux
 ## Format
 
 - autoformat vscode: <kbd>Shift</kbd> + <kbd>Option</kbd> + <kbd>F</kbd>
-- lint: `npm run lint`
+- lint: `yarn lint`
 
 ## Deploy
 

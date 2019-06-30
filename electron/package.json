@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "lint": "tslint --project tsconfig.json --fix",
-    "precommit": "npm run lint",
+    "precommit": "yarn lint",
     "build": "tsc",
     "start": "node lib/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -5,10 +5,10 @@
   "scripts": {
     "lint": "tslint --project tsconfig.json --fix",
     "build": "tsc",
-    "gcp-build": "npm run build",
+    "gcp-build": "yarn build",
     "start": "node lib/index.js",
     "deploy": "gcloud app deploy",
-    "precommit": "npm run lint"
+    "precommit": "yarn lint"
   },
   "repository": {
     "type": "git",

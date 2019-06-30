@@ -4,8 +4,8 @@
 set -e
 
 # build
-npm run build
-npm run pwa
+yarn build
+yarn pwa
 sed -i 's/\/images\//\/mywebsite2\/images\//g' docs/Polyfills/manifest.json
 
 rm -rf .vuepress/dist/

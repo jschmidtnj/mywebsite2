@@ -4,9 +4,9 @@
   "license": "MIT",
   "scripts": {
     "lint": "tslint --project tsconfig.json --fix",
-    "precommit": "npm run lint",
+    "precommit": "yarn lint",
     "build": "tsc",
-    "gcp-build": "npm run build",
+    "gcp-build": "yarn build",
     "start": "node lib/index.js",
     "deploy:gcp": "gcloud app deploy",
     "deploy:heroku": "sh ./deployheroku.sh"
