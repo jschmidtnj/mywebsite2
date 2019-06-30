@@ -14,7 +14,7 @@
   "husky": {
     "hooks": {
       "pre-commit": "yarn precommit",
-      "prepare-commit-msg": "sh ./checkflutterchanges.sh"
+      "prepare-commit-msg": "sh ./checkcichanges.sh"
     }
   },
   "repository": {
