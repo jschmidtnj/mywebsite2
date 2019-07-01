@@ -6,7 +6,7 @@
       "src": "nuxt/package.json",
       "use": "@now/static-build",
       "config": {
-        "distDir": "nuxt/dist"
+        "distDir": "nuxt/build"
       }
     }
   ],
