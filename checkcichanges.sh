@@ -10,8 +10,8 @@ changes() {
 travis_ignore="[skip ci]"
 
 if ! changes | grep -E "flutter/|nuxt/" ; then
-  echo "no flutter changes found"
+  echo "no ci changes found"
   sed -i.bak -e "1s/^/$travis_ignore /" "$GIT_DIR/COMMIT_EDITMSG"
 else
-  echo "flutter changes found"
+  echo "ci changes found"
 fi
