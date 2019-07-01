@@ -42,7 +42,7 @@ export default Vue.extend({
   // @ts-ignore
   head() {
     return {
-      title: 'Home'
+      title: 'Downloads'
     }
   }
 })

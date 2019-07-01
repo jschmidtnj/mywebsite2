@@ -23,7 +23,7 @@ module.exports = {
     docsBranch: 'master',
     nav: [
       { text: 'Guide', link: '/guide/' },
-      { text: 'Demo', link: 'https://mywebsite2.firebaseapp.com' }
+      { text: 'Prod', link: 'https://joshuaschmidt.tech' }
     ],
     displayAllHeaders: true,
     sidebar: 'auto'

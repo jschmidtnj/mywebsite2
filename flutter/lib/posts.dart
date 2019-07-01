@@ -24,10 +24,10 @@ class PostsPage extends StatefulWidget {
       : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => postsState();
+  State<StatefulWidget> createState() => PostsState();
 }
 
-class postsState extends State<PostsPage> {
+class PostsState extends State<PostsPage> {
   String postType;
   int count = 0;
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
