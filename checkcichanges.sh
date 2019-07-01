@@ -4,7 +4,7 @@
 set -e
 
 changes() {
-  git diff --stat --cached -- flutter/
+  git diff --stat --cached -- flutter/ nuxt/
 }
 
 travis_ignore="[skip ci]"

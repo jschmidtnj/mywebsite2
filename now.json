@@ -3,7 +3,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "package.json",
+      "src": "nuxt/package.json",
       "use": "@now/static-build"
     }
   ],
