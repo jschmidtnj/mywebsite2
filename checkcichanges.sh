@@ -9,9 +9,8 @@ changes() {
 
 travis_ignore="[skip ci]"
 
-if ! changes | grep "flutter/*" ; then
+if ! changes | grep -E "flutter/|nuxt/" ; then
   echo "no flutter changes found"
-  BRANCH_NAME=$(git branch | grep '*' | sed 's/* //')
   sed -i.bak -e "1s/^/$travis_ignore /" "$GIT_DIR/COMMIT_EDITMSG"
 else
   echo "flutter changes found"
