@@ -8,7 +8,12 @@
     }
   ],
   "build": {
-    "env": {}
+    "env": {
+      "SEOCONFIG": "@seoconfig",
+      "AUTHCONFIG": "@authconfig",
+      "APIURL": "@apiurl",
+      "AMPURL": "@ampurl"
+    }
   },
   "routes": [
     {
