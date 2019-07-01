@@ -1,0 +1,23 @@
+{
+  "name": "joshuawebsite",
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@now/static-build"
+    }
+  ],
+  "build": {
+    "env": {}
+  },
+  "routes": [
+    {
+      "src": "/blog/(.*)",
+      "dest": "/blog"
+    },
+    {
+      "src": "/post/(.*)",
+      "dest": "/post"
+    }
+  ]
+}
