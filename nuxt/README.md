@@ -23,7 +23,8 @@ For detailed explanation on how things work, checkout [Nuxt.js docs](https://nux
 
 ## Format
 
-- autoformat vscode: <kbd>Shift</kbd> + <kbd>Option</kbd> + <kbd>F</kbd>
+- autoformat vscode: <kbd>Shift</kbd> + <kbd>Option</kbd> + <kbd>F</kbd> (windows)
+- for linux it's <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>I</kbd>
 - lint: `yarn lint`
 
 ## Deploy
