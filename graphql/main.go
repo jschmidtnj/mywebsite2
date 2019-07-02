@@ -17,6 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"github.com/go-redis/redis"
 )
 
 var jwtSecret []byte
@@ -77,6 +78,8 @@ var logger *zap.Logger
 type tokenKeyType string
 
 var tokenKey tokenKeyType
+
+var redisClient string
 
 // var mediumClient *medium.Medium
 
@@ -162,6 +165,19 @@ func main() {
 	}
 	if err := imageBucket.Create(ctxStorage, gcpprojectid, nil); err != nil {
 		logger.Info(err.Error())
+	}
+	redisAddress := os.Getenv("REDISADDRESS")
+	redisPassword := os.Getenv("REDISPASSWORD")
+	redisClient = redis.NewClient(&redis.Options{
+		Addr: redisAddress,
+		Password: redisPassword,
+		DB: 0, // use default DB
+	})
+	pong, err := redisClient.Ping().Result()
+	if err != nil {
+		logger.Fatal(err.Error())
+	} else {
+		logger.Info("connected to redis cache: " + pong)
 	}
 	/*
 		mediumAccessToken := os.Getenv("MEDIUMACCESSTOKEN")

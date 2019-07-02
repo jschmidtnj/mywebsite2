@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"github.com/graphql-go/graphql/language/ast"
 )
 
 func rootQuery() *graphql.Object {
@@ -188,6 +189,22 @@ func rootQuery() *graphql.Object {
 					} else {
 						postElasticIndex = projectElasticIndex
 					}
+					fieldarray := params.Info.FieldASTs
+					var posts []map[string]interface{}
+					if len(fieldarray) == 0 {
+						return posts, nil
+					}
+					fields := fieldarray[0].SelectionSet.Selections
+					fieldstr := make([]string, len(fields))
+					for _, field := range fields {
+						fieldast, ok := field.(*ast.Field)
+						if !ok {
+							return nil, errors.New("field cannot be converted to *ast.FIeld")
+						}
+						logger.Info(fieldast.Name.Value)
+						fieldstr = append(fieldstr, fieldast.Name.Value)
+					}
+					sourceContext := NewFetchSourceContext(true).Include(fieldstr...)
 					var searchResult *elastic.SearchResult
 					var err error
 					if len(searchterm) > 0 {
@@ -198,6 +215,7 @@ func rootQuery() *graphql.Object {
 							Sort(sort, ascending).
 							From(page * perpage).Size(perpage).
 							Pretty(false).
+							FetchSourceContext(sourceContext).
 							Do(ctxElastic)
 					} else {
 						searchResult, err = elasticClient.Search().
@@ -206,6 +224,7 @@ func rootQuery() *graphql.Object {
 							Sort(sort, ascending).
 							From(page * perpage).Size(perpage).
 							Pretty(false).
+							FetchSourceContext(sourceContext).
 							Do(ctxElastic)
 					}
 					if err != nil {
