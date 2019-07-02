@@ -2,6 +2,9 @@
 
 Desktop app for website.
 
-### travis setup
+## config
 
-`travis encrypt-file src/config.ts`
+### travis
+
+- `tar cvf secrets.tar src/config.ts`
+- `travis encrypt-file secrets.tar`

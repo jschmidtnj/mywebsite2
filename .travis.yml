@@ -47,10 +47,10 @@ matrix:
     - export PATH="$HOME/.yarn/bin:$PATH"
     before_script:
     - if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep nuxt/; then exit; fi;
-    - cd electron/src
-    - openssl aes-256-cbc -K $encrypted_7db527e407fc_key -iv $encrypted_7db527e407fc_iv 
-      -in config.ts.enc -out config.ts -d 
-    - cd ..
+    - cd electron
+    - openssl aes-256-cbc -K $encrypted_bebd6a7ebc23_key -iv $encrypted_bebd6a7ebc23_iv 
+      -in secrets.tar.enc -out secrets.tar -d
+    - tar xvf secrets.tar
     - yarn install
     - yarn build
     script:
@@ -66,10 +66,10 @@ matrix:
     - export PATH="$HOME/.yarn/bin:$PATH"
     before_script:
     - if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep nuxt/; then exit; fi;
-    - cd electron/src
-    - openssl aes-256-cbc -K $encrypted_7db527e407fc_key -iv $encrypted_7db527e407fc_iv 
-      -in config.ts.enc -out config.ts -d 
-    - cd ..
+    - cd electron
+    - openssl aes-256-cbc -K $encrypted_bebd6a7ebc23_key -iv $encrypted_bebd6a7ebc23_iv 
+      -in secrets.tar.enc -out secrets.tar -d
+    - tar xvf secrets.tar
     - yarn install
     - yarn build
     script:
@@ -82,10 +82,10 @@ matrix:
     - if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep nuxt/; then exit; fi;
     - choco install nodejs
     - choco install yarn
-    - cd electron/src
-    - openssl aes-256-cbc -K $encrypted_7db527e407fc_key -iv $encrypted_7db527e407fc_iv 
-      -in config.ts.enc -out config.ts -d 
-    - cd ..
+    - cd electron
+    - openssl aes-256-cbc -K $encrypted_bebd6a7ebc23_key -iv $encrypted_bebd6a7ebc23_iv 
+      -in secrets.tar.enc -out secrets.tar -d
+    - tar xvf secrets.tar
     script:
     - ./windowsbuild.bat
   exclude:

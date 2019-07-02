@@ -3,7 +3,10 @@
 **/*.js.map
 lib/
 node_modules/
-config.ts
 
 # Typescript v1 declaration files
 typings/
+
+# config files
+config.ts
+secrets.tar
