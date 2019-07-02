@@ -6,5 +6,5 @@ set -e
 if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep flutter/ | grep -vE '(.md)'
 then
   echo "No flutter files updated."
-  exit
+  return 0
 fi

@@ -6,5 +6,5 @@ set -e
 if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep nuxt/
 then
   echo "No nuxt files updated."
-  exit
+  return 0
 fi

@@ -12,7 +12,7 @@ matrix:
       - android-28
     before_script:
     - echo $TRAVIS_COMMIT_RANGE
-    - sh ./checkflutterchanges.sh
+    - if ! sh ./checkflutterchanges.sh; then exit; fi;
     - cd flutter
     - openssl aes-256-cbc -K $encrypted_799987a421b6_key -iv $encrypted_799987a421b6_iv 
       -in secrets.tar.enc -out secrets.tar -d
@@ -46,7 +46,7 @@ matrix:
     - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.16.0
     - export PATH="$HOME/.yarn/bin:$PATH"
     before_script:
-    - sh ./checknuxtchanges.sh
+    - if ! sh ./checknuxtchanges.sh; then exit; fi;
     - cd electron/src
     - openssl aes-256-cbc -K $encrypted_7db527e407fc_key -iv $encrypted_7db527e407fc_iv 
       -in config.ts.enc -out config.ts -d 
@@ -65,7 +65,7 @@ matrix:
     - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.16.0
     - export PATH="$HOME/.yarn/bin:$PATH"
     before_script:
-    - sh ./checknuxtchanges.sh
+    - if ! sh ./checknuxtchanges.sh; then exit; fi;
     - cd electron/src
     - openssl aes-256-cbc -K $encrypted_7db527e407fc_key -iv $encrypted_7db527e407fc_iv 
       -in config.ts.enc -out config.ts -d 
@@ -79,7 +79,7 @@ matrix:
     language: bash
     cache: yarn
     before_script:
-    - sh ./checknuxtchanges.sh
+    - if ! sh ./checknuxtchanges.sh; then exit; fi;
     - choco install nodejs
     - choco install yarn
     - cd electron/src
@@ -94,7 +94,7 @@ matrix:
     language: generic
     osx_image: xcode10.2
     before_script:
-    - sh ./checkflutterchanges.sh
+    - if ! sh ./checkflutterchanges.sh; then exit; fi;
     - cd flutter
     - openssl aes-256-cbc -K $encrypted_799987a421b6_key -iv $encrypted_799987a421b6_iv 
       -in secrets.tar.enc -out secrets.tar -d
