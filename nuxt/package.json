@@ -17,7 +17,7 @@
     "precommit": "yarn lint",
     "predeploy": "yarn precommit && yarn email:build && yarn generate",
     "serve": "node staticserver.js",
-    "now-build": "yarn predeploy && cp -r dist ../dist && ls && cd .. && ls && ls dist",
+    "now-build": "yarn predeploy",
     "deploy:gcp": "gcloud app deploy",
     "deploy:heroku": "sh ./deployheroku.sh",
     "test": "jest"

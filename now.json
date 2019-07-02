@@ -17,12 +17,8 @@
   },
   "routes": [
     {
-      "src": "/blog/(.*)",
-      "dest": "/blog"
-    },
-    {
-      "src": "/post/(.*)",
-      "dest": "/post"
+      "src": "/(.*)",
+      "dest": "nuxt/$1"
     }
   ]
 }
