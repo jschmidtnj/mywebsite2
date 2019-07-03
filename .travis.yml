@@ -1,8 +1,21 @@
 branches:
   only:
-    - master
+  - master
 matrix:
   include:
+  - name: Api Build
+    language: go
+    before_install:
+    - if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep graphql/; then exit; fi;
+    - cd graphql
+    - openssl aes-256-cbc -K $encrypted_9cfd797b0bf8_key -iv $encrypted_9cfd797b0bf8_iv
+      -in secrets.tar.enc -out secrets.tar -d
+    - tar xvf secrets.tar
+    - cd ..
+    deploy:
+      provider: gae
+      keyfile: graphql/serviceaccount.json
+      project: mywebsite2
   - name: Android Build
     language: android
     jdk: openjdk8
@@ -11,13 +24,13 @@ matrix:
       - build-tools-28.0.3
       - android-28
     before_script:
-    - echo $TRAVIS_COMMIT_RANGE
     - if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep flutter/; then exit; fi;
     - cd flutter
-    - openssl aes-256-cbc -K $encrypted_799987a421b6_key -iv $encrypted_799987a421b6_iv 
+    - openssl aes-256-cbc -K $encrypted_799987a421b6_key -iv $encrypted_799987a421b6_iv
       -in secrets.tar.enc -out secrets.tar -d
     - tar xvf secrets.tar
-    - if [ ! -d "flutter" ] ; then git clone https://github.com/flutter/flutter.git -b stable; fi;
+    - if [ ! -d "flutter" ] ; then git clone https://github.com/flutter/flutter.git
+      -b stable; fi;
     - export PATH=`pwd`/flutter/bin:`pwd`/flutter/bin/cache/dart-sdk/bin:$PATH
     - gem install bundler && cd android && bundle install && cd ..
     script:
@@ -40,7 +53,7 @@ matrix:
     language: node_js
     os: osx
     node_js:
-    - "10"
+    - '10'
     cache: yarn
     before_install:
     - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.16.0
@@ -48,7 +61,7 @@ matrix:
     before_script:
     - if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep nuxt/; then exit; fi;
     - cd electron
-    - openssl aes-256-cbc -K $encrypted_bebd6a7ebc23_key -iv $encrypted_bebd6a7ebc23_iv 
+    - openssl aes-256-cbc -K $encrypted_bebd6a7ebc23_key -iv $encrypted_bebd6a7ebc23_iv
       -in secrets.tar.enc -out secrets.tar -d
     - tar xvf secrets.tar
     - yarn install
@@ -59,7 +72,7 @@ matrix:
     language: node_js
     os: linux
     node_js:
-    - "10"
+    - '10'
     cache: yarn
     before_install:
     - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.16.0
@@ -67,7 +80,7 @@ matrix:
     before_script:
     - if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep nuxt/; then exit; fi;
     - cd electron
-    - openssl aes-256-cbc -K $encrypted_bebd6a7ebc23_key -iv $encrypted_bebd6a7ebc23_iv 
+    - openssl aes-256-cbc -K $encrypted_bebd6a7ebc23_key -iv $encrypted_bebd6a7ebc23_iv
       -in secrets.tar.enc -out secrets.tar -d
     - tar xvf secrets.tar
     - yarn install
@@ -83,11 +96,11 @@ matrix:
     - choco install nodejs
     - choco install yarn
     - cd electron
-    - openssl aes-256-cbc -K $encrypted_bebd6a7ebc23_key -iv $encrypted_bebd6a7ebc23_iv 
+    - openssl aes-256-cbc -K $encrypted_bebd6a7ebc23_key -iv $encrypted_bebd6a7ebc23_iv
       -in secrets.tar.enc -out secrets.tar -d
     - tar xvf secrets.tar
     script:
-    - ./windowsbuild.bat
+    - "./windowsbuild.bat"
   exclude:
   - name: iOS Build
     os: osx
@@ -96,10 +109,11 @@ matrix:
     before_script:
     - if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep flutter/; then exit; fi;
     - cd flutter
-    - openssl aes-256-cbc -K $encrypted_799987a421b6_key -iv $encrypted_799987a421b6_iv 
+    - openssl aes-256-cbc -K $encrypted_799987a421b6_key -iv $encrypted_799987a421b6_iv
       -in secrets.tar.enc -out secrets.tar -d
     - tar xvf secrets.tar
-    - if [ ! -d "flutter" ] ; then git clone https://github.com/flutter/flutter.git -b stable; fi;
+    - if [ ! -d "flutter" ] ; then git clone https://github.com/flutter/flutter.git
+      -b stable; fi;
     - export PATH=`pwd`/flutter/bin:`pwd`/flutter/bin/cache/dart-sdk/bin:$PATH
     - gem install bundler && cd ios && bundle install && cd ..
     script:

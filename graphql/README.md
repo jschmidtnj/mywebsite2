@@ -12,6 +12,11 @@ https://github.com/2fd/graphdoc#demos
 
 ## add to production
 
+### encrypt secret files
+
+- `tar cvf secrets.tar .env serviceaccount.json`
+- `travis encrypt-file secrets.tar`
+
 app engine: `gcloud app deploy`
 
 ## queries

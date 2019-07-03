@@ -1,5 +1,7 @@
 # config files
 .env
+serviceaccount.json
+secrets.tar
 
 # Binaries for programs and plugins
 *.exe
@@ -15,5 +17,3 @@
 *.out
 
 *logs*
-
-serviceaccount.json
