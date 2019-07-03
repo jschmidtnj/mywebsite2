@@ -4,7 +4,6 @@ branches:
 matrix:
   include:
   - name: Api Build
-    language: go
     before_install:
     - if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep graphql/; then exit; fi;
     - cd graphql

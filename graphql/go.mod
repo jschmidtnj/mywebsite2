@@ -7,7 +7,7 @@ require (
 	github.com/Depado/bfchroma v1.1.2
 	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/go-redis/redis v6.15.2+incompatible // indirect
+	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/graphql-go/graphql v0.7.8
