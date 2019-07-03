@@ -1,9 +1,10 @@
 package main
 
 import (
+	"encoding/json"
+	"github.com/go-redis/redis"
 	"github.com/olivere/elastic"
 	"net/http"
-	"strconv"
 )
 
 func countPosts(response http.ResponseWriter, request *http.Request) {
@@ -23,9 +24,30 @@ func countPosts(response http.ResponseWriter, request *http.Request) {
 		handleError("invalid type in query", http.StatusBadRequest, response)
 		return
 	}
-	searchterm := request.URL.Query().Get("imageid")
+	response.Header().Set("content-type", "application/json")
+	searchterm := request.URL.Query().Get("searchterm")
+	pathMap := map[string]string{
+		"path":       "count",
+		"type":       thetype,
+		"searchterm": searchterm,
+	}
+	cachepathBytes, err := json.Marshal(pathMap)
+	if err != nil {
+		handleError(err.Error(), http.StatusBadRequest, response)
+		return
+	}
+	cachepath := string(cachepathBytes)
+	cachedres, err := redisClient.Get(cachepath).Result()
+	if err != nil {
+		if err != redis.Nil {
+			handleError(err.Error(), http.StatusBadRequest, response)
+			return
+		}
+	} else {
+		response.Write([]byte(cachedres))
+		return
+	}
 	var count int64
-	var err error
 	if len(searchterm) > 0 {
 		queryString := elastic.NewQueryStringQuery(searchterm)
 		count, err = elasticClient.Count().
@@ -44,6 +66,18 @@ func countPosts(response http.ResponseWriter, request *http.Request) {
 		handleError(err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	response.Header().Set("content-type", "application/json")
-	response.Write([]byte(`{"count":` + strconv.FormatInt(count, 10) + `}`))
+	countMap := map[string]int64{
+		"count": count,
+	}
+	countResBytes, err := json.Marshal(countMap)
+	if err != nil {
+		handleError(err.Error(), http.StatusBadRequest, response)
+		return
+	}
+	err = redisClient.Set(cachepath, string(countResBytes), cacheTime).Err()
+	if err != nil {
+		handleError(err.Error(), http.StatusBadRequest, response)
+		return
+	}
+	response.Write(countResBytes)
 }

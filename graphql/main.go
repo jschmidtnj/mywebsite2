@@ -7,6 +7,7 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/joho/godotenv"
 	// medium "github.com/medium/medium-sdk-go"
+	"github.com/go-redis/redis"
 	"github.com/olivere/elastic"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -17,7 +18,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"github.com/go-redis/redis"
 )
 
 var jwtSecret []byte
@@ -79,7 +79,9 @@ type tokenKeyType string
 
 var tokenKey tokenKeyType
 
-var redisClient string
+var redisClient *redis.Client
+
+var cacheTime time.Duration
 
 // var mediumClient *medium.Medium
 
@@ -168,10 +170,15 @@ func main() {
 	}
 	redisAddress := os.Getenv("REDISADDRESS")
 	redisPassword := os.Getenv("REDISPASSWORD")
+	cacheSeconds, err := strconv.Atoi(os.Getenv("CACHETIME"))
+	if err != nil {
+		logger.Fatal(err.Error())
+	}
+	cacheTime = time.Duration(cacheSeconds) * time.Second
 	redisClient = redis.NewClient(&redis.Options{
-		Addr: redisAddress,
+		Addr:     redisAddress,
 		Password: redisPassword,
-		DB: 0, // use default DB
+		DB:       0, // use default DB
 	})
 	pong, err := redisClient.Ping().Result()
 	if err != nil {

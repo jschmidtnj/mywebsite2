@@ -3,13 +3,50 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"github.com/go-redis/redis"
 	"github.com/graphql-go/graphql"
+	"github.com/graphql-go/graphql/language/ast"
 	"github.com/olivere/elastic"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"github.com/graphql-go/graphql/language/ast"
 )
+
+func getCacheRes(params graphql.ResolveParams, path string) (interface{}, []string, string, error) {
+	fieldarray := params.Info.FieldASTs
+	fieldselections := fieldarray[0].SelectionSet.Selections
+	fields := make([]string, len(fieldselections))
+	for _, field := range fieldselections {
+		fieldast, ok := field.(*ast.Field)
+		if !ok {
+			return nil, nil, "", errors.New("field cannot be converted to *ast.FIeld")
+		}
+		fields = append(fields, fieldast.Name.Value)
+	}
+	pathMap := map[string]interface{}{
+		"path":   path,
+		"args":   params.Args,
+		"fields": fields,
+	}
+	cachepathBytes, err := json.Marshal(pathMap)
+	if err != nil {
+		return nil, nil, "", err
+	}
+	cachepath := string(cachepathBytes)
+	cachedresStr, err := redisClient.Get(cachepath).Result()
+	if err != nil {
+		if err == redis.Nil {
+			return nil, fields, cachepath, nil
+		}
+		return nil, nil, "", err
+	}
+	var cachedres []map[string]interface{}
+	err = json.Unmarshal([]byte(cachedresStr), &cachedres)
+	if err != nil {
+		return nil, nil, "", err
+	}
+	return cachedres, nil, cachepath, nil
+}
 
 func rootQuery() *graphql.Object {
 	return graphql.NewObject(graphql.ObjectConfig{
@@ -183,71 +220,73 @@ func rootQuery() *graphql.Object {
 					if !validType(thetype) {
 						return nil, errors.New("invalid type given")
 					}
+					cacheres, fields, cachepath, err := getCacheRes(params, "posts")
+					if err != nil {
+						return nil, err
+					}
+					if cacheres != nil {
+						return cacheres, nil
+					}
 					var postElasticIndex string
 					if thetype == "blog" {
 						postElasticIndex = blogElasticIndex
 					} else {
 						postElasticIndex = projectElasticIndex
 					}
-					fieldarray := params.Info.FieldASTs
 					var posts []map[string]interface{}
-					if len(fieldarray) == 0 {
-						return posts, nil
-					}
-					fields := fieldarray[0].SelectionSet.Selections
-					fieldstr := make([]string, len(fields))
-					for _, field := range fields {
-						fieldast, ok := field.(*ast.Field)
-						if !ok {
-							return nil, errors.New("field cannot be converted to *ast.FIeld")
+					if len(fields) > 0 {
+						sourceContext := elastic.NewFetchSourceContext(true).Include(fields...)
+						var searchResult *elastic.SearchResult
+						var err error
+						if len(searchterm) > 0 {
+							queryString := elastic.NewQueryStringQuery(searchterm)
+							searchResult, err = elasticClient.Search().
+								Index(postElasticIndex).
+								Query(queryString).
+								Sort(sort, ascending).
+								From(page * perpage).Size(perpage).
+								Pretty(false).
+								FetchSourceContext(sourceContext).
+								Do(ctxElastic)
+						} else {
+							searchResult, err = elasticClient.Search().
+								Index(postElasticIndex).
+								Query(nil).
+								Sort(sort, ascending).
+								From(page * perpage).Size(perpage).
+								Pretty(false).
+								FetchSourceContext(sourceContext).
+								Do(ctxElastic)
 						}
-						logger.Info(fieldast.Name.Value)
-						fieldstr = append(fieldstr, fieldast.Name.Value)
+						if err != nil {
+							return nil, err
+						}
+						for _, hit := range searchResult.Hits.Hits {
+							if *hit.Source == nil {
+								return nil, errors.New("no hit source found")
+							}
+							var postData map[string]interface{}
+							err := json.Unmarshal(*hit.Source, &postData)
+							if err != nil {
+								return nil, err
+							}
+							id, err := primitive.ObjectIDFromHex(hit.Id)
+							if err != nil {
+								return nil, err
+							}
+							postData["date"] = objectidtimestamp(id).Format(dateFormat)
+							postData["id"] = id.Hex()
+							delete(postData, "_id")
+							posts = append(posts, postData)
+						}
 					}
-					sourceContext := NewFetchSourceContext(true).Include(fieldstr...)
-					var searchResult *elastic.SearchResult
-					var err error
-					if len(searchterm) > 0 {
-						queryString := elastic.NewQueryStringQuery(searchterm)
-						searchResult, err = elasticClient.Search().
-							Index(postElasticIndex).
-							Query(queryString).
-							Sort(sort, ascending).
-							From(page * perpage).Size(perpage).
-							Pretty(false).
-							FetchSourceContext(sourceContext).
-							Do(ctxElastic)
-					} else {
-						searchResult, err = elasticClient.Search().
-							Index(postElasticIndex).
-							Query(nil).
-							Sort(sort, ascending).
-							From(page * perpage).Size(perpage).
-							Pretty(false).
-							FetchSourceContext(sourceContext).
-							Do(ctxElastic)
-					}
+					postsBytes, err := json.Marshal(posts)
 					if err != nil {
 						return nil, err
 					}
-					var posts []map[string]interface{}
-					for _, hit := range searchResult.Hits.Hits {
-						if *hit.Source == nil {
-							return nil, errors.New("no hit source found")
-						}
-						var postData map[string]interface{}
-						err := json.Unmarshal(*hit.Source, &postData)
-						if err != nil {
-							return nil, err
-						}
-						id, err := primitive.ObjectIDFromHex(hit.Id)
-						if err != nil {
-							return nil, err
-						}
-						postData["date"] = objectidtimestamp(id).Format(dateFormat)
-						postData["id"] = id.Hex()
-						delete(postData, "_id")
-						posts = append(posts, postData)
+					err = redisClient.Set(cachepath, string(postsBytes), cacheTime).Err()
+					if err != nil {
+						return nil, err
 					}
 					return posts, nil
 				},
@@ -307,6 +346,13 @@ func rootQuery() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
+					cacheres, _, cachepath, err := getCacheRes(params, "post")
+					if err != nil {
+						return nil, err
+					}
+					if cacheres != nil {
+						return cacheres, nil
+					}
 					cursor, err := mongoCollection.Find(ctxMongo, bson.M{
 						"_id": id,
 					})
@@ -340,6 +386,17 @@ func rootQuery() *graphql.Object {
 							"views": int(postData["views"].(int32)),
 						}).
 						Do(ctxElastic)
+					if err != nil {
+						return nil, err
+					}
+					postBytes, err := json.Marshal(postData)
+					if err != nil {
+						return nil, err
+					}
+					err = redisClient.Set(cachepath, string(postBytes), cacheTime).Err()
+					if err != nil {
+						return nil, err
+					}
 					return postData, nil
 				},
 			},
