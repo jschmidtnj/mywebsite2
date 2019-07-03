@@ -12,14 +12,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func getCacheRes(params graphql.ResolveParams, path string) (interface{}, []string, string, error) {
+func getCacheRes(params graphql.ResolveParams, path string) (string, []string, string, error) {
 	fieldarray := params.Info.FieldASTs
 	fieldselections := fieldarray[0].SelectionSet.Selections
 	fields := make([]string, len(fieldselections))
 	for _, field := range fieldselections {
 		fieldast, ok := field.(*ast.Field)
 		if !ok {
-			return nil, nil, "", errors.New("field cannot be converted to *ast.FIeld")
+			return "", []string{}, "", errors.New("field cannot be converted to *ast.FIeld")
 		}
 		fields = append(fields, fieldast.Name.Value)
 	}
@@ -30,15 +30,15 @@ func getCacheRes(params graphql.ResolveParams, path string) (interface{}, []stri
 	}
 	cachepathBytes, err := json.Marshal(pathMap)
 	if err != nil {
-		return nil, nil, "", err
+		return "", []string{}, "", err
 	}
 	cachepath := string(cachepathBytes)
 	cachedresStr, err := redisClient.Get(cachepath).Result()
 	if err != nil {
 		if err == redis.Nil {
-			return nil, fields, cachepath, nil
+			return "", fields, cachepath, nil
 		}
-		return nil, nil, "", err
+		return "", []string{}, "", err
 	}
 	return cachedresStr, nil, cachepath, nil
 }
@@ -215,17 +215,17 @@ func rootQuery() *graphql.Object {
 					if !validType(thetype) {
 						return nil, errors.New("invalid type given")
 					}
-					cacheresStr, fields, cachepath, err := getCacheRes(params, "posts")
+					cachedresStr, fields, cachepath, err := getCacheRes(params, "posts")
 					if err != nil {
 						return nil, err
 					}
-					if cacheresStr != nil {
+					if len(cachedresStr) > 0 {
 						var cachedres []map[string]interface{}
 						err = json.Unmarshal([]byte(cachedresStr), &cachedres)
 						if err != nil {
 							return nil, err
 						}
-						return cacheres, nil
+						return cachedres, nil
 					}
 					var postElasticIndex string
 					if thetype == "blog" {
@@ -346,17 +346,17 @@ func rootQuery() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
-					cacheresStr, _, cachepath, err := getCacheRes(params, "post")
+					cachedresStr, _, cachepath, err := getCacheRes(params, "post")
 					if err != nil {
 						return nil, err
 					}
-					if cacheresStr != nil {
+					if len(cachedresStr) > 0 {
 						var cachedres map[string]interface{}
 						err = json.Unmarshal([]byte(cachedresStr), &cachedres)
 						if err != nil {
 							return nil, err
 						}
-						return cacheres, nil
+						return cachedres, nil
 					}
 					cursor, err := mongoCollection.Find(ctxMongo, bson.M{
 						"_id": id,
