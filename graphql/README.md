@@ -17,7 +17,7 @@ https://github.com/2fd/graphdoc#demos
 - `tar cvf secrets.tar .env serviceaccount.json`
 - `travis encrypt-file secrets.tar`
 
-app engine: `gcloud app deploy`
+app engine: `gcloud app deploy`.
 
 ## queries
 
