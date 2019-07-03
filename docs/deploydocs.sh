@@ -3,6 +3,11 @@
 # abort on errors
 set -e
 
+export $(grep -v '^#' .env | xargs -d '\n')
+
+git config --global user.name $GITHUBUSERNAME
+git config --global user.password $GITHUBPASSWORD
+
 # build
 yarn build
 yarn pwa

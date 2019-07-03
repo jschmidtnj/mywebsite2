@@ -3,7 +3,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "nuxt/package.json",
+      "src": "package.json",
       "use": "@now/static-build"
     }
   ],
@@ -15,10 +15,5 @@
       "AMPURL": "@ampurl"
     }
   },
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "nuxt/$1"
-    }
-  ]
+  "alias": "joshuaschmidt.tech"
 }

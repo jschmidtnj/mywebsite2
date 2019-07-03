@@ -4,12 +4,12 @@
 set -e
 
 changes() {
-  git diff --stat --cached -- flutter/ nuxt/ graphql/
+  git diff --stat --cached -- flutter/ nuxt/ graphql/ docs/ amp/ electron/
 }
 
 travis_ignore="[skip ci]"
 
-if ! changes | grep -E "flutter/|nuxt/|graphql/" ; then
+if ! changes | grep -E "flutter/|nuxt/|graphql/|docs/|amp/|electron/" ; then
   echo "no ci changes found"
   sed -i.bak -e "1s/^/$travis_ignore /" "$GIT_DIR/COMMIT_EDITMSG"
 else
