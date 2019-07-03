@@ -67,7 +67,7 @@ matrix:
     - tar xvf secrets.tar
     - yarn install
     script:
-    - sh ./deployheroku.sh
+    - sh ./deploydocs.sh
   - name: Android Build
     language: android
     jdk: openjdk8

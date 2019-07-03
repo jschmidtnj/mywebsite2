@@ -25,7 +25,7 @@ flutter run
 
 see [this](https://help.github.com/en/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) for instructions
 
-### encrypt secret files android - run in linux!
+### encrypt secret files android - run in linux
 
 - `tar cvf secrets.tar lib/config.dart android/key.properties android/fastlane/serviceAccount.json android/key/key.jks`
 - `gem install travis`

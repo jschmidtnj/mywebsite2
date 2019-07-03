@@ -9,4 +9,5 @@ static/emailtemplates/*.html
 
 # sensitive stuff
 .env
+.now.env
 secrets.tar

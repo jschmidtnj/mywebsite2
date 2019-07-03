@@ -21,6 +21,12 @@ $ yarn generate
 
 For detailed explanation on how things work, checkout [Nuxt.js docs](https://nuxtjs.org).
 
+### encrypt secret files
+
+- `tar cvf secrets.tar .env .now.env`
+- `gem install travis`
+- `travis encrypt-file secrets.tar`
+
 ## Format
 
 - autoformat vscode: <kbd>Shift</kbd> + <kbd>Option</kbd> + <kbd>F</kbd> (windows)
