@@ -40,12 +40,7 @@ func getCacheRes(params graphql.ResolveParams, path string) (interface{}, []stri
 		}
 		return nil, nil, "", err
 	}
-	var cachedres []map[string]interface{}
-	err = json.Unmarshal([]byte(cachedresStr), &cachedres)
-	if err != nil {
-		return nil, nil, "", err
-	}
-	return cachedres, nil, cachepath, nil
+	return cachedresStr, nil, cachepath, nil
 }
 
 func rootQuery() *graphql.Object {
@@ -220,11 +215,16 @@ func rootQuery() *graphql.Object {
 					if !validType(thetype) {
 						return nil, errors.New("invalid type given")
 					}
-					cacheres, fields, cachepath, err := getCacheRes(params, "posts")
+					cacheresStr, fields, cachepath, err := getCacheRes(params, "posts")
 					if err != nil {
 						return nil, err
 					}
-					if cacheres != nil {
+					if cacheresStr != nil {
+						var cachedres []map[string]interface{}
+						err = json.Unmarshal([]byte(cachedresStr), &cachedres)
+						if err != nil {
+							return nil, err
+						}
 						return cacheres, nil
 					}
 					var postElasticIndex string
@@ -346,11 +346,16 @@ func rootQuery() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
-					cacheres, _, cachepath, err := getCacheRes(params, "post")
+					cacheresStr, _, cachepath, err := getCacheRes(params, "post")
 					if err != nil {
 						return nil, err
 					}
-					if cacheres != nil {
+					if cacheresStr != nil {
+						var cachedres map[string]interface{}
+						err = json.Unmarshal([]byte(cachedresStr), &cachedres)
+						if err != nil {
+							return nil, err
+						}
 						return cacheres, nil
 					}
 					cursor, err := mongoCollection.Find(ctxMongo, bson.M{
