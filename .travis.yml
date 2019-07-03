@@ -13,6 +13,7 @@ matrix:
     - tar xvf secrets.tar
     - cd ..
     deploy:
+      config: graphql/app.yaml
       provider: gae
       keyfile: graphql/serviceaccount.json
       project: mywebsite2
