@@ -251,7 +251,7 @@ func getAuthToken(request *http.Request) string {
 func manageCors(w *http.ResponseWriter, r *http.Request) bool {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	(*w).Header().Set("Access-Control-Allow-Headers", "*")
+	(*w).Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 	if (*r).Method == "OPTIONS" {
 		(*w).Header().Set("Access-Control-Max-Age", "86400")
 		(*w).WriteHeader(http.StatusOK)

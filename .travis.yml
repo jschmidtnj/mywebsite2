@@ -16,7 +16,11 @@ matrix:
     before_install:
     - if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep graphql/; then exit; fi;
     install:
-    - if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then rm -rf $HOME/google-cloud-sdk; export CLOUDSDK_CORE_DISABLE_PROMPTS=1; curl https://sdk.cloud.google.com | bash; fi
+    - if [ ! -d "$HOME/google-cloud-sdk/bin" ]; 
+      then rm -rf $HOME/google-cloud-sdk;
+      export CLOUDSDK_CORE_DISABLE_PROMPTS=1;
+      curl https://sdk.cloud.google.com | bash > /dev/null;
+      fi
     - source $HOME/google-cloud-sdk/path.bash.inc
     - gcloud version
     before_script:
