@@ -7,16 +7,20 @@
         <b-nav-item href="/blogs">Blogs</b-nav-item>
         <b-nav-item href="/projects">Projects</b-nav-item>
         <b-nav-item href="/downloads">Downloads</b-nav-item>
-        <b-nav-item href="/signup">Signup</b-nav-item>
-        <b-nav-item href="/login">Login</b-nav-item>
+        <b-nav-item v-if="!loggedin" href="/signup">Signup</b-nav-item>
+        <b-nav-item v-if="!loggedin" href="/login">Login</b-nav-item>
       </b-navbar-nav>
-      <!-- Right aligned nav items -->
-      <!--b-navbar-nav class="ml-auto">
+      <b-navbar-nav v-if="loggedin" class="ml-auto">
         <b-nav-item-dropdown right>
-          <b-dropdown-item href="#">Profile</b-dropdown-item>
-          <b-dropdown-item href="#">Sign Out</b-dropdown-item>
+          <template slot="button-content"
+            ><em>User</em></template
+          >
+          <b-dropdown-item href="/account">Profile</b-dropdown-item>
+          <b-dropdown-item href="#" @click="$auth.logout()"
+            >Sign Out</b-dropdown-item
+          >
         </b-nav-item-dropdown>
-      </b-navbar-nav-->
+      </b-navbar-nav>
     </b-collapse>
   </b-navbar>
 </template>
@@ -24,7 +28,15 @@
 <script lang="ts">
 import Vue from 'vue'
 export default Vue.extend({
-  name: 'Navbar'
+  name: 'Navbar',
+  data() {
+    return {}
+  },
+  computed: {
+    loggedin() {
+      return this.$auth.user
+    }
+  }
 })
 </script>
 

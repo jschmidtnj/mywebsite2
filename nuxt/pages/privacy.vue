@@ -1,5 +1,5 @@
 <template>
-  <div id="privacy">
+  <b-card id="privacy">
     <h1>Welcome to our Privacy Policy</h1>
     <h3>Your privacy is critically important to us.</h3>
     Joshua Schmidt is located at:
@@ -201,7 +201,7 @@
       <a href="mailto:joshuanschmidt@gmail.com">email</a> or
       <a href="tel:9085317087">phone</a>.
     </p>
-  </div>
+  </b-card>
 </template>
 
 <script lang="ts">

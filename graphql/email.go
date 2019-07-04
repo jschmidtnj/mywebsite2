@@ -152,7 +152,7 @@ func sendPasswordResetEmail(response http.ResponseWriter, request *http.Request)
 		handleError(err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	doc.Find("#reset").SetAttr("href", websiteURL+"/login?reset=true&token="+tokenString)
+	doc.Find("#reset").SetAttr("href", websiteURL+"/reset?reset=true&token="+tokenString)
 	template, err := doc.Html()
 	req := sendgrid.GetRequest(sendgridAPIKey, sendgridAPIPath+"/mail/send", sendgridAPIUrl)
 	req.Method = "POST"

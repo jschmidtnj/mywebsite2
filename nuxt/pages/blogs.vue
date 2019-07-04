@@ -1,5 +1,7 @@
 <template>
-  <post-search type="blog" />
+  <b-card title="Blogs">
+    <post-search type="blog" />
+  </b-card>
 </template>
 
 <script lang="ts">

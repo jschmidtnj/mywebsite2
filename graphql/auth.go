@@ -436,7 +436,7 @@ func resetPassword(response http.ResponseWriter, request *http.Request) {
 			handleError("user id invalid or email not verified", http.StatusBadRequest, response)
 			return
 		}
-		var id string = userData["_id"].(string)
+		id := userData["_id"].(primitive.ObjectID)
 		passwordhashed, err := bcrypt.GenerateFromPassword([]byte(password), numHashes)
 		if err != nil {
 			handleError("error hashing password: "+err.Error(), http.StatusBadRequest, response)
@@ -445,14 +445,17 @@ func resetPassword(response http.ResponseWriter, request *http.Request) {
 		_, err = userCollection.UpdateOne(ctxMongo, bson.M{
 			"_id": id,
 		}, bson.M{
-			"password": passwordhashed,
+			"$set": bson.M{
+				"password": string(passwordhashed),
+			},
 		})
 		if err != nil {
 			handleError("error updating user in database: "+err.Error(), http.StatusBadRequest, response)
 			return
 		}
+		idStr := id.Hex()
 		logger.Info("User password reset",
-			zap.String("id", id),
+			zap.String("id", idStr),
 			zap.String("email", userData["email"].(string)),
 		)
 		response.Header().Set("content-type", "application/json")

@@ -1,9 +1,8 @@
 <template>
-  <div>
-    <p>Secure Page</p>
+  <b-card title="Account Page">
     <p>user: {{ $auth.user }}</p>
-    <b-btn block @click="$auth.logout()">Logout</b-btn>
-  </div>
+    <b-btn @click="$auth.logout()">Logout</b-btn>
+  </b-card>
 </template>
 
 <script lang="ts">

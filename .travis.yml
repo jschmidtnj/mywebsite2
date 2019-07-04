@@ -5,17 +5,31 @@ matrix:
   include:
   - name: Api Build
     language: generic
-    before_deploy:
+    cache:
+      directories:
+      # We cache the SDK so we don't have to download it again on subsequent builds.
+      - $HOME/google-cloud-sdk
+    env:
+      global:
+      # Do not prompt for user input when using any SDK methods.
+      - CLOUDSDK_CORE_DISABLE_PROMPTS=1
+    before_install:
     - if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep graphql/; then exit; fi;
+    install:
+    - if [ ! -d $HOME/google-cloud-sdk/bin ]; then
+        rm -rf $HOME/google-cloud-sdk;
+        curl https://sdk.cloud.google.com | bash > /dev/null;
+      fi
+    - source $HOME/google-cloud-sdk/path.bash.inc
+    - gcloud version
+    before_script:
     - cd graphql
     - openssl aes-256-cbc -K $encrypted_9cfd797b0bf8_key -iv $encrypted_9cfd797b0bf8_iv
       -in secrets.tar.enc -out secrets.tar -d
     - tar xvf secrets.tar
-    deploy:
-      config: app.yaml
-      provider: gae
-      keyfile: serviceaccount.json
-      project: mywebsite2
+    script:
+    - gcloud auth activate-service-account --key-file serviceaccount.json
+    - gcloud --quiet --project mywebsite2 app deploy app.yaml
   - name: Android Build
     language: android
     jdk: openjdk8

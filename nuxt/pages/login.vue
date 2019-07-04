@@ -51,6 +51,8 @@
             </div>
           </b-form-invalid-feedback>
         </b-form-group>
+        <b-link href="/reset" class="card-link">reset password</b-link>
+        <br />
         <b-button
           variant="primary"
           type="submit"
@@ -63,7 +65,6 @@
         By clicking submit you aggree to the
         <a href="/privacy">privacy policy</a>.
       </p>
-      <b-link href="/reset" class="card-link">reset password</b-link>
     </b-card>
   </div>
 </template>
@@ -107,86 +108,49 @@ export default Vue.extend({
     }
   },
   mounted() {
-    if (this.$route.query && this.route.query.token) {
-      if (this.$route.query.verify) {
-        this.$axios
-          .post('/verifyEmail', {
-            token: this.$route.query.token
-          })
-          .then(res => {
-            if (res.status === 200) {
-              if (res.data) {
-                let message = 'email verified. you can now log in'
-                if (res.data.message) {
-                  message = res.data.message
-                }
-                this.$toasted.global.success({
-                  message: message
-                })
-              } else {
-                this.$toasted.global.error({
-                  message: 'could not get data'
-                })
+    if (
+      this.$route.query &&
+      this.$route.query.verify &&
+      this.$route.query.token
+    ) {
+      this.$axios
+        .post('/verifyEmail', {
+          token: this.$route.query.token
+        })
+        .then(res => {
+          if (res.status === 200) {
+            if (res.data) {
+              let message = 'email verified. you can now log in'
+              if (res.data.message) {
+                message = res.data.message
               }
-            } else if (res.data && res.data.message) {
-              this.$toasted.global.error({
-                message: res.data.message
+              this.$toasted.global.success({
+                message: message
               })
             } else {
               this.$toasted.global.error({
-                message: `status code of ${res.status}`
+                message: 'could not get data'
               })
             }
-          })
-          .catch(err => {
-            let message = `got error: ${err}`
-            if (err.response && err.response.data) {
-              message = err.response.data.message
-            }
+          } else if (res.data && res.data.message) {
             this.$toasted.global.error({
-              message: message
+              message: res.data.message
             })
-          })
-      } else if (this.$route.query.reset) {
-        this.$axios
-          .put('/reset', {
-            token: this.$route.query.token
-          })
-          .then(res => {
-            if (res.status === 200) {
-              if (res.data) {
-                let message = 'password reset. you can now login.'
-                if (res.data.message) {
-                  message = res.data.message
-                }
-                this.$toasted.global.success({
-                  message: message
-                })
-              } else {
-                this.$toasted.global.error({
-                  message: 'could not get data'
-                })
-              }
-            } else if (res.data && res.data.message) {
-              this.$toasted.global.error({
-                message: res.data.message
-              })
-            } else {
-              this.$toasted.global.error({
-                message: `status code of ${res.status}`
-              })
-            }
-          })
-          .catch(err => {
-            let message = `got error: ${err}`
-            if (err.response && err.response.data) {
-              message = err.response.data.message
-            }
+          } else {
             this.$toasted.global.error({
-              message: message
+              message: `status code of ${res.status}`
             })
+          }
+        })
+        .catch(err => {
+          let message = `got error: ${err}`
+          if (err.response && err.response.data) {
+            message = err.response.data.message
+          }
+          this.$toasted.global.error({
+            message: message
           })
-      }
+        })
     }
   },
   methods: {

@@ -10,8 +10,8 @@
               @keyup.enter.native="
                 evt => {
                   evt.preventDefault()
-                  pageNum = 1
-                  searchPosts(currentPage)
+                  currentPage = 1
+                  searchPosts()
                 }
               "
             ></b-form-input>
@@ -20,8 +20,8 @@
                 :disabled="!search"
                 @click="
                   search = ''
-                  pageNum = 1
-                  searchPosts(currentPage)
+                  currentPage = 1
+                  searchPosts()
                 "
                 >Clear</b-button
               >
@@ -37,7 +37,7 @@
               :options="sortOptions"
               @change="
                 currentPage = 1
-                searchPosts(currentPage)
+                searchPosts()
               "
             >
               <option slot="first" :value="null">-- none --</option>
@@ -48,7 +48,7 @@
               :disabled="!sortBy"
               @change="
                 currentPage = 1
-                searchPosts(currentPage)
+                searchPosts()
               "
             >
               <option :value="false">Asc</option>
@@ -64,13 +64,20 @@
             :options="pageOptions"
             @change="
               currentPage = 1
-              searchPosts(currentPage)
+              searchPosts()
             "
           ></b-form-select>
         </b-form-group>
       </b-col>
     </b-row>
-    <b-table show-empty stacked="md" :items="items" :fields="fields">
+    <b-table
+      show-empty
+      stacked="md"
+      :items="items"
+      :fields="fields"
+      no-local-sorting="true"
+      @sort-changed="sort"
+    >
       <template slot="title" slot-scope="row">{{ row.value }}</template>
       <template slot="author" slot-scope="row">{{ row.value }}</template>
       <template slot="date" slot-scope="row">{{
@@ -90,7 +97,12 @@
           :total-rows="totalRows"
           :per-page="perPage"
           class="my-0"
-          @change="searchPosts"
+          @change="
+            newpage => {
+              currentPage = newpage
+              searchPosts()
+            }
+          "
         ></b-pagination>
       </b-col>
     </b-row>
@@ -149,7 +161,6 @@ export default Vue.extend({
       pageOptions: [5, 10, 15],
       sortBy: null,
       sortDesc: false,
-      sortDirection: 'asc',
       search: ''
     }
   },
@@ -167,6 +178,12 @@ export default Vue.extend({
     this.searchPosts(this.currentPage)
   },
   methods: {
+    sort(ctx) {
+      this.sortBy = ctx.sortBy //   ==> Field key for sorting by (or null for no sorting)
+      this.sortDesc = ctx.sortDesc // ==> true if sorting descending, false otherwise
+      this.currentPage = 1
+      this.searchPosts(this.currentPage)
+    },
     updateCount() {
       this.$axios
         .get('/countPosts', {
@@ -202,7 +219,7 @@ export default Vue.extend({
           })
         })
     },
-    searchPosts(pageNum) {
+    searchPosts() {
       this.updateCount()
       const sort = this.sortBy ? this.sortBy : this.sortOptions[0].value
       this.$axios
@@ -210,7 +227,7 @@ export default Vue.extend({
           params: {
             query: `{posts(type:"${this.type}",perpage:${
               this.perPage
-            },page:${pageNum - 1},searchterm:"${
+            },page:${this.currentPage - 1},searchterm:"${
               this.search
             }",sort:"${sort}",ascending:${!this
               .sortDesc}){title views id author date}}`

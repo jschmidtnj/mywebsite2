@@ -1,5 +1,7 @@
 <template>
-  <post-search type="project" />
+  <b-card title="Projects">
+    <post-search type="project" />
+  </b-card>
 </template>
 
 <script lang="ts">
