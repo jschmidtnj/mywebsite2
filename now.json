@@ -15,5 +15,11 @@
       "AMPURL": "@ampurl"
     }
   },
-  "alias": "joshuaschmidt.tech"
+  "alias": "joshuaschmidt.tech",
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "nuxt/$1"
+    }
+  ]
 }
