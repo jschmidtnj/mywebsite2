@@ -1,49 +1,90 @@
 <template>
   <div>
-    <p>login</p>
-    <b-btn block @click="logingoogle">Login with Google</b-btn>
-    <b-form @submit="loginlocal">
-      <b-form-group
-        label="Email address:"
-        label-for="emailinput"
-        description="We'll never share your email with anyone else"
-      >
-        <b-form-input
-          id="emailinput"
-          v-model="email"
-          type="email"
-          required
-          placeholder="Enter email"
-        ></b-form-input>
-      </b-form-group>
-      <b-form-group
-        label="Password"
-        label-for="passwordinput"
-        description="Please enter valid password"
-      >
-        <b-form-input
-          id="passwordinput"
-          v-model="password"
-          type="password"
-          required
-          placeholder
-        ></b-form-input>
-      </b-form-group>
-      <b-button type="submit" variant="primary">Submit</b-button>
-    </b-form>
+    <b-card title="Login" footer-tag="footer">
+      <!--b-btn block @click="logingoogle">Login with Google</b-btn-->
+      <b-form @submit="loginlocal">
+        <b-form-group
+          id="email-address-group"
+          label="Email address:"
+          label-for="email-address"
+          description="Your email is safe with us"
+        >
+          <b-form-input
+            id="email-address"
+            v-model="form.email"
+            type="text"
+            :state="!$v.form.email.$invalid"
+            placeholder="Enter email"
+            aria-describedby="emailfeedback"
+          ></b-form-input>
+          <b-form-invalid-feedback
+            id="emailfeedback"
+            :state="!$v.form.email.$invalid"
+          >
+            <div v-if="!$v.form.email.required">email is required</div>
+            <div v-else-if="!$v.form.email.email">
+              email is invalid
+            </div>
+          </b-form-invalid-feedback>
+        </b-form-group>
+        <b-form-group
+          id="password-group"
+          label="Password:"
+          label-for="password"
+          description="Password must be at least 8 characters long, with a number, capital letter and special character"
+        >
+          <b-form-input
+            id="password"
+            v-model="form.password"
+            type="password"
+            :state="!$v.form.password.$invalid"
+            placeholder="Enter password"
+            aria-describedby="passwordfeedback"
+          ></b-form-input>
+          <b-form-invalid-feedback
+            id="passwordfeedback"
+            :state="!$v.form.password.$invalid"
+          >
+            <div v-if="!$v.form.password.required">password is required</div>
+            <div v-else-if="!$v.form.password.validPassword">
+              password is invalid
+            </div>
+          </b-form-invalid-feedback>
+        </b-form-group>
+        <b-button
+          variant="primary"
+          type="submit"
+          class="mt-4"
+          :disabled="$v.form.$invalid"
+          >Submit</b-button
+        >
+      </b-form>
+      <p slot="footer">
+        By clicking submit you aggree to the
+        <a href="/privacy">privacy policy</a>.
+      </p>
+      <b-link href="/reset" class="card-link">reset password</b-link>
+    </b-card>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
+import { validationMixin } from 'vuelidate'
+import { required, email } from 'vuelidate/lib/validators'
+import { regex } from '~/assets/config'
+const validPassword = val => regex.password.test(val)
 export default Vue.extend({
   name: 'Login',
+  mixins: [validationMixin],
   // @ts-ignore
   middleware: 'loginredirect',
   data() {
     return {
-      email: '',
-      password: ''
+      form: {
+        email: '',
+        password: ''
+      }
     }
   },
   // @ts-ignore
@@ -52,8 +93,105 @@ export default Vue.extend({
       title: 'Login'
     }
   },
+  // @ts-ignore
+  validations: {
+    form: {
+      email: {
+        required,
+        email
+      },
+      password: {
+        required,
+        validPassword
+      }
+    }
+  },
+  mounted() {
+    if (this.$route.query && this.route.query.token) {
+      if (this.$route.query.verify) {
+        this.$axios
+          .post('/verifyEmail', {
+            token: this.$route.query.token
+          })
+          .then(res => {
+            if (res.status === 200) {
+              if (res.data) {
+                let message = 'email verified. you can now log in'
+                if (res.data.message) {
+                  message = res.data.message
+                }
+                this.$toasted.global.success({
+                  message: message
+                })
+              } else {
+                this.$toasted.global.error({
+                  message: 'could not get data'
+                })
+              }
+            } else if (res.data && res.data.message) {
+              this.$toasted.global.error({
+                message: res.data.message
+              })
+            } else {
+              this.$toasted.global.error({
+                message: `status code of ${res.status}`
+              })
+            }
+          })
+          .catch(err => {
+            let message = `got error: ${err}`
+            if (err.response && err.response.data) {
+              message = err.response.data.message
+            }
+            this.$toasted.global.error({
+              message: message
+            })
+          })
+      } else if (this.$route.query.reset) {
+        this.$axios
+          .put('/reset', {
+            token: this.$route.query.token
+          })
+          .then(res => {
+            if (res.status === 200) {
+              if (res.data) {
+                let message = 'password reset. you can now login.'
+                if (res.data.message) {
+                  message = res.data.message
+                }
+                this.$toasted.global.success({
+                  message: message
+                })
+              } else {
+                this.$toasted.global.error({
+                  message: 'could not get data'
+                })
+              }
+            } else if (res.data && res.data.message) {
+              this.$toasted.global.error({
+                message: res.data.message
+              })
+            } else {
+              this.$toasted.global.error({
+                message: `status code of ${res.status}`
+              })
+            }
+          })
+          .catch(err => {
+            let message = `got error: ${err}`
+            if (err.response && err.response.data) {
+              message = err.response.data.message
+            }
+            this.$toasted.global.error({
+              message: message
+            })
+          })
+      }
+    }
+  },
   methods: {
-    logingoogle() {
+    logingoogle(evt) {
+      evt.preventDefault()
       /* eslint-disable */
       this.$auth.loginWith('google').catch(e => {
         console.log(e)
@@ -63,13 +201,24 @@ export default Vue.extend({
       evt.preventDefault()
       this.$auth.loginWith('local', {
         data: {
-          email: this.email,
-          password: this.password
+          email: this.form.email,
+          password: this.form.password
         }
       }).then(() => {
-        console.log('success')
+        this.$toasted.global.success({
+          message: 'logged in'
+        })
+        this.$router.push({
+          path: '/account'
+        })
       }).catch(err => {
-        console.log(`got error logging in local: ${err}`)
+        let message = `got error: ${err}`
+        if (err.response && err.response.data) {
+          message = err.response.data.message
+        }
+        this.$toasted.global.error({
+          message: message
+        })
       })
     }
   }

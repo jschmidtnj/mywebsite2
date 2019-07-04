@@ -7,6 +7,14 @@ import (
 	"net/http"
 )
 
+/**
+ * @api {get} /countPosts Count posts for search term
+ * @apiVersion 0.0.1
+ * @apiParam {String} searchterm Search term to count results
+ * @apiParam {string="blog","project"} type Post type
+ * @apiSuccess {String} count Result count
+ * @apiGroup misc
+ */
 func countPosts(response http.ResponseWriter, request *http.Request) {
 	if !manageCors(&response, request) {
 		return

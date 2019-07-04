@@ -3,4 +3,6 @@ dist/
 mywebsite2/
 node_modules/
 
-# config
+# api docs
+apidocs/
+.vuepress/public/api/

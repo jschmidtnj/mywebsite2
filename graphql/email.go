@@ -46,7 +46,7 @@ func sendEmailVerification(email string) (*rest.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	doc.Find("#verify").SetAttr("href", websiteURL+"/login?verify=true?token="+tokenString)
+	doc.Find("#verify").SetAttr("href", websiteURL+"/login?verify=true&token="+tokenString)
 	template, err := doc.Html()
 	request := sendgrid.GetRequest(sendgridAPIKey, sendgridAPIPath+"/mail/send", sendgridAPIUrl)
 	request.Method = "POST"
@@ -92,6 +92,13 @@ func sendEmailVerification(email string) (*rest.Response, error) {
 	return response, err
 }
 
+/**
+ * @api {put} /sendResetEmail Send reset email
+ * @apiVersion 0.0.1
+ * @apiParam {String} email User email
+ * @apiSuccess {String} message Success message for email sent
+ * @apiGroup emails
+ */
 func sendPasswordResetEmail(response http.ResponseWriter, request *http.Request) {
 	if !manageCors(&response, request) {
 		return
@@ -145,7 +152,7 @@ func sendPasswordResetEmail(response http.ResponseWriter, request *http.Request)
 		handleError(err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	doc.Find("#reset").SetAttr("href", websiteURL+"/login?verify=true?token="+tokenString)
+	doc.Find("#reset").SetAttr("href", websiteURL+"/login?reset=true&token="+tokenString)
 	template, err := doc.Html()
 	req := sendgrid.GetRequest(sendgridAPIKey, sendgridAPIPath+"/mail/send", sendgridAPIUrl)
 	req.Method = "POST"
@@ -203,6 +210,12 @@ func sendPasswordResetEmail(response http.ResponseWriter, request *http.Request)
 	response.Write([]byte(`{"message":"reset email sent"}`))
 }
 
+/**
+ * @api {put} /sendTestEmail Send test email
+ * @apiVersion 0.0.1
+ * @apiSuccess {String} message Success message for email sent
+ * @apiGroup emails
+ */
 func sendTestEmail(response http.ResponseWriter, request *http.Request) {
 	if !manageCors(&response, request) {
 		return

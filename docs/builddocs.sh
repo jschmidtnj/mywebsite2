@@ -4,6 +4,15 @@
 set -e
 
 # build
+yarn api
+
+# remove current directories
+rm -rf .vuepress/public/api
+
+# copy to public directories
+mv apidocs .vuepress/public/api
+
+# build
 yarn generate
 yarn pwa
 sed -i 's/\/images\//\/mywebsite2\/images\//g' docs/Polyfills/manifest.json
@@ -15,10 +24,3 @@ cp -r docs/Polyfills/web/Images/ .vuepress/dist/images
 rm -rf docs/Polyfills/web/Images/
 mv docs/Polyfills/manifest.json .vuepress/dist/manifest.json
 rm -rf docs/
-
-# navigate into the build output directory
-cd .vuepress/dist
-
-# make sure to create secret file with following commands:
-# tar cvf secrets.tar .env
-# travis encrypt-file secrets.tar

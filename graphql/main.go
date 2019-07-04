@@ -87,6 +87,12 @@ var cacheTime time.Duration
 
 // var mediumUser *medium.User
 
+/**
+ * @api {get} /hello Test rest request
+ * @apiVersion 0.0.1
+ * @apiSuccess {String} message Hello message
+ * @apiGroup misc
+ */
 func hello(response http.ResponseWriter, request *http.Request) {
 	if !manageCors(&response, request) {
 		return

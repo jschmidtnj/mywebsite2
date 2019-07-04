@@ -20,3 +20,7 @@ export const toasts = {
 }
 
 export const validTypes = ['blog', 'project']
+
+export const regex = {
+  password: /^$|^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/,
+}

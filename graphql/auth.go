@@ -15,6 +15,15 @@ import (
 	"time"
 )
 
+/**
+ * authentication for api
+ */
+
+/**
+ * @apiDefine authToken
+ * @apiHeader {String} Authorization "Bearer `token`" - login auth token
+ */
+
 var jwtIssuer = "Joshua Schmidt"
 
 var numHashes = 12
@@ -26,6 +35,14 @@ type loginClaims struct {
 	jwt.StandardClaims
 }
 
+/**
+ * @api {post} /register User registration
+ * @apiVersion 0.0.1
+ * @apiParam {String} email Registration email
+ * @apiParam {String} password User password
+ * @apiSuccess {String} message Response message
+ * @apiGroup authentication
+ */
 func register(response http.ResponseWriter, request *http.Request) {
 	if !manageCors(&response, request) {
 		return
@@ -100,6 +117,14 @@ func register(response http.ResponseWriter, request *http.Request) {
 	response.Write([]byte(`{"message":"please check email for verification"}`))
 }
 
+/**
+ * @api {put} /loginEmailPassword User login
+ * @apiVersion 0.0.1
+ * @apiParam {String} email User email
+ * @apiParam {String} password User password
+ * @apiSuccess {String} token User token for authenticated requests
+ * @apiGroup authentication
+ */
 func loginEmailPassword(response http.ResponseWriter, request *http.Request) {
 	if !manageCors(&response, request) {
 		return
@@ -186,6 +211,13 @@ func loginEmailPassword(response http.ResponseWriter, request *http.Request) {
 	}
 }
 
+/**
+ * @api {put} /logoutEmailPassword User logout
+ * @apiVersion 0.0.1
+ * @apiUse authToken
+ * @apiSuccess {String} message Response message
+ * @apiGroup authentication
+ */
 func logoutEmailPassword(response http.ResponseWriter, request *http.Request) {
 	if !manageCors(&response, request) {
 		return
@@ -309,6 +341,14 @@ func verifyEmail(response http.ResponseWriter, request *http.Request) {
 	}
 }
 
+/**
+ * @api {put} /resetPassword Reset password
+ * @apiVersion 0.0.1
+ * @apiParam {String} token Password reset token
+ * @apiParam {String} password New password
+ * @apiSuccess {String} message Response message
+ * @apiGroup authentication
+ */
 func resetPassword(response http.ResponseWriter, request *http.Request) {
 	if !manageCors(&response, request) {
 		return
