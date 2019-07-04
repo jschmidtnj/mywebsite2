@@ -1,6 +1,6 @@
 # graphql api
 
-golang graphql api for website
+golang graphql api for website.
 
 ## potential documentation
 
