@@ -5,9 +5,10 @@
   "scripts": {
     "dev": "vuepress dev",
     "precommit": "echo \"no precommit for docs\"",
-    "build": "vuepress build",
+    "generate": "vuepress build",
     "pwa": "pwabuilder --manifest .vuepress/public/manifest.json --image .vuepress/public/logo.png --platforms web",
-    "deploy": "sh ./deploydocs.sh",
+    "build": "sh ./builddocs.sh",
+    "deploy": "yarn build && sh ./deploydocs.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

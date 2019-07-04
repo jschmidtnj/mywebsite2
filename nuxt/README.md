@@ -24,7 +24,6 @@ For detailed explanation on how things work, checkout [Nuxt.js docs](https://nux
 ### encrypt secret files
 
 - `tar cvf secrets.tar .env .now.env`
-- `gem install travis`
 - `travis encrypt-file secrets.tar`
 
 ## Format

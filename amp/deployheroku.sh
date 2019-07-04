@@ -3,16 +3,6 @@
 # abort on errors
 set -e
 
-export $(grep -v '^#' .env | xargs -d '\n')
-
-git config --global user.name $HEROKUUSERNAME
-git config --global user.password $HEROKUPASSWORD
-
-(
-  echo "$HEROKUUSERNAME"
-  echo "$HEROKUPASSWORD"
-) | heroku login
-
 yarn build
 
 sed -i 's/config/dummy/g' .gitignore
