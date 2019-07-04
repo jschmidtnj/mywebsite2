@@ -10,3 +10,4 @@ typings/
 # config files
 config*
 secrets.tar
+.env

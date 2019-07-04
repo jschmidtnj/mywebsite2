@@ -19,8 +19,8 @@
 import Vue from 'vue'
 import { format } from 'date-fns'
 import VueMarkdown from 'vue-markdown'
-import Loading from '~/components/Loading.vue'
 import Prism from 'prismjs'
+import Loading from '~/components/Loading.vue'
 import { validTypes } from '~/assets/config'
 // @ts-ignore
 const ampurl = process.env.ampurl

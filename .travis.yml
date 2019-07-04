@@ -17,7 +17,9 @@ matrix:
     - tar xvf secrets.tar
     - yarn install
     script:
-    - yarn deploy:now
+    - export $(grep -v '^#' .now.env | xargs -d '\n')
+    - yarn global add now
+    - now --token=$NOWTOKEN
   - name: Api Build
     language: generic
     before_install:
@@ -44,10 +46,15 @@ matrix:
       -in secrets.tar.enc -out secrets.tar -d
     - tar xvf secrets.tar
     - export $(grep -v '^#' .env | xargs -d '\n')
+    - sed -i 's/config/dummy1/g' .gitignore
+    - sed -i 's/\.env/dummy2/g' .gitignore
     deploy:
       provider: heroku
       api_key: $HEROKUAPIKEY
       app: joshuawebsiteamp
+    after_deploy:
+    - sed -i 's/dummy1/config/g' .gitignore
+    - sed -i 's/dummy2/\.env/g' .gitignore
   - name: Docs Build
     language: node_js
     os: linux

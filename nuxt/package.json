@@ -18,7 +18,6 @@
     "predeploy": "yarn precommit && yarn email:build && yarn generate",
     "serve": "node staticserver.js",
     "now-build": "yarn predeploy",
-    "deploy:now": "export $(grep -v '^#' .now.env | xargs -d '\n') && now --token=$NOWTOKEN",
     "deploy:gcp": "gcloud app deploy",
     "deploy:heroku": "sh ./deployheroku.sh",
     "test": "jest"
@@ -82,7 +81,6 @@
     "jest": "^24.1.0",
     "node-sass": "^4.12.0",
     "nodemon": "^1.18.9",
-    "now": "^15.6.2",
     "prettier": "^1.16.4",
     "pug": "^2.0.3",
     "pug-plain-loader": "^1.0.0",
