@@ -9,8 +9,3 @@ currently heroku is preferred because gcp app engine is being used for the api a
 ## framework
 
 currently using amp spectre: `https://github.com/niutech/amp-spectre`
-
-### encrypt secret files
-
-- `tar cvf secrets.tar .env src/config.ts`
-- `travis encrypt-file secrets.tar`

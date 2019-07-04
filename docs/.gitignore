@@ -4,5 +4,3 @@ mywebsite2/
 node_modules/
 
 # config
-.env
-secrets.tar

@@ -17,53 +17,6 @@ matrix:
       provider: gae
       keyfile: graphql/serviceaccount.json
       project: mywebsite2
-  - name: Amp Build
-    language: node_js
-    os: linux
-    node_js:
-    - '10'
-    before_install:
-    - if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep amp/; then exit; fi;
-    - cd amp
-    - openssl aes-256-cbc -K $encrypted_21aa1e4fadc4_key -iv $encrypted_21aa1e4fadc4_iv 
-      -in secrets.tar.enc -out secrets.tar -d
-    - tar xvf secrets.tar
-    - export $(grep -v '^#' .env | xargs -d '\n')
-    - sed -i 's/config/dummy1/g' .gitignore
-    - sed -i 's/\.env/dummy2/g' .gitignore
-    - git commit -a -m "remove gitignore for heroku deployment"
-    deploy:
-      provider: heroku
-      api_key: $HEROKUAPIKEY
-      app: joshuawebsiteamp
-      strategy: git
-    after_deploy:
-    - sed -i 's/dummy1/config/g' .gitignore
-    - sed -i 's/dummy2/\.env/g' .gitignore
-  - name: Docs Build
-    language: node_js
-    os: linux
-    node_js:
-    - '10'
-    before_install:
-    - if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep docs/; then exit; fi;
-    - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.16.0
-    - export PATH="$HOME/.yarn/bin:$PATH"
-    - cd docs
-    - openssl aes-256-cbc -K $encrypted_3ebe45345dc0_key -iv $encrypted_3ebe45345dc0_iv 
-      -in secrets.tar.enc -out secrets.tar -d
-    - tar xvf secrets.tar
-    - export $(grep -v '^#' .env | xargs -d '\n')
-    - yarn install
-    - yarn build
-    deploy:
-      provider: pages
-      skip_cleanup: true
-      github_token: $GITHUBTOKEN  # Set in the settings page of your repository, as a secure variable
-      keep_history: false
-      local_dir: docs/.vuepress/dist
-      on:
-        branch: master
   - name: Android Build
     language: android
     jdk: openjdk8
