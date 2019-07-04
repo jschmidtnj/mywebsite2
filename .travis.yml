@@ -58,7 +58,7 @@ matrix:
     - '10'
     cache: yarn
     before_install:
-    - if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep nuxt/ electron/; then exit; fi;
+    - if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep -E "nuxt/|electron/"; then exit; fi;
     - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.16.0
     - export PATH="$HOME/.yarn/bin:$PATH"
     before_script:
@@ -77,7 +77,7 @@ matrix:
     - '10'
     cache: yarn
     before_install:
-    - if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep nuxt/ electron/; then exit; fi;
+    - if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep -E "nuxt/|electron/"; then exit; fi;
     - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.16.0
     - export PATH="$HOME/.yarn/bin:$PATH"
     before_script:
@@ -94,7 +94,7 @@ matrix:
     language: bash
     cache: yarn
     before_install:
-    - if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep nuxt/ electron/; then exit; fi;
+    - if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep -E "nuxt/|electron/"; then exit; fi;
     before_script:
     - choco install nodejs
     - choco install yarn
