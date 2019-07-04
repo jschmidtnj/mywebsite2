@@ -9,7 +9,8 @@
     "gcp-build": "yarn build",
     "start": "node lib/index.js",
     "deploy:gcp": "gcloud app deploy",
-    "deploy:heroku": "sh ./deployheroku.sh"
+    "deploy:heroku": "sh ./deployheroku.sh",
+    "test": "echo \"no test specified\""
   },
   "repository": {
     "type": "git",

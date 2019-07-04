@@ -18,7 +18,7 @@
     "predeploy": "yarn precommit && yarn email:build && yarn generate",
     "serve": "node staticserver.js",
     "now-build": "yarn predeploy",
-    "deploy:now": "export $(grep -v '^#' .now.env | xargs -d '\n') && now --no-clipboard --token=$NOWTOKEN --public",
+    "deploy:now": "export $(grep -v '^#' .now.env | xargs -d '\n') && now --token=$NOWTOKEN",
     "deploy:gcp": "gcloud app deploy",
     "deploy:heroku": "sh ./deployheroku.sh",
     "test": "jest"
