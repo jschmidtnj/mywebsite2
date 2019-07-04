@@ -36,6 +36,7 @@ matrix:
       provider: heroku
       api_key: $HEROKUAPIKEY
       app: joshuawebsiteamp
+      strategy: git
     after_deploy:
     - sed -i 's/dummy1/config/g' .gitignore
     - sed -i 's/dummy2/\.env/g' .gitignore
@@ -60,7 +61,7 @@ matrix:
       skip_cleanup: true
       github_token: $GITHUBTOKEN  # Set in the settings page of your repository, as a secure variable
       keep_history: false
-      local_dir: docs
+      local_dir: docs/.vuepress/dist
       on:
         branch: master
   - name: Android Build
