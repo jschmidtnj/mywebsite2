@@ -5,7 +5,7 @@ actionText: Introduction →
 actionLink: /guide/
 features:
 - title: Simplicity First
-  details: Designed to make it easy for any developer to pick up.
+  details: Designed to make it easy for any developer to pick up
 - title: Vue-Powered
   details: Powered by Nuxt.js for the website and Vuepress.js for the documentation
 - title: Performant

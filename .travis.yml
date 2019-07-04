@@ -31,6 +31,7 @@ matrix:
     - export $(grep -v '^#' .env | xargs -d '\n')
     - sed -i 's/config/dummy1/g' .gitignore
     - sed -i 's/\.env/dummy2/g' .gitignore
+    - git commit -a -m "remove gitignore for heroku deployment"
     deploy:
       provider: heroku
       api_key: $HEROKUAPIKEY
@@ -59,6 +60,7 @@ matrix:
       skip_cleanup: true
       github_token: $GITHUBTOKEN  # Set in the settings page of your repository, as a secure variable
       keep_history: false
+      local_dir: docs
       on:
         branch: master
   - name: Android Build
