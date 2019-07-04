@@ -70,7 +70,7 @@ matrix:
       github_token: $GITHUBTOKEN  # Set in the settings page of your repository, as a secure variable
       keep_history: false
       on:
-        branch: master:gh-pages
+        branch: gh-pages
   - name: Android Build
     language: android
     jdk: openjdk8
