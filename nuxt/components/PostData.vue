@@ -52,13 +52,21 @@ export default Vue.extend({
       this.id = this.$route.query.id
       // update document amphtml for spa
       // @ts-ignore
-      document.head.querySelector("link[rel='amphtml']").href = `${ampurl}/blog/${this.id}`
+      document.head.querySelector(
+        "link[rel='amphtml']"
+      ).href = `${ampurl}/blog/${this.id}`
       // @ts-ignore
-      document.head.querySelector("link[rel='canonical']").href = `${seo.url}/blog?id=${this.$route.query.id}`
+      document.head.querySelector(
+        "link[rel='canonical']"
+      ).href = `${seo.url}/blog?id=${this.$route.query.id}`
       this.$axios
         .get('/graphql', {
           params: {
-            query: `{post(type:"${this.type}",id:"${this.id}"){title content id author views}}`
+            query: `{post(type:"${encodeURIComponent(
+              this.type
+            )}",id:"${encodeURIComponent(
+              this.id
+            )}",cache:true){title content id author views}}`
           }
         })
         .then(res => {
@@ -103,7 +111,11 @@ export default Vue.extend({
   },
   // @ts-ignore
   head() {
-    const title = this.post ? this.post.title : validTypes.includes(this.type) ? this.type : 'Post'
+    const title = this.post
+      ? this.post.title
+      : validTypes.includes(this.type)
+      ? this.type
+      : 'Post'
     return {
       title: title,
       link: [
@@ -128,7 +140,7 @@ export default Vue.extend({
       return format(dateUTC, formatStr)
     },
     mongoidToDate(id) {
-      return parseInt(id.substring(0,8), 16) * 1000
+      return parseInt(id.substring(0, 8), 16) * 1000
     }
   }
 })

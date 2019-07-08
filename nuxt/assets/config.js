@@ -1,9 +1,8 @@
 export const androidAppURL = 'https://play.google.com/apps/testing/com.joshuaschmidt.joshuaschmidt'
 
 export const cloudStorageURLs = {
-  blog: 'https://storage.googleapis.com/mywebsite2imagestorage/blogs',
-  project: 'https://storage.googleapis.com/mywebsite2imagestorage/projects',
-  desktop: 'https://storage.googleapis.com/mywebsite2desktop/releases'
+  posts: 'https://cdn.joshuaschmidt.tech',
+  desktop: 'https://storage.googleapis.com/mywebsite2desktop'
 }
 
 export const codes = {
@@ -23,4 +22,10 @@ export const validTypes = ['blog', 'project']
 
 export const regex = {
   password: /^$|^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/,
+  hexcode: /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i
+}
+
+export const options = {
+  categoryOptions: ['technology', 'webdesign'],
+  tagOptions: ['vue', 'nuxt']
 }

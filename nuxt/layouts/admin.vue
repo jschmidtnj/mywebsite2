@@ -18,4 +18,6 @@ export default Vue.extend({
 })
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+@import '~/node_modules/progressive-image.js/dist/progressive-image.css';
+</style>

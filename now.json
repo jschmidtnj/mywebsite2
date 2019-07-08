@@ -12,7 +12,8 @@
       "SEOCONFIG": "@seoconfig",
       "AUTHCONFIG": "@authconfig",
       "APIURL": "@apiurl",
-      "AMPURL": "@ampurl"
+      "AMPURL": "@ampurl",
+      "RECAPTCHASITEKEY": "@recaptchasitekey"
     }
   },
   "alias": "joshuaschmidt.tech",

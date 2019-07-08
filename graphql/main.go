@@ -1,23 +1,27 @@
 package main
 
 import (
-	"cloud.google.com/go/storage"
 	"context"
 	"encoding/json"
+
+	"cloud.google.com/go/storage"
 	"github.com/graphql-go/graphql"
 	"github.com/joho/godotenv"
+
 	// medium "github.com/medium/medium-sdk-go"
+	"net/http"
+	"os"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/go-redis/redis"
 	"github.com/olivere/elastic"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 	"google.golang.org/api/option"
-	"net/http"
-	"os"
-	"strconv"
-	"strings"
-	"time"
 )
 
 var jwtSecret []byte
@@ -67,11 +71,19 @@ var ctxStorage context.Context
 
 var storageClient *storage.Client
 
-var imageBucket *storage.BucketHandle
+var storageBucket *storage.BucketHandle
 
-var blogImageIndex = "blogs"
+var blogImageIndex = "blogimages"
 
-var projectImageIndex = "projects"
+var projectImageIndex = "projectimages"
+
+var blogFileIndex = "blogfiles"
+
+var projectFileIndex = "projectfiles"
+
+var progressiveImageSize int = 30
+
+var progressiveImageBlurAmount float64 = 20
 
 var logger *zap.Logger
 
@@ -82,6 +94,19 @@ var tokenKey tokenKeyType
 var redisClient *redis.Client
 
 var cacheTime time.Duration
+
+var validHexcode *regexp.Regexp
+
+var postSearchFields = []string{
+	"title",
+	"author",
+	"caption",
+	"content",
+}
+
+var recaptchaSecret string
+
+var mode string
 
 // var mediumClient *medium.Medium
 
@@ -136,6 +161,7 @@ func main() {
 		logger.Fatal(err.Error())
 	}
 	sendgridAPIKey = os.Getenv("SENDGRIDAPIKEY")
+	mode = os.Getenv("MODE")
 	websiteURL = os.Getenv("WEBSITEURL")
 	ctxMongo, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	cancel()
@@ -166,12 +192,12 @@ func main() {
 		logger.Fatal(err.Error())
 	}
 	bucketName := os.Getenv("STORAGEBUCKETNAME")
-	imageBucket = storageClient.Bucket(bucketName)
+	storageBucket = storageClient.Bucket(bucketName)
 	gcpprojectid, ok := storageconfigjson["project_id"].(string)
 	if !ok {
 		logger.Fatal("could not cast gcp project id to string")
 	}
-	if err := imageBucket.Create(ctxStorage, gcpprojectid, nil); err != nil {
+	if err := storageBucket.Create(ctxStorage, gcpprojectid, nil); err != nil {
 		logger.Info(err.Error())
 	}
 	redisAddress := os.Getenv("REDISADDRESS")
@@ -192,6 +218,11 @@ func main() {
 	} else {
 		logger.Info("connected to redis cache: " + pong)
 	}
+	validHexcode, err = regexp.Compile("(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)")
+	if err != nil {
+		logger.Fatal(err.Error())
+	}
+	recaptchaSecret = os.Getenv("RECAPTCHASECRET")
 	/*
 		mediumAccessToken := os.Getenv("MEDIUMACCESSTOKEN")
 		mediumClient = medium.NewClientWithAccessToken(mediumAccessToken)
@@ -231,10 +262,12 @@ func main() {
 	http.HandleFunc("/sendResetEmail", sendPasswordResetEmail)
 	http.HandleFunc("/reset", resetPassword)
 	http.HandleFunc("/hello", hello)
-	http.HandleFunc("/createPostPicture", createPostPicture)
-	http.HandleFunc("/updatePostPicture", updatePostPicture)
-	http.HandleFunc("/deletePostPictures", deletePostPictures)
 	http.HandleFunc("/getPostPicture", getPostPicture)
+	http.HandleFunc("/writePostPicture", writePostPicture)
+	http.HandleFunc("/deletePostPictures", deletePostPictures)
+	http.HandleFunc("/getPostFile", getPostFile)
+	http.HandleFunc("/writePostFile", writePostFile)
+	http.HandleFunc("/deletePostFiles", deletePostFiles)
 	http.ListenAndServe(port, nil)
 	logger.Info("Starting the application at " + port + " 🚀")
 }
@@ -249,9 +282,13 @@ func getAuthToken(request *http.Request) string {
 }
 
 func manageCors(w *http.ResponseWriter, r *http.Request) bool {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	var allowedOrigins = websiteURL
+	if mode == "debug" {
+		allowedOrigins = "*"
+	}
+	(*w).Header().Set("Access-Control-Allow-Origin", allowedOrigins)
 	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	(*w).Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	(*w).Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Access-Control-Allow-Headers, X-Requested-With, Strategy")
 	if (*r).Method == "OPTIONS" {
 		(*w).Header().Set("Access-Control-Max-Age", "86400")
 		(*w).WriteHeader(http.StatusOK)

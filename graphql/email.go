@@ -122,8 +122,22 @@ func sendPasswordResetEmail(response http.ResponseWriter, request *http.Request)
 		handleError("no email provided", http.StatusBadRequest, response)
 		return
 	}
+	email, ok := resetdata["email"].(string)
+	if !ok {
+		handleError("email cannot be cast to string", http.StatusBadRequest, response)
+		return
+	}
+	recaptchatoken, ok := resetdata["recaptcha"].(string)
+	if !ok {
+		handleError("recaptcha token cannot be cast to string", http.StatusBadRequest, response)
+		return
+	}
+	err = verifyRecaptcha(recaptchatoken)
+	if err != nil {
+		handleError("recaptcha error: "+err.Error(), http.StatusUnauthorized, response)
+		return
+	}
 	expirationTime := time.Now().Add(time.Duration(tokenExpiration) * time.Hour)
-	var email = resetdata["email"].(string)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email": email,
 		"reset": true,
@@ -222,6 +236,10 @@ func sendTestEmail(response http.ResponseWriter, request *http.Request) {
 	}
 	if request.Method != http.MethodPost {
 		handleError("register http method not POST", http.StatusBadRequest, response)
+		return
+	}
+	if _, err := validateAdmin(getAuthToken(request)); err != nil {
+		handleError("auth error: "+err.Error(), http.StatusBadRequest, response)
 		return
 	}
 	var emaildata map[string]interface{}

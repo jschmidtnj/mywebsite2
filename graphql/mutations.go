@@ -1,9 +1,13 @@
 package main
 
 import (
-	"cloud.google.com/go/storage"
 	"errors"
+
+	"net/url"
+
+	"cloud.google.com/go/storage"
 	"github.com/graphql-go/graphql"
+
 	// medium "github.com/medium/medium-sdk-go"
 	// "gopkg.in/russross/blackfriday.v2"
 	"go.mongodb.org/mongo-driver/bson"
@@ -11,6 +15,62 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	// "github.com/Depado/bfchroma"
 )
+
+func interfaceListToStringList(interfaceList []interface{}) ([]string, error) {
+	result := make([]string, len(interfaceList))
+	for i, item := range interfaceList {
+		itemStr, ok := item.(string)
+		if !ok {
+			return nil, errors.New("item in list cannot be cast to string")
+		}
+		itemStrDecoded, err := url.QueryUnescape(itemStr)
+		if err != nil {
+			return nil, err
+		}
+		result[i] = itemStrDecoded
+	}
+	return result, nil
+}
+
+func deleteAccount(idstring string) (interface{}, error) {
+	id, err := primitive.ObjectIDFromHex(idstring)
+	if err != nil {
+		return nil, err
+	}
+	cursor, err := userCollection.Find(ctxMongo, bson.M{
+		"_id": id,
+	})
+	defer cursor.Close(ctxMongo)
+	if err != nil {
+		return nil, err
+	}
+	var userData map[string]interface{}
+	var foundstuff = false
+	for cursor.Next(ctxMongo) {
+		userPrimitive := &bson.D{}
+		err = cursor.Decode(userPrimitive)
+		if err != nil {
+			return nil, err
+		}
+		userData = userPrimitive.Map()
+		id := userData["_id"].(primitive.ObjectID)
+		userData["date"] = objectidtimestamp(id).Format(dateFormat)
+		userData["id"] = id.Hex()
+		delete(userData, "_id")
+		foundstuff = true
+		break
+	}
+	if !foundstuff {
+		return nil, errors.New("user not found with given id")
+	}
+	_, err = userCollection.DeleteOne(ctxMongo, bson.M{
+		"_id": id,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return userData, nil
+}
 
 func rootMutation() *graphql.Object {
 	return graphql.NewObject(graphql.ObjectConfig{
@@ -26,16 +86,34 @@ func rootMutation() *graphql.Object {
 					"title": &graphql.ArgumentConfig{
 						Type: graphql.String,
 					},
+					"caption": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
 					"content": &graphql.ArgumentConfig{
 						Type: graphql.String,
 					},
 					"author": &graphql.ArgumentConfig{
 						Type: graphql.String,
 					},
+					"color": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
+					"tags": &graphql.ArgumentConfig{
+						Type: graphql.NewList(graphql.String),
+					},
+					"categories": &graphql.ArgumentConfig{
+						Type: graphql.NewList(graphql.String),
+					},
 					"heroimage": &graphql.ArgumentConfig{
 						Type: graphql.String,
 					},
+					"tileimage": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
 					"images": &graphql.ArgumentConfig{
+						Type: graphql.NewList(graphql.String),
+					},
+					"files": &graphql.ArgumentConfig{
 						Type: graphql.NewList(graphql.String),
 					},
 				},
@@ -46,12 +124,19 @@ func rootMutation() *graphql.Object {
 					}
 					if params.Args["title"] == nil || params.Args["content"] == nil ||
 						params.Args["author"] == nil || params.Args["type"] == nil ||
-						params.Args["heroimage"] == nil || params.Args["images"] == nil {
-						return nil, errors.New("title or content or author or type or heroimage or images not provided")
+						params.Args["heroimage"] == nil || params.Args["images"] == nil ||
+						params.Args["files"] == nil || params.Args["caption"] == nil ||
+						params.Args["color"] == nil || params.Args["tags"] == nil ||
+						params.Args["categories"] == nil || params.Args["tileimage"] == nil {
+						return nil, errors.New("title or content or author or type or heroimage or images or files or caption or color or tags or categories or tileimage not provided")
 					}
 					title, ok := params.Args["title"].(string)
 					if !ok {
 						return nil, errors.New("problem casting title to string")
+					}
+					caption, ok := params.Args["caption"].(string)
+					if !ok {
+						return nil, errors.New("problem casting caption to string")
 					}
 					author, ok := params.Args["author"].(string)
 					if !ok {
@@ -65,16 +150,59 @@ func rootMutation() *graphql.Object {
 					if !ok {
 						return nil, errors.New("problem casting type to string")
 					}
+					if !validType(thetype) {
+						return nil, errors.New("invalid type given")
+					}
+					color, ok := params.Args["color"].(string)
+					if !ok {
+						return nil, errors.New("problem casting color to string")
+					}
+					decodedColor, err := url.QueryUnescape(color)
+					if err != nil {
+						return nil, err
+					}
+					if !validHexcode.MatchString(decodedColor) {
+						return nil, errors.New("invalid hex code for color")
+					}
+					tagsinterface, ok := params.Args["tags"].([]interface{})
+					if !ok {
+						return nil, errors.New("problem casting tags to interface array")
+					}
+					tags, err := interfaceListToStringList(tagsinterface)
+					if err != nil {
+						return nil, err
+					}
+					categoriesinterface, ok := params.Args["categories"].([]interface{})
+					if !ok {
+						return nil, errors.New("problem casting categories to interface array")
+					}
+					categories, err := interfaceListToStringList(categoriesinterface)
+					if err != nil {
+						return nil, err
+					}
 					heroimage, ok := params.Args["heroimage"].(string)
 					if !ok {
 						return nil, errors.New("problem casting heroimage to string")
 					}
-					images, ok := params.Args["images"].([]interface{})
+					tileimage, ok := params.Args["tileimage"].(string)
 					if !ok {
-						return nil, errors.New("problem casting images to string array")
+						return nil, errors.New("problem casting tileimage to string")
 					}
-					if !validType(thetype) {
-						return nil, errors.New("invalid type given")
+					imagesinterface, ok := params.Args["images"].([]interface{})
+					if !ok {
+						return nil, errors.New("problem casting images to interface array")
+					}
+					images, err := interfaceListToStringList(imagesinterface)
+					if err != nil {
+						return nil, err
+					}
+					filesinterface, ok := params.Args["files"].([]interface{})
+					if !ok {
+						return nil, errors.New("problem casting files to interface array")
+					}
+					files, err := interfaceListToStringList(filesinterface)
+					if err != nil {
+						return nil, err
 					}
 					var mongoCollection *mongo.Collection
 					var postElasticIndex string
@@ -89,12 +217,19 @@ func rootMutation() *graphql.Object {
 						postElasticType = projectElasticType
 					}
 					postData := bson.M{
-						"title":     title,
-						"content":   content,
-						"author":    author,
-						"views":     0,
-						"heroimage": heroimage,
-						"images":    images,
+						"title":      title,
+						"caption":    caption,
+						"content":    content,
+						"author":     author,
+						"color":      color,
+						"tags":       tags,
+						"categories": categories,
+						"views":      0,
+						"heroimage":  heroimage,
+						"tileimage":  tileimage,
+						"images":     images,
+						"files":      files,
+						"comments":   []string{},
 					}
 					res, err := mongoCollection.InsertOne(ctxMongo, postData)
 					if err != nil {
@@ -135,13 +270,16 @@ func rootMutation() *graphql.Object {
 				Type:        PostType,
 				Description: "Update a Post",
 				Args: graphql.FieldConfigArgument{
-					"type": &graphql.ArgumentConfig{
-						Type: graphql.String,
-					},
 					"id": &graphql.ArgumentConfig{
 						Type: graphql.String,
 					},
+					"type": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
 					"title": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
+					"caption": &graphql.ArgumentConfig{
 						Type: graphql.String,
 					},
 					"content": &graphql.ArgumentConfig{
@@ -150,10 +288,25 @@ func rootMutation() *graphql.Object {
 					"author": &graphql.ArgumentConfig{
 						Type: graphql.String,
 					},
+					"color": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
+					"tags": &graphql.ArgumentConfig{
+						Type: graphql.NewList(graphql.String),
+					},
+					"categories": &graphql.ArgumentConfig{
+						Type: graphql.NewList(graphql.String),
+					},
 					"heroimage": &graphql.ArgumentConfig{
 						Type: graphql.String,
 					},
+					"tileimage": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
 					"images": &graphql.ArgumentConfig{
+						Type: graphql.NewList(graphql.String),
+					},
+					"files": &graphql.ArgumentConfig{
 						Type: graphql.NewList(graphql.String),
 					},
 				},
@@ -181,6 +334,13 @@ func rootMutation() *graphql.Object {
 						}
 						updateData["title"] = title
 					}
+					if params.Args["caption"] != nil {
+						caption, ok := params.Args["caption"].(string)
+						if !ok {
+							return nil, errors.New("problem casting caption to string")
+						}
+						updateData["caption"] = caption
+					}
 					if params.Args["author"] != nil {
 						author, ok := params.Args["author"].(string)
 						if !ok {
@@ -195,6 +355,42 @@ func rootMutation() *graphql.Object {
 						}
 						updateData["content"] = content
 					}
+					if params.Args["color"] != nil {
+						color, ok := params.Args["color"].(string)
+						if !ok {
+							return nil, errors.New("problem casting color to string")
+						}
+						decodedColor, err := url.QueryUnescape(color)
+						if err != nil {
+							return nil, err
+						}
+						if !validHexcode.MatchString(decodedColor) {
+							return nil, errors.New("invalid hex code for color")
+						}
+						updateData["color"] = color
+					}
+					if params.Args["tags"] != nil {
+						tagsinterface, ok := params.Args["tags"].([]interface{})
+						if !ok {
+							return nil, errors.New("problem casting tags to interface array")
+						}
+						tags, err := interfaceListToStringList(tagsinterface)
+						if err != nil {
+							return nil, err
+						}
+						updateData["tags"] = tags
+					}
+					if params.Args["categories"] != nil {
+						categoriesinterface, ok := params.Args["categories"].([]interface{})
+						if !ok {
+							return nil, errors.New("problem casting categories to interface array")
+						}
+						categories, err := interfaceListToStringList(categoriesinterface)
+						if err != nil {
+							return nil, err
+						}
+						updateData["categories"] = categories
+					}
 					if params.Args["heroimage"] != nil {
 						heroimage, ok := params.Args["heroimage"].(string)
 						if !ok {
@@ -202,12 +398,34 @@ func rootMutation() *graphql.Object {
 						}
 						updateData["heroimage"] = heroimage
 					}
-					if params.Args["images"] != nil {
-						images, ok := params.Args["images"].([]interface{})
+					if params.Args["tileimage"] != nil {
+						tileimage, ok := params.Args["tileimage"].(string)
 						if !ok {
-							return nil, errors.New("problem casting images to string array")
+							return nil, errors.New("problem casting tileimage to string")
+						}
+						updateData["tileimage"] = tileimage
+					}
+					if params.Args["images"] != nil {
+						imagesinterface, ok := params.Args["images"].([]interface{})
+						if !ok {
+							return nil, errors.New("problem casting images to interface array")
+						}
+						images, err := interfaceListToStringList(imagesinterface)
+						if err != nil {
+							return nil, err
 						}
 						updateData["images"] = images
+					}
+					if params.Args["files"] != nil {
+						filesinterface, ok := params.Args["files"].([]interface{})
+						if !ok {
+							return nil, errors.New("problem casting files to interface array")
+						}
+						files, err := interfaceListToStringList(filesinterface)
+						if err != nil {
+							return nil, err
+						}
+						updateData["files"] = files
 					}
 					thetype, ok := params.Args["type"].(string)
 					if !ok {
@@ -369,13 +587,28 @@ func rootMutation() *graphql.Object {
 						return nil, errors.New("cannot convert heroimage to string")
 					}
 					if len(heroimageid) > 0 {
-						var herofileobj *storage.ObjectHandle
+						var heroobj *storage.ObjectHandle
 						if thetype == "blog" {
-							herofileobj = imageBucket.Object(blogImageIndex + "/" + heroimageid)
+							heroobj = storageBucket.Object(blogImageIndex + "/" + heroimageid)
 						} else {
-							herofileobj = imageBucket.Object(projectImageIndex + "/" + heroimageid)
+							heroobj = storageBucket.Object(projectImageIndex + "/" + heroimageid)
 						}
-						if err := herofileobj.Delete(ctxStorage); err != nil {
+						if err := heroobj.Delete(ctxStorage); err != nil {
+							return nil, err
+						}
+					}
+					tileimageid, ok := postData["tileimage"].(string)
+					if !ok {
+						return nil, errors.New("cannot convert tileimage to string")
+					}
+					if len(tileimageid) > 0 {
+						var tileobj *storage.ObjectHandle
+						if thetype == "blog" {
+							tileobj = storageBucket.Object(blogImageIndex + "/" + tileimageid)
+						} else {
+							tileobj = storageBucket.Object(projectImageIndex + "/" + tileimageid)
+						}
+						if err := tileobj.Delete(ctxStorage); err != nil {
 							return nil, err
 						}
 					}
@@ -385,11 +618,27 @@ func rootMutation() *graphql.Object {
 					}
 					for _, primativeimageid := range primativeimageids {
 						imageid := primativeimageid.(string)
+						var imageobj *storage.ObjectHandle
+						if thetype == "blog" {
+							imageobj = storageBucket.Object(blogImageIndex + "/" + imageid)
+						} else {
+							imageobj = storageBucket.Object(projectImageIndex + "/" + imageid)
+						}
+						if err := imageobj.Delete(ctxStorage); err != nil {
+							return nil, err
+						}
+					}
+					primativefileids, ok := postData["files"].(primitive.A)
+					if !ok {
+						return nil, errors.New("cannot convert fileids to primitive")
+					}
+					for _, primativefileid := range primativefileids {
+						fileid := primativefileid.(string)
 						var fileobj *storage.ObjectHandle
 						if thetype == "blog" {
-							fileobj = imageBucket.Object(blogImageIndex + "/" + imageid)
+							fileobj = storageBucket.Object(blogFileIndex + "/" + fileid)
 						} else {
-							fileobj = imageBucket.Object(projectImageIndex + "/" + imageid)
+							fileobj = storageBucket.Object(projectFileIndex + "/" + fileid)
 						}
 						if err := fileobj.Delete(ctxStorage); err != nil {
 							return nil, err
@@ -421,43 +670,23 @@ func rootMutation() *graphql.Object {
 					if !ok {
 						return nil, errors.New("cannot cast id to string")
 					}
-					id, err := primitive.ObjectIDFromHex(idstring)
+					return deleteAccount(idstring)
+				},
+			},
+			"deleteAccount": &graphql.Field{
+				Type:        AccountType,
+				Description: "Delete a User",
+				Args:        graphql.FieldConfigArgument{},
+				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+					claims, err := validateLoggedIn(params.Context.Value(tokenKey).(string))
 					if err != nil {
 						return nil, err
 					}
-					cursor, err := userCollection.Find(ctxMongo, bson.M{
-						"_id": id,
-					})
-					defer cursor.Close(ctxMongo)
-					if err != nil {
-						return nil, err
+					idstring, ok := claims["id"].(string)
+					if !ok {
+						return nil, errors.New("cannot cast id to string")
 					}
-					var userData map[string]interface{}
-					var foundstuff = false
-					for cursor.Next(ctxMongo) {
-						userPrimitive := &bson.D{}
-						err = cursor.Decode(userPrimitive)
-						if err != nil {
-							return nil, err
-						}
-						userData = userPrimitive.Map()
-						id := userData["_id"].(primitive.ObjectID)
-						userData["date"] = objectidtimestamp(id).Format(dateFormat)
-						userData["id"] = id.Hex()
-						delete(userData, "_id")
-						foundstuff = true
-						break
-					}
-					if !foundstuff {
-						return nil, errors.New("user not found with given id")
-					}
-					_, err = userCollection.DeleteOne(ctxMongo, bson.M{
-						"_id": id,
-					})
-					if err != nil {
-						return nil, err
-					}
-					return userData, nil
+					return deleteAccount(idstring)
 				},
 			},
 		},

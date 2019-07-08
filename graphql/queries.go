@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+
 	"github.com/go-redis/redis"
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
@@ -11,37 +12,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
-
-func getCacheRes(params graphql.ResolveParams, path string) (string, []string, string, error) {
-	fieldarray := params.Info.FieldASTs
-	fieldselections := fieldarray[0].SelectionSet.Selections
-	fields := make([]string, len(fieldselections))
-	for _, field := range fieldselections {
-		fieldast, ok := field.(*ast.Field)
-		if !ok {
-			return "", []string{}, "", errors.New("field cannot be converted to *ast.FIeld")
-		}
-		fields = append(fields, fieldast.Name.Value)
-	}
-	pathMap := map[string]interface{}{
-		"path":   path,
-		"args":   params.Args,
-		"fields": fields,
-	}
-	cachepathBytes, err := json.Marshal(pathMap)
-	if err != nil {
-		return "", []string{}, "", err
-	}
-	cachepath := string(cachepathBytes)
-	cachedresStr, err := redisClient.Get(cachepath).Result()
-	if err != nil {
-		if err == redis.Nil {
-			return "", fields, cachepath, nil
-		}
-		return "", []string{}, "", err
-	}
-	return cachedresStr, nil, cachepath, nil
-}
 
 func rootQuery() *graphql.Object {
 	return graphql.NewObject(graphql.ObjectConfig{
@@ -166,6 +136,15 @@ func rootQuery() *graphql.Object {
 					"ascending": &graphql.ArgumentConfig{
 						Type: graphql.Boolean,
 					},
+					"categories": &graphql.ArgumentConfig{
+						Type: graphql.NewList(graphql.String),
+					},
+					"tags": &graphql.ArgumentConfig{
+						Type: graphql.NewList(graphql.String),
+					},
+					"cache": &graphql.ArgumentConfig{
+						Type: graphql.Boolean,
+					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 					// see this: https://github.com/olivere/elastic/issues/483
@@ -205,6 +184,20 @@ func rootQuery() *graphql.Object {
 					if !ok {
 						return nil, errors.New("ascending could not be cast to boolean")
 					}
+					if params.Args["tags"] == nil {
+						return nil, errors.New("no tags argument found")
+					}
+					tags, ok := params.Args["tags"].([]interface{})
+					if !ok {
+						return nil, errors.New("tags could not be cast to string array")
+					}
+					if params.Args["categories"] == nil {
+						return nil, errors.New("no categories argument found")
+					}
+					categories, ok := params.Args["categories"].([]interface{})
+					if !ok {
+						return nil, errors.New("categories could not be cast to string array")
+					}
 					if params.Args["type"] == nil {
 						return nil, errors.New("type is undefined")
 					}
@@ -215,17 +208,50 @@ func rootQuery() *graphql.Object {
 					if !validType(thetype) {
 						return nil, errors.New("invalid type given")
 					}
-					cachedresStr, fields, cachepath, err := getCacheRes(params, "posts")
+					if params.Args["cache"] == nil {
+						return nil, errors.New("no cache argument found")
+					}
+					cache, ok := params.Args["cache"].(bool)
+					if !ok {
+						return nil, errors.New("cache could not be cast to bool")
+					}
+					fieldarray := params.Info.FieldASTs
+					fieldselections := fieldarray[0].SelectionSet.Selections
+					fields := make([]string, len(fieldselections))
+					for i, field := range fieldselections {
+						fieldast, ok := field.(*ast.Field)
+						if !ok {
+							return nil, errors.New("field cannot be converted to *ast.FIeld")
+						}
+						fields[i] = fieldast.Name.Value
+					}
+					params.Args["cache"] = true
+					pathMap := map[string]interface{}{
+						"path":   "posts",
+						"args":   params.Args,
+						"fields": fields,
+					}
+					cachepathBytes, err := json.Marshal(pathMap)
 					if err != nil {
 						return nil, err
 					}
-					if len(cachedresStr) > 0 {
-						var cachedres []map[string]interface{}
-						err = json.Unmarshal([]byte(cachedresStr), &cachedres)
+					cachepath := string(cachepathBytes)
+					if cache {
+						cachedresStr, err := redisClient.Get(cachepath).Result()
 						if err != nil {
-							return nil, err
+							if err != redis.Nil {
+								return nil, err
+							}
+						} else {
+							if len(cachedresStr) > 0 {
+								var cachedres map[string]interface{}
+								err = json.Unmarshal([]byte(cachedresStr), &cachedres)
+								if err != nil {
+									return nil, err
+								}
+								return cachedres, nil
+							}
 						}
-						return cachedres, nil
 					}
 					var postElasticIndex string
 					if thetype == "blog" {
@@ -236,32 +262,32 @@ func rootQuery() *graphql.Object {
 					var posts []map[string]interface{}
 					if len(fields) > 0 {
 						sourceContext := elastic.NewFetchSourceContext(true).Include(fields...)
-						var searchResult *elastic.SearchResult
-						var err error
-						if len(searchterm) > 0 {
-							queryString := elastic.NewQueryStringQuery(searchterm)
-							searchResult, err = elasticClient.Search().
-								Index(postElasticIndex).
-								Query(queryString).
-								Sort(sort, ascending).
-								From(page * perpage).Size(perpage).
-								Pretty(false).
-								FetchSourceContext(sourceContext).
-								Do(ctxElastic)
-						} else {
-							searchResult, err = elasticClient.Search().
-								Index(postElasticIndex).
-								Query(nil).
-								Sort(sort, ascending).
-								From(page * perpage).Size(perpage).
-								Pretty(false).
-								FetchSourceContext(sourceContext).
-								Do(ctxElastic)
+						var numtags = len(tags)
+						mustQueries := make([]elastic.Query, numtags+len(categories))
+						for i, tag := range tags {
+							mustQueries[i] = elastic.NewTermQuery("tags", tag)
 						}
+						for i, category := range categories {
+							mustQueries[i+numtags] = elastic.NewTermQuery("categories", category)
+						}
+						query := elastic.NewBoolQuery().Must(mustQueries...)
+						if len(searchterm) > 0 {
+							mainquery := elastic.NewMultiMatchQuery(searchterm, postSearchFields...)
+							query = query.Filter(mainquery)
+						}
+						searchResult, err := elasticClient.Search().
+							Index(postElasticIndex).
+							Query(query).
+							Sort(sort, ascending).
+							From(page * perpage).Size(perpage).
+							Pretty(false).
+							FetchSourceContext(sourceContext).
+							Do(ctxElastic)
 						if err != nil {
 							return nil, err
 						}
-						for _, hit := range searchResult.Hits.Hits {
+						posts = make([]map[string]interface{}, len(searchResult.Hits.Hits))
+						for i, hit := range searchResult.Hits.Hits {
 							if *hit.Source == nil {
 								return nil, errors.New("no hit source found")
 							}
@@ -277,7 +303,7 @@ func rootQuery() *graphql.Object {
 							postData["date"] = objectidtimestamp(id).Format(dateFormat)
 							postData["id"] = id.Hex()
 							delete(postData, "_id")
-							posts = append(posts, postData)
+							posts[i] = postData
 						}
 					}
 					postsBytes, err := json.Marshal(posts)
@@ -301,6 +327,9 @@ func rootQuery() *graphql.Object {
 					"id": &graphql.ArgumentConfig{
 						Type: graphql.String,
 					},
+					"cache": &graphql.ArgumentConfig{
+						Type: graphql.Boolean,
+					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 					if params.Args["type"] == nil {
@@ -312,6 +341,13 @@ func rootQuery() *graphql.Object {
 					}
 					if !validType(thetype) {
 						return nil, errors.New("invalid type given")
+					}
+					if params.Args["cache"] == nil {
+						return nil, errors.New("no cache argument found")
+					}
+					cache, ok := params.Args["cache"].(bool)
+					if !ok {
+						return nil, errors.New("cache could not be cast to bool")
 					}
 					var mongoCollection *mongo.Collection
 					var postElasticIndex string
@@ -346,17 +382,43 @@ func rootQuery() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
-					cachedresStr, _, cachepath, err := getCacheRes(params, "post")
+					fieldarray := params.Info.FieldASTs
+					fieldselections := fieldarray[0].SelectionSet.Selections
+					fields := make([]string, len(fieldselections))
+					for i, field := range fieldselections {
+						fieldast, ok := field.(*ast.Field)
+						if !ok {
+							return nil, errors.New("field cannot be converted to *ast.FIeld")
+						}
+						fields[i] = fieldast.Name.Value
+					}
+					params.Args["cache"] = true
+					pathMap := map[string]interface{}{
+						"path":   "post",
+						"args":   params.Args,
+						"fields": fields,
+					}
+					cachepathBytes, err := json.Marshal(pathMap)
 					if err != nil {
 						return nil, err
 					}
-					if len(cachedresStr) > 0 {
-						var cachedres map[string]interface{}
-						err = json.Unmarshal([]byte(cachedresStr), &cachedres)
+					cachepath := string(cachepathBytes)
+					if cache {
+						cachedresStr, err := redisClient.Get(cachepath).Result()
 						if err != nil {
-							return nil, err
+							if err != redis.Nil {
+								return nil, err
+							}
+						} else {
+							if len(cachedresStr) > 0 {
+								var cachedres map[string]interface{}
+								err = json.Unmarshal([]byte(cachedresStr), &cachedres)
+								if err != nil {
+									return nil, err
+								}
+								return cachedres, nil
+							}
 						}
-						return cachedres, nil
 					}
 					cursor, err := mongoCollection.Find(ctxMongo, bson.M{
 						"_id": id,

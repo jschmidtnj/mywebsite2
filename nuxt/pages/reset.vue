@@ -72,7 +72,10 @@
     </b-form>
     <p slot="footer">
       By clicking submit you aggree to the
-      <a href="/privacy">privacy policy</a>.
+      <a href="/privacy">privacy policy</a>. This site is protected by reCAPTCHA
+      and the Google
+      <a href="https://policies.google.com/privacy">Privacy Policy</a> and
+      <a href="https://policies.google.com/terms">Terms of Service</a> apply.
     </p>
   </b-card>
 </template>
@@ -176,48 +179,55 @@ export default Vue.extend({
     },
     sendResetEmail(evt) {
       evt.preventDefault()
-      this.$axios
-        .put('/sendResetEmail', {
-          email: this.emailform.email
-        })
-        .then(res => {
-          if (res.status === 200) {
-            if (res.data) {
-              let message = 'email sent'
-              if (res.data.message) {
-                message = res.data.message
+      this.$recaptcha('login').then(recaptchatoken => {
+        this.$axios
+          .put('/sendResetEmail', {
+            email: this.emailform.email,
+            recaptcha: recaptchatoken
+          })
+          .then(res => {
+            if (res.status === 200) {
+              if (res.data) {
+                let message = 'email sent'
+                if (res.data.message) {
+                  message = res.data.message
+                }
+                this.$toasted.global.success({
+                  message: message
+                })
+                this.emailform = {
+                  email: ''
+                }
+              } else {
+                this.$toasted.global.error({
+                  message: 'could not get data'
+                })
               }
-              this.$toasted.global.success({
-                message: message
+            } else if (res.data && res.data.message) {
+              this.$toasted.global.error({
+                message: res.data.message
               })
-              this.emailform = {
-                email: ''
-              }
             } else {
               this.$toasted.global.error({
-                message: 'could not get data'
+                message: `status code of ${res.status}`
               })
             }
-          } else if (res.data && res.data.message) {
-            this.$toasted.global.error({
-              message: res.data.message
-            })
-          } else {
-            this.$toasted.global.error({
-              message: `status code of ${res.status}`
-            })
-          }
-        })
-        .catch(err => {
-          /* eslint-disable */
-          let message = `got error: ${err}`
-          if (err.response && err.response.data) {
-            message = err.response.data.message
-          }
-          this.$toasted.global.error({
-            message: message
           })
+          .catch(err => {
+            /* eslint-disable */
+            let message = `got error: ${err}`
+            if (err.response && err.response.data) {
+              message = err.response.data.message
+            }
+            this.$toasted.global.error({
+              message: message
+            })
+          })
+      }).catch(err => {
+        this.$toasted.global.error({
+          message: `got error with recaptcha ${err}`
         })
+      })
     }
   }
 })

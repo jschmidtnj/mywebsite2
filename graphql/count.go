@@ -32,12 +32,27 @@ func countPosts(response http.ResponseWriter, request *http.Request) {
 		handleError("invalid type in query", http.StatusBadRequest, response)
 		return
 	}
-	response.Header().Set("content-type", "application/json")
 	searchterm := request.URL.Query().Get("searchterm")
+	request.ParseForm()
+	categoriesStr := request.URL.Query().Get("categories")
+	categories := request.Form["categories"]
+	if categories == nil {
+		handleError("error getting categories string array from query", http.StatusBadRequest, response)
+		return
+	}
+	tagsStr := request.URL.Query().Get("tags")
+	tags := request.Form["tags"]
+	if tags == nil {
+		handleError("error getting tags string array from query", http.StatusBadRequest, response)
+		return
+	}
+	response.Header().Set("content-type", "application/json")
 	pathMap := map[string]string{
 		"path":       "count",
 		"type":       thetype,
 		"searchterm": searchterm,
+		"tags":       tagsStr,
+		"categories": categoriesStr,
 	}
 	cachepathBytes, err := json.Marshal(pathMap)
 	if err != nil {
@@ -55,21 +70,24 @@ func countPosts(response http.ResponseWriter, request *http.Request) {
 		response.Write([]byte(cachedres))
 		return
 	}
-	var count int64
-	if len(searchterm) > 0 {
-		queryString := elastic.NewQueryStringQuery(searchterm)
-		count, err = elasticClient.Count().
-			Type(thetype).
-			Query(queryString).
-			Pretty(false).
-			Do(ctxElastic)
-	} else {
-		count, err = elasticClient.Count().
-			Type(thetype).
-			Query(nil).
-			Pretty(false).
-			Do(ctxElastic)
+	var numtags = len(tags)
+	mustQueries := make([]elastic.Query, numtags+len(categories))
+	for i, tag := range tags {
+		mustQueries[i] = elastic.NewTermQuery("tags", tag)
 	}
+	for i, category := range categories {
+		mustQueries[i+numtags] = elastic.NewTermQuery("categories", category)
+	}
+	query := elastic.NewBoolQuery().Must(mustQueries...)
+	if len(searchterm) > 0 {
+		mainquery := elastic.NewMultiMatchQuery(searchterm, postSearchFields...)
+		query = query.Filter(mainquery)
+	}
+	count, err := elasticClient.Count().
+		Type(thetype).
+		Query(query).
+		Pretty(false).
+		Do(ctxElastic)
 	if err != nil {
 		handleError(err.Error(), http.StatusBadRequest, response)
 		return

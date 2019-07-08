@@ -5,6 +5,7 @@ const seodata = JSON.parse(process.env.SEOCONFIG)
 const authdata = JSON.parse(process.env.AUTHCONFIG)
 const apiurl = process.env.APIURL
 const ampurl = process.env.AMPURL
+const recaptchasitekey = process.env.RECAPTCHASITEKEY
 
 module.exports = {
   mode: 'universal',
@@ -15,7 +16,8 @@ module.exports = {
     seoconfig: process.env.SEOCONFIG,
     authconfig: process.env.AUTHCONFIG,
     apiurl: apiurl,
-    ampurl: ampurl
+    ampurl: ampurl,
+    recaptchasitekey: recaptchasitekey
   },
 
   /*
@@ -80,7 +82,10 @@ module.exports = {
     { src: '~/plugins/vuelidate', ssr: false },
     { src: '~/plugins/vuex-persist', ssr: false },
     { src: '~/plugins/axios', ssr: false },
-    { src: '~/plugins/toast', ssr: false }
+    { src: '~/plugins/toast', ssr: false },
+    { src: '~/plugins/progressive', ssr: false },
+    { src: '~/plugins/select', ssr: false },
+    { src: '~/plugins/recaptcha', ssr: false }
   ],
 
   /*

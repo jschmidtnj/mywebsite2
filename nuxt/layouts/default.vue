@@ -18,6 +18,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
+@import '~/node_modules/progressive-image.js/dist/progressive-image.css';
+
 html {
   font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI',
     Roboto, 'Helvetica Neue', Arial, sans-serif;

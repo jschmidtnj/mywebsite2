@@ -75,7 +75,7 @@
       stacked="md"
       :items="items"
       :fields="fields"
-      no-local-sorting="true"
+      :no-local-sorting="true"
       @sort-changed="sort"
     >
       <template slot="title" slot-scope="row">{{ row.value }}</template>
@@ -189,7 +189,9 @@ export default Vue.extend({
         .get('/countPosts', {
           params: {
             searchterm: this.search,
-            type: this.type
+            type: this.type,
+            tags: '',
+            categories: ''
           }
         })
         .then(res => {
@@ -214,8 +216,12 @@ export default Vue.extend({
           }
         })
         .catch(err => {
+          let message = `got error: ${err}`
+          if (err.response && err.response.data) {
+            message = err.response.data.message
+          }
           this.$toasted.global.error({
-            message: `got error: ${err}`
+            message: message
           })
         })
     },
@@ -225,12 +231,14 @@ export default Vue.extend({
       this.$axios
         .get('/graphql', {
           params: {
-            query: `{posts(type:"${this.type}",perpage:${
+            query: `{posts(type:"${encodeURIComponent(this.type)}",perpage:${
               this.perPage
-            },page:${this.currentPage - 1},searchterm:"${
+            },page:${this.currentPage - 1},searchterm:"${encodeURIComponent(
               this.search
-            }",sort:"${sort}",ascending:${!this
-              .sortDesc}){title views id author date}}`
+            )}",sort:"${encodeURIComponent(sort)}",ascending:${!this
+              .sortDesc},tags:${JSON.stringify([])},categories:${JSON.stringify(
+              []
+            )},cache:true){title views id author date}}`
           }
         })
         .then(res => {
@@ -259,8 +267,12 @@ export default Vue.extend({
           }
         })
         .catch(err => {
+          let message = `got error: ${err}`
+          if (err.response && err.response.data) {
+            message = err.response.data.message
+          }
           this.$toasted.global.error({
-            message: err
+            message: message
           })
         })
     },

@@ -63,7 +63,10 @@
       </b-form>
       <p slot="footer">
         By clicking submit you aggree to the
-        <a href="/privacy">privacy policy</a>.
+        <a href="/privacy">privacy policy</a>. This site is protected by
+        reCAPTCHA and the Google
+        <a href="https://policies.google.com/privacy">Privacy Policy</a> and
+        <a href="https://policies.google.com/terms">Terms of Service</a> apply.
       </p>
     </b-card>
   </div>
@@ -163,25 +166,33 @@ export default Vue.extend({
     },
     loginlocal(evt) {
       evt.preventDefault()
-      this.$auth.loginWith('local', {
-        data: {
-          email: this.form.email,
-          password: this.form.password
-        }
-      }).then(() => {
-        this.$toasted.global.success({
-          message: 'logged in'
-        })
-        this.$router.push({
-          path: '/account'
+      this.$recaptcha('login').then(recaptchatoken => {
+        console.log(`got recaptcha token ${recaptchatoken}`)
+        this.$auth.loginWith('local', {
+          data: {
+            email: this.form.email,
+            password: this.form.password,
+            recaptcha: recaptchatoken
+          }
+        }).then(() => {
+          this.$toasted.global.success({
+            message: 'logged in'
+          })
+          this.$router.push({
+            path: '/account'
+          })
+        }).catch(err => {
+          let message = `got error: ${err}`
+          if (err.response && err.response.data) {
+            message = err.response.data.message
+          }
+          this.$toasted.global.error({
+            message: message
+          })
         })
       }).catch(err => {
-        let message = `got error: ${err}`
-        if (err.response && err.response.data) {
-          message = err.response.data.message
-        }
         this.$toasted.global.error({
-          message: message
+          message: `got error with recaptcha ${err}`
         })
       })
     }

@@ -40,6 +40,11 @@ $ firebase deploy
 # merge with master branch (see below)
 ```
 
+## now secrets
+
+`now secret add key value`
+`now -e MY_VARIABLE=@secret`
+
 ## Git Cheat sheet
 
 ``` bash

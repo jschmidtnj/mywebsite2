@@ -61,7 +61,10 @@
     </b-form>
     <p slot="footer">
       By clicking submit you aggree to the
-      <a href="/privacy">privacy policy</a>.
+      <a href="/privacy">privacy policy</a>. This site is protected by reCAPTCHA
+      and the Google
+      <a href="https://policies.google.com/privacy">Privacy Policy</a> and
+      <a href="https://policies.google.com/terms">Terms of Service</a> apply.
     </p>
   </b-card>
 </template>
@@ -106,45 +109,54 @@ export default Vue.extend({
     },
     signup(evt) {
       evt.preventDefault()
-      this.$axios
-        .post('/register', {
-          email: this.form.email,
-          password: this.form.password
-        })
-        .then(res => {
-          if (res.status === 200) {
-            if (res.data) {
-              let message =
-                'finished signing up. please check email for confirmation'
-              if (res.data.message) {
-                message = res.data.message
+      this.$recaptcha('login')
+        .then(recaptchatoken => {
+          this.$axios
+            .post('/register', {
+              email: this.form.email,
+              password: this.form.password,
+              recaptcha: recaptchatoken
+            })
+            .then(res => {
+              if (res.status === 200) {
+                if (res.data) {
+                  let message =
+                    'finished signing up. please check email for confirmation'
+                  if (res.data.message) {
+                    message = res.data.message
+                  }
+                  this.$toasted.global.success({
+                    message: message
+                  })
+                  this.reset()
+                } else {
+                  this.$toasted.global.error({
+                    message: 'could not get data'
+                  })
+                }
+              } else if (res.data && res.data.message) {
+                this.$toasted.global.error({
+                  message: res.data.message
+                })
+              } else {
+                this.$toasted.global.error({
+                  message: `status code of ${res.status}`
+                })
               }
-              this.$toasted.global.success({
+            })
+            .catch(err => {
+              let message = `got error: ${err}`
+              if (err.response && err.response.data) {
+                message = err.response.data.message
+              }
+              this.$toasted.global.error({
                 message: message
               })
-              this.reset()
-            } else {
-              this.$toasted.global.error({
-                message: 'could not get data'
-              })
-            }
-          } else if (res.data && res.data.message) {
-            this.$toasted.global.error({
-              message: res.data.message
             })
-          } else {
-            this.$toasted.global.error({
-              message: `status code of ${res.status}`
-            })
-          }
         })
         .catch(err => {
-          let message = `got error: ${err}`
-          if (err.response && err.response.data) {
-            message = err.response.data.message
-          }
           this.$toasted.global.error({
-            message: message
+            message: `got error with recaptcha ${err}`
           })
         })
     }

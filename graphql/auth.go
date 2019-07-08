@@ -3,16 +3,18 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"io/ioutil"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/mitchellh/mapstructure"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
-	"io/ioutil"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 /**
@@ -33,6 +35,45 @@ type loginClaims struct {
 	Email string `json:"email"`
 	Type  string `json:"type"`
 	jwt.StandardClaims
+}
+
+func verifyRecaptcha(recaptchaToken string) error {
+	request, err := http.NewRequest("POST", "https://www.google.com/recaptcha/api/siteverify", nil)
+	if err != nil {
+		return err
+	}
+	query := request.URL.Query()
+	query.Add("secret", recaptchaSecret)
+	query.Add("response", recaptchaToken)
+	request.URL.RawQuery = query.Encode()
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+	var responsedata map[string]interface{}
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(body, &responsedata)
+	if err != nil {
+		return err
+	}
+	if !responsedata["success"].(bool) {
+		errorcodes := responsedata["error-codes"].([]interface{})
+		codesStrArr := make([]string, len(errorcodes))
+		for i, code := range errorcodes {
+			codeStr, ok := code.(string)
+			if !ok {
+				return errors.New("cannot cast error code to string in recaptcha result")
+			}
+			codesStrArr[i] = codeStr
+		}
+		return errors.New("invalid recaptcha token: " + strings.Join(codesStrArr, ", "))
+	}
+	return nil
 }
 
 /**
@@ -62,8 +103,8 @@ func register(response http.ResponseWriter, request *http.Request) {
 		handleError("error parsing request body: "+err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	if !(registerdata["password"] != nil && registerdata["email"] != nil) {
-		handleError("no email or password provided", http.StatusBadRequest, response)
+	if !(registerdata["password"] != nil && registerdata["email"] != nil && registerdata["recaptcha"] != nil) {
+		handleError("no email or password or recaptcha token provided", http.StatusBadRequest, response)
 		return
 	}
 	password, ok := registerdata["password"].(string)
@@ -74,6 +115,16 @@ func register(response http.ResponseWriter, request *http.Request) {
 	email, ok := registerdata["email"].(string)
 	if !ok {
 		handleError("email cannot be cast to string", http.StatusBadRequest, response)
+		return
+	}
+	recaptchatoken, ok := registerdata["recaptcha"].(string)
+	if !ok {
+		handleError("recaptcha token cannot be cast to string", http.StatusBadRequest, response)
+		return
+	}
+	err = verifyRecaptcha(recaptchatoken)
+	if err != nil {
+		handleError("recaptcha error: "+err.Error(), http.StatusUnauthorized, response)
 		return
 	}
 	countemail, err := userCollection.CountDocuments(ctxMongo, bson.M{"email": email})
@@ -144,8 +195,8 @@ func loginEmailPassword(response http.ResponseWriter, request *http.Request) {
 		handleError("error parsing request body: "+err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	if logindata["email"] == nil || logindata["password"] == nil {
-		handleError("no email or password provided", http.StatusBadRequest, response)
+	if logindata["email"] == nil || logindata["password"] == nil || logindata["recaptcha"] == nil {
+		handleError("no email or password or recaptcha token provided", http.StatusBadRequest, response)
 		return
 	}
 	email, ok := logindata["email"].(string)
@@ -156,6 +207,16 @@ func loginEmailPassword(response http.ResponseWriter, request *http.Request) {
 	password, ok := logindata["password"].(string)
 	if !ok {
 		handleError("password cannot be cast to string", http.StatusBadRequest, response)
+		return
+	}
+	recaptchatoken, ok := logindata["recaptcha"].(string)
+	if !ok {
+		handleError("recaptcha token cannot be cast to string", http.StatusBadRequest, response)
+		return
+	}
+	err = verifyRecaptcha(recaptchatoken)
+	if err != nil {
+		handleError("recaptcha error: "+err.Error(), http.StatusUnauthorized, response)
 		return
 	}
 	cursor, err := userCollection.Find(ctxMongo, bson.M{"email": email})

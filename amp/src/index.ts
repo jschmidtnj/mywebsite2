@@ -4,9 +4,12 @@ import { codes, config } from './config'
 import blogtemplate from './blogtemplate'
 import projecttemplate from './projecttemplate'
 import axios from 'axios'
+import * as AmpOptimizer from '@ampproject/toolbox-optimizer'
 import * as cheerio from 'cheerio'
 import { format } from 'date-fns'
 import * as showdown from 'showdown'
+
+const ampOptimizer = AmpOptimizer.create()
 
 const ampApp = express()
 
@@ -42,9 +45,9 @@ const handlePostRequest = (req, res, type) => {
     const id = req.params.id
     let date
     try {
-      const timestamp = id.toString().substring(0,8)
+      const timestamp = id.toString().substring(0, 8)
       date = format(parseInt(timestamp, 16) * 1000, 'M/D/YYYY')
-    } catch(err) {
+    } catch (err) {
       res.json({
         code: codes.error,
         message: `error with timestamp parsing: ${err}`
@@ -53,7 +56,8 @@ const handlePostRequest = (req, res, type) => {
     }
     axios.get(config.apiurl + '/graphql', {
       params: {
-        query: `{post(type:"${type}",id:"${id}"){title content author views}}`
+        query: `{post(type:"${encodeURIComponent(type)}",id:"${
+          encodeURIComponent(id)}",cache:true){title content author views}}`
       }
     }).then(res1 => {
       if (res1.status === 200) {
@@ -62,20 +66,37 @@ const handlePostRequest = (req, res, type) => {
             const postdata = res1.data.data.post
             const posttemplate = type === 'blog' ? blogtemplate : projecttemplate
             const $ = cheerio.load(posttemplate)
-            $('link[rel=canonical]').attr('href', config.websiteurl)
+            const websiteurl = `${config.websiteurl}/${type}?id=${id}`
+            $('link[rel=canonical]').attr('href', websiteurl)
             $('#title').text(postdata.title)
             $('#author').text(postdata.author)
             const markdownconverter = new showdown.Converter()
             const postcontenthtml = markdownconverter.makeHtml(decodeURIComponent(postdata.content))
             $('#content').html(postcontenthtml)
-            $('img').each((i, item) => (item.tagName = 'amp-img'))
+            $('a.progressive, a.replace').each((i, item) => {
+              item.tagName = 'amp-img'
+              const blursrc = (' ' + item.firstChild.attribs["src"]).slice(1)
+              const originalsrc = (' ' + item.attribs["href"]).slice(1)
+              item.attribs = {}
+              item.attribs.src = originalsrc
+              item.attribs.width = (' ' + item.firstChild.attribs['data-width']).slice(1)
+              item.attribs.height = (' ' + item.firstChild.attribs['data-height']).slice(1)
+              item.attribs.alt = (' ' + item.firstChild.attribs.alt).slice(1)
+              $(this).html(`<amp-img placeholder src="${blursrc} layout="fill"></amp-img>`)
+            })
             $('#views').text(postdata.views)
             $('#date').text(date)
-            $('#mainsite').attr('href', `${config.websiteurl}/${type}?id=${id}`)
+            $('#mainsite').attr('href', websiteurl)
             $('title').text(postdata.title)
             $('meta[name=description]').attr('content', `${postdata.title} ${type} by ${postdata.author}`)
             const html = $.html()
-            res.send(html).status(codes.success)
+            ampOptimizer.transformHtml(html).then(optimizedHtml => {
+              res.send(optimizedHtml).status(codes.success)
+            }).catch(err => {
+              res.json({
+                message: err
+              }).status(codes.error)
+            })
           } else if (res1.data.errors) {
             res.json({
               code: codes.error,

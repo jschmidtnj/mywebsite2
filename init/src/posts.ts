@@ -10,7 +10,19 @@ const postmappings = {
     title: {
       type: 'keyword'
     },
+    caption: {
+      type: 'keyword'
+    },
     author: {
+      type: 'keyword'
+    },
+    color: {
+      type: 'text'
+    },
+    tags: {
+      type: 'keyword'
+    },
+    categories: {
       type: 'keyword'
     },
     content: {
@@ -22,6 +34,21 @@ const postmappings = {
     date: {
       type: 'date',
       format: 'epoch_millis'
+    },
+    heroimage: {
+      type: 'text'
+    },
+    tileimage: {
+      type: 'text'
+    },
+    images: {
+      type: 'text'
+    },
+    files: {
+      type: 'text'
+    },
+    comments: {
+      type: "nested"
     }
   }
 }

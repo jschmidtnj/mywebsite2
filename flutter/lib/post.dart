@@ -5,6 +5,8 @@ import 'config.dart';
 import 'dart:io';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:intl/intl.dart';
+import 'package:html/parser.dart' show parse;
+import 'package:html/dom.dart' as dom;
 
 class ProjectPage extends PostPage {
   final String projectid;
@@ -29,7 +31,7 @@ class PostPage extends StatelessWidget {
   Future<Map<String, dynamic>> _getPostData() async {
     var queryParameters = {
       'query':
-          '{post(type:"$postType",id:"$postid"){title views id author date content}}'
+          '{post(type:"$postType",id:"$postid",cache:true){title views id author date content}}'
     };
     var uri = Uri.https(config['apiURL'], '/graphql', queryParameters);
     final response = await http.get(uri, headers: {
@@ -52,28 +54,18 @@ class PostPage extends StatelessWidget {
         future: postdata,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            RegExp imgRegex = new RegExp("<img([\\w\\W]+?)><\\/img>",
-                caseSensitive: true, multiLine: true);
-            RegExp srcRegex = new RegExp("src\\s*=\\s*\"(.+?)\"",
-                caseSensitive: true, multiLine: true);
             String content =
                 Uri.decodeComponent(snapshot.data['data']['post']['content']);
-            for (Match imgMatch in imgRegex.allMatches(content)) {
-              print(
-                  'got image match start ${imgMatch.start} end ${imgMatch.end}');
-              String imgTag = content.substring(imgMatch.start, imgMatch.end);
-              print('got tag $imgTag');
-              Match srcMatch = srcRegex.firstMatch(imgTag);
-              String imgSrcWithQuotes = imgTag
-                  .substring(srcMatch.start, srcMatch.end)
-                  .split('src=')
-                  .last;
-              String imgSrc =
-                  imgSrcWithQuotes.substring(1, imgSrcWithQuotes.length - 1);
+            dom.Document document = parse(content);
+            List<dom.Element> linkTags =
+                document.querySelectorAll('a.progressive, a.replace');
+            for (dom.Element linkTag in linkTags) {
+              String tagToReplace = linkTag.text;
+              String imgSrc = linkTag.attributes["src"];
               print('got src $imgSrc');
-              String imgName = imgSrc.split('/').last.split('.').first;
-              print('got image name $imgName');
-              content = content.replaceFirst(imgTag, '![$imgName]($imgSrc)');
+              String alt = linkTag.children.first.attributes["alt"];
+              print('alt text $alt');
+              content = content.replaceFirst(tagToReplace, '![$alt]($imgSrc)');
               print('new content $content');
             }
             String title =

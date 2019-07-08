@@ -34,9 +34,9 @@ export default Vue.extend({
   data() {
     return {
       androidAppUrl: androidAppURL,
-      windowsAppUrl: `${cloudStorageURLs.desktop}/win32`,
-      macosAppUrl: `${cloudStorageURLs.desktop}/darwin`,
-      linuxAppUrl: `${cloudStorageURLs.desktop}/linux`
+      windowsAppUrl: `${cloudStorageURLs.desktop}/releases/win32`,
+      macosAppUrl: `${cloudStorageURLs.desktop}/releases/darwin`,
+      linuxAppUrl: `${cloudStorageURLs.desktop}/releases/linux`
     }
   },
   // @ts-ignore

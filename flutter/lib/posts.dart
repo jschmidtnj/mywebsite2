@@ -81,9 +81,11 @@ class PostsState extends State<PostsPage> {
     if (searchTerm != null) {
       searchTermQueryString = 'searchterm:"$searchTerm",';
     }
+    List<String> tags = new List<String>();
+    List<String> categories = new List<String>();
     Map<String, String> queryParameters = {
       'query':
-          '{posts(type:"$postType",perpage:$theRowsPerPage,page:$thePageNum,${searchTermQueryString}sort:"${columns[sortColumnIndex]}",ascending:$sortAscending){title views id author date}}',
+          '{posts(type:"$postType",perpage:$theRowsPerPage,page:$thePageNum,${searchTermQueryString}sort:"${columns[sortColumnIndex]}",ascending:$sortAscending,tags:[${tags.join(',')}],categories:[${categories.join(',')}],cache:true){title views id author date}}',
     };
     Uri uri = Uri.https(config['apiURL'], '/graphql', queryParameters);
     print('get response');
@@ -142,9 +144,15 @@ class PostsState extends State<PostsPage> {
     if (searchTerm != null) {
       querySearchTerm = searchTerm;
     }
+    List<String> tags = const [];
+    String tagsStr = tags.join(',tags=');
+    List<String> categories = const [];
+    String categoriesStr = categories.join(',categories=');
     Map<String, String> queryParameters = {
       'type': postType,
-      'searchterm': querySearchTerm
+      'searchterm': querySearchTerm,
+      'tags': tagsStr,
+      'categories': categoriesStr
     };
     Uri uri = Uri.https(config['apiURL'], '/countPosts', queryParameters);
     print('get response');
