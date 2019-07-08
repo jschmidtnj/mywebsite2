@@ -4,7 +4,7 @@ export default ({ store }) => {
   // @ts-ignore
   window.onNuxtReady(() => {
     createPersistedState({
-      key: 'yourkey',
+      key: 'mywebsite2',
       reducer: persistedState => {
         const stateFilter = Object.assign({}, persistedState)
         stateFilter.auth = {}

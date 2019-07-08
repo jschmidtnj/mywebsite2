@@ -10,6 +10,9 @@
         class="mb-4 markdown"
         @rendered="updateCodeHighlighting"
       />
+      <b-container>
+        <tile-carousel :type="type" />
+      </b-container>
     </b-container>
     <loading v-else />
   </div>
@@ -21,6 +24,7 @@ import { format } from 'date-fns'
 import VueMarkdown from 'vue-markdown'
 import Prism from 'prismjs'
 import Loading from '~/components/Loading.vue'
+import TileCarousel from '~/components/TileCarousel.vue'
 import { validTypes } from '~/assets/config'
 // @ts-ignore
 const ampurl = process.env.ampurl
@@ -30,7 +34,8 @@ export default Vue.extend({
   name: 'Post',
   components: {
     VueMarkdown,
-    Loading
+    Loading,
+    TileCarousel
   },
   props: {
     type: {

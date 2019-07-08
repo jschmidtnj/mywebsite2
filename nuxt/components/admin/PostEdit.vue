@@ -271,7 +271,6 @@
                   <h4 class="mt-4">Images</h4>
                   <div
                     v-for="(imagevalue, index) in $v.post.images.$each.$iter"
-                    id="imageselecter"
                     :key="`image-${index}`"
                   >
                     <b-img
@@ -384,7 +383,6 @@
                   <h4 class="mt-4">Files</h4>
                   <div
                     v-for="(filevalue, index) in $v.post.files.$each.$iter"
-                    id="fileselecter"
                     :key="`file-${index}`"
                   >
                     <code
