@@ -59,10 +59,12 @@ export default Vue.extend({
       // @ts-ignore
       document.head.querySelector(
         "link[rel='amphtml']"
+      // @ts-ignore
       ).href = `${ampurl}/blog/${this.id}`
       // @ts-ignore
       document.head.querySelector(
         "link[rel='canonical']"
+      // @ts-ignore
       ).href = `${seo.url}/blog?id=${this.$route.query.id}`
       this.$axios
         .get('/graphql', {
