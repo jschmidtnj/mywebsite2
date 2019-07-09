@@ -7,9 +7,13 @@ export const state = () => ({
   blogpage: 0,
   projects: [],
   blogs: [],
-  perpage: 5,
+  blogcount: 0,
+  projectcount: 0,
+  perpage: 8,
   sortBy: 'title',
-  sortDesc: true
+  sortDesc: true,
+  tags: [],
+  categories: []
 })
 
 export const getters = {
@@ -36,11 +40,59 @@ export const mutations = {
     } else {
       state.projects = payload.posts
     }
+  },
+  setCount(state, payload) {
+    if (payload.type === 'blog') {
+      state.blogcount = payload.count
+    } else {
+      state.projectcount = payload.count
+    }
   }
 }
 
 export const actions = {
-  async updateCarousel({ state, commit }, payload) {
+  async updateCount({ state, commit }, payload) {
+    console.log(`got state: `)
+    console.log(state)
+    return new Promise((resolve, reject) => {
+      this.$axios
+        .get('/countPosts', {
+          params: {
+            searchterm: '',
+            type: payload.type,
+            tags: state.tags.join(',tags='),
+            categories: state.categories.join(',categories=')
+          }
+        })
+        .then(res => {
+          if (res.status === 200) {
+            if (res.data) {
+              if (res.data.count !== null) {
+                commit('setCount', {
+                  type: payload.type,
+                  posts: res.data.count
+                })
+                resolve('count updated successfully')
+              } else {
+                reject('could not find count data')
+              }
+            } else {
+              reject('could not get data')
+            }
+          } else {
+            reject(`status code of ${res.status}`)
+          }
+        })
+        .catch(err => {
+          let message = `got error: ${err}`
+          if (err.response && err.response.data) {
+            message = err.response.data.message
+          }
+          reject(message)
+        })
+    })
+  },
+  async updatePosts({ state, commit }, payload) {
     console.log(`got state: `)
     console.log(state)
     return new Promise((resolve, reject) => {
@@ -58,10 +110,10 @@ export const actions = {
             )}",ascending:${
               !state.sortDesc
             },tags:${
-              JSON.stringify([])
-            },categories:${JSON.stringify(
-              []
-            )},cache:true){tileimage id title caption}}`
+              JSON.stringify(state.tags)
+            },categories:${
+              JSON.stringify(state.categories)
+            },cache:true){tileimage id title caption}}`
           }
         })
         .then(res => {

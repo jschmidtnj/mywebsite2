@@ -190,8 +190,8 @@ export default Vue.extend({
           params: {
             searchterm: this.search,
             type: this.type,
-            tags: '',
-            categories: ''
+            tags: [].join(',tags='),
+            categories: [].join(',categories=')
           }
         })
         .then(res => {

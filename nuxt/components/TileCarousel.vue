@@ -3,7 +3,7 @@
     <b-card-group v-if="posts.length > 0" deck>
       <no-ssr>
         <b-card
-          v-for="(postval, index) in posts"
+          v-for="(postval, index) in shownPosts"
           :key="`tile-${index}`"
           class="tile"
           no-body
@@ -61,17 +61,28 @@ export default Vue.extend({
   },
   data() {
     return {
-      imgUrl: cloudStorageURLs.posts
+      imgUrl: cloudStorageURLs.posts,
+      shownPosts: [],
+      allPosts: [],
+      perPage: 4,
+      currentIndex: 0
     }
   },
   mounted() {
     /* eslint-disable */
-    if (this.posts.length === 0) {
+    if (this.allPosts.length === 0) {
       this.updatePosts()
+      this.updateCount()
     }
   },
   computed: {
-    posts() {
+    count() {
+      if (this.type === 'blog') {
+        return this.$store.state.tilecarousel.blogs
+      }
+      return this.$store.state.tilecarousel.projects
+    },
+    allPosts() {
       if (this.type === 'blog') {
         return this.$store.state.tilecarousel.blogs
       }
@@ -79,8 +90,24 @@ export default Vue.extend({
     }
   },
   methods: {
+    changePage(increase) {
+      let newindex = (increase ? this.currentIndex + 1 : this.currentIndex - 1) % this.count
+      if (newindex < 0) newindex += this.count
+    },
+    updateCount() {
+      this.$store.dispatch('tilecarousel/updateCount', {
+        type: this.type
+      }).then(res => {
+        console.log(`got res ${res}`)
+      }).catch(err => {
+        console.log(err)
+        this.$toasted.global.error({
+          message: err
+        })
+      })
+    },
     updatePosts() {
-      this.$store.dispatch('tilecarousel/updateCarousel', {
+      this.$store.dispatch('tilecarousel/updatePosts', {
         type: this.type
       }).then(res => {
         console.log(`got res ${res}`)
