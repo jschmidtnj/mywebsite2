@@ -23,7 +23,7 @@ import Vue from 'vue'
 import { format } from 'date-fns'
 import VueMarkdown from 'vue-markdown'
 import Prism from 'prismjs'
-import Loading from '~/components/Loading.vue'
+import Loading from '~/components/PageLoading.vue'
 import TileCarousel from '~/components/TileCarousel.vue'
 import { validTypes } from '~/assets/config'
 // @ts-ignore

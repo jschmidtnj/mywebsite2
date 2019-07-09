@@ -244,7 +244,7 @@ func rootQuery() *graphql.Object {
 							}
 						} else {
 							if len(cachedresStr) > 0 {
-								var cachedres map[string]interface{}
+								var cachedres []map[string]interface{}
 								err = json.Unmarshal([]byte(cachedresStr), &cachedres)
 								if err != nil {
 									return nil, err

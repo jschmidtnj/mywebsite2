@@ -37,7 +37,6 @@ class PostPage extends StatelessWidget {
     final response = await http.get(uri, headers: {
       HttpHeaders.contentTypeHeader: 'application/json',
     });
-    print(response.body);
     if (response.statusCode == 200) {
       return json.decode(response.body);
     } else {
@@ -55,18 +54,16 @@ class PostPage extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             String content =
-                Uri.decodeComponent(snapshot.data['data']['post']['content']);
+                Uri.decodeComponent(snapshot.data['data']['post']['content'])
+                    .replaceAll('</img>', '');
             dom.Document document = parse(content);
             List<dom.Element> linkTags =
                 document.querySelectorAll('a.progressive, a.replace');
             for (dom.Element linkTag in linkTags) {
-              String tagToReplace = linkTag.text;
-              String imgSrc = linkTag.attributes["src"];
-              print('got src $imgSrc');
+              String tagToReplace = linkTag.outerHtml;
+              String imgSrc = linkTag.attributes["href"];
               String alt = linkTag.children.first.attributes["alt"];
-              print('alt text $alt');
               content = content.replaceFirst(tagToReplace, '![$alt]($imgSrc)');
-              print('new content $content');
             }
             String title =
                 Uri.decodeComponent(snapshot.data['data']['post']['title']);

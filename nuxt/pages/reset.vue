@@ -85,7 +85,7 @@ import Vue from 'vue'
 import { validationMixin } from 'vuelidate'
 import { required, email } from 'vuelidate/lib/validators'
 import { regex } from '~/assets/config'
-import Loading from '~/components/Loading.vue'
+import Loading from '~/components/PageLoading.vue'
 const validPassword = val => regex.password.test(val)
 export default Vue.extend({
   name: 'SignUp',

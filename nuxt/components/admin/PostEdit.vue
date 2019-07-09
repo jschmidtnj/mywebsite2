@@ -187,18 +187,6 @@
                     class="sampleimage"
                     :src="post.heroimage.src"
                   ></b-img>
-                  <br />
-                  <code
-                    v-if="
-                      post.heroimage.file &&
-                        post.heroimage.id &&
-                        post.heroimage.name &&
-                        post.heroimage.width &&
-                        post.heroimage.height
-                    "
-                  >
-                    {{ getImageTag(post.heroimage) }}
-                  </code>
                   <b-form-group>
                     <label class="form-required">Hero Image</label>
                     <span>
@@ -230,18 +218,6 @@
                     class="sampleimage"
                     :src="post.tileimage.src"
                   ></b-img>
-                  <br />
-                  <code
-                    v-if="
-                      post.tileimage.file &&
-                        post.tileimage.id &&
-                        post.tileimage.name &&
-                        post.tileimage.width &&
-                        post.tileimage.height
-                    "
-                  >
-                    {{ getImageTag(post.tileimage) }}
-                  </code>
                   <b-form-group>
                     <label class="form-required">Tile Image</label>
                     <span>

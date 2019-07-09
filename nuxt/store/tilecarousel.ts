@@ -41,21 +41,27 @@ export const mutations = {
 
 export const actions = {
   async updateCarousel({ state, commit }, payload) {
+    console.log(`got state: `)
+    console.log(state)
     return new Promise((resolve, reject) => {
       this.$axios
         .get('/graphql', {
           params: {
-            query: `{posts(type:"${encodeURIComponent(payload.type)}",perpage:${
-              state.perPage
-            },page:${
+            query: `{posts(type:"${encodeURIComponent(
+              payload.type
+            )}",perpage:${encodeURIComponent(
+              state.perpage
+            )},page:${
               payload.type === 'blog' ? state.blogpage : state.projectpage
             },searchterm:"",sort:"${encodeURIComponent(
               state.sortBy
             )}",ascending:${
               !state.sortDesc
-            },tags:${JSON.stringify([])},categories:${JSON.stringify(
+            },tags:${
+              JSON.stringify([])
+            },categories:${JSON.stringify(
               []
-            )},cache:true){tile id title caption}}`
+            )},cache:true){tileimage id title caption}}`
           }
         })
         .then(res => {
@@ -64,7 +70,7 @@ export const actions = {
               if (res.data.data && res.data.data.posts) {
                 commit('setPosts', {
                   type: payload.type,
-                  posts: res.data.data.posts
+                  posts: res.data.data.posts.filter(post => post.tileimage.length > 0)
                 })
                 resolve('found posts')
               } else if (res.data.errors) {
