@@ -3,8 +3,6 @@
  */
 
 export const state = () => ({
-  projectpage: 0,
-  blogpage: 0,
   projects: [],
   blogs: [],
   blogcount: 0,
@@ -17,8 +15,6 @@ export const state = () => ({
 })
 
 export const getters = {
-  projectpage: state => state.projectpage,
-  blogpage: state => state.blogpage,
   projects: state => state.projects,
   blogs: state => state.blogs,
   perpage: state => state.perpage,
@@ -27,18 +23,18 @@ export const getters = {
 }
 
 export const mutations = {
-  setPage(state, payload) {
-    if (payload.type === 'blog') {
-      state.blogpage = payload.page
-    } else {
-      state.projectpage = payload.page
-    }
-  },
   setPosts(state, payload) {
     if (payload.type === 'blog') {
       state.blogs = payload.posts
     } else {
       state.projects = payload.posts
+    }
+  },
+  addPosts(state, payload) {
+    if (payload.type === 'blog') {
+      state.blogs[payload.index] = payload.posts
+    } else {
+      state.projects[payload.index] = payload.posts
     }
   },
   setCount(state, payload) {
@@ -52,8 +48,6 @@ export const mutations = {
 
 export const actions = {
   async updateCount({ state, commit }, payload) {
-    console.log(`got state: `)
-    console.log(state)
     return new Promise((resolve, reject) => {
       this.$axios
         .get('/countPosts', {
@@ -70,9 +64,9 @@ export const actions = {
               if (res.data.count !== null) {
                 commit('setCount', {
                   type: payload.type,
-                  posts: res.data.count
+                  count: res.data.count
                 })
-                resolve('count updated successfully')
+                resolve(`count updated successfully to ${res.data.count}`)
               } else {
                 reject('could not find count data')
               }
@@ -92,9 +86,20 @@ export const actions = {
         })
     })
   },
-  async updatePosts({ state, commit }, payload) {
-    console.log(`got state: `)
-    console.log(state)
+  initializePosts({ state, commit }, payload) {
+    if (payload.type === 'blog') {
+      commit('setPosts', {
+        type: 'blog',
+        posts: Array.apply(null, Array(state.blogcount))
+      })
+    } else {
+      commit('setPosts', {
+        type: 'project',
+        posts: Array.apply(null, Array(state.projectcount))
+      })
+    }
+  },
+  async addPosts({ state, commit }, payload) {
     return new Promise((resolve, reject) => {
       this.$axios
         .get('/graphql', {
@@ -104,7 +109,7 @@ export const actions = {
             )}",perpage:${encodeURIComponent(
               state.perpage
             )},page:${
-              payload.type === 'blog' ? state.blogpage : state.projectpage
+              payload.page
             },searchterm:"",sort:"${encodeURIComponent(
               state.sortBy
             )}",ascending:${
@@ -120,8 +125,9 @@ export const actions = {
           if (res.status === 200) {
             if (res.data) {
               if (res.data.data && res.data.data.posts) {
-                commit('setPosts', {
+                commit('addPosts', {
                   type: payload.type,
+                  index: payload.page,
                   posts: res.data.data.posts.filter(post => post.tileimage.length > 0)
                 })
                 resolve('found posts')

@@ -1,38 +1,65 @@
 <template>
   <div id="tiles" class="mb-5">
-    <b-card-group v-if="posts.length > 0" deck>
+    <b-button
+      variant="primary"
+      @click="
+        evt => {
+          evt.preventDefault()
+          changePage(true)
+        }
+      "
+      >Forward</b-button
+    >
+    <b-button
+      variant="primary"
+      @click="
+        evt => {
+          evt.preventDefault()
+          changePage(false)
+        }
+      "
+      >Backwards</b-button
+    >
+    <b-card-group v-if="shownPosts.length > 0" deck>
       <no-ssr>
-        <b-card
+        <button
           v-for="(postval, index) in shownPosts"
           :key="`tile-${index}`"
-          class="tile"
-          no-body
+          class="button-link"
+          @click="
+            evt => {
+              evt.preventDefault()
+              navigate(postval.id)
+            }
+          "
         >
-          <b-card-body class="tile zoom">
-            <b-card-img-lazy
-              :src="
-                `${imgUrl}/${
-                  type === 'blog' ? 'blogimages' : 'projectimages'
-                }/${encodeURI(postval.tileimage)}/original`
-              "
-              :blank-src="
-                `${imgUrl}/${
-                  type === 'blog' ? 'blogimages' : 'projectimages'
-                }/${encodeURI(postval.tileimage)}/blur`
-              "
-              :alt="postval.title"
-              class="tile-img"
-            />
-            <b-container>
-              <b-card-title>
-                {{ postval.title }}
-              </b-card-title>
-              <b-card-sub-title>
-                {{ postval.caption }}
-              </b-card-sub-title>
-            </b-container>
-          </b-card-body>
-        </b-card>
+          <b-card class="tile" no-body>
+            <b-card-body class="tile zoom">
+              <b-card-img-lazy
+                :src="
+                  `${imgUrl}/${
+                    type === 'blog' ? 'blogimages' : 'projectimages'
+                  }/${encodeURI(postval.tileimage)}/original`
+                "
+                :blank-src="
+                  `${imgUrl}/${
+                    type === 'blog' ? 'blogimages' : 'projectimages'
+                  }/${encodeURI(postval.tileimage)}/blur`
+                "
+                :alt="postval.title"
+                class="tile-img"
+              />
+              <b-container>
+                <b-card-title>
+                  {{ postval.title }}
+                </b-card-title>
+                <b-card-sub-title>
+                  {{ postval.caption }}
+                </b-card-sub-title>
+              </b-container>
+            </b-card-body>
+          </b-card>
+        </button>
       </no-ssr>
     </b-card-group>
     <loading v-else />
@@ -60,27 +87,31 @@ export default Vue.extend({
     }
   },
   data() {
+    const perpage = 4
+    const currentIndex = Math.floor(
+      (this.$store.state.tilecarousel.perpage - perpage) / 2
+    )
     return {
       imgUrl: cloudStorageURLs.posts,
       shownPosts: [],
-      allPosts: [],
-      perPage: 4,
-      currentIndex: 0
+      perpage: perpage,
+      currentIndex: currentIndex
     }
   },
-  mounted() {
+  async mounted() {
     /* eslint-disable */
-    if (this.allPosts.length === 0) {
-      this.updatePosts()
-      this.updateCount()
+    await this.updateCount()
+    if (this.count !== 0 && this.count !== this.allPosts.length) {
+      await this.initializePosts()
     }
+    this.updateShownPosts()
   },
   computed: {
     count() {
       if (this.type === 'blog') {
-        return this.$store.state.tilecarousel.blogs
+        return this.$store.state.tilecarousel.blogcount
       }
-      return this.$store.state.tilecarousel.projects
+      return this.$store.state.tilecarousel.projectcount
     },
     allPosts() {
       if (this.type === 'blog') {
@@ -90,12 +121,48 @@ export default Vue.extend({
     }
   },
   methods: {
+    navigate(id) {
+      // @ts-ignore
+      if (process.client) {
+        this.$router.push({
+          path: `/${this.type}?id=${id}`
+        })
+        window.location.reload(true)
+      }
+    },
+    async updateShownPosts() {
+      if (this.count === 0) {
+        this.shownPosts = []
+        return
+      }
+      const startpage = Math.floor(this.currentIndex / this.$store.state.tilecarousel.perpage)
+      const endpage = Math.ceil((this.currentIndex + this.perpage) / this.$store.state.tilecarousel.perpage)
+      for (let i = startpage; i < endpage; i++) {
+        if (!this.allPosts[i]) {
+          await this.addPosts(i)
+        }
+      }
+      const startpageindex = this.currentIndex % (this.$store.state.tilecarousel.perpage - 1)
+      const endpageindex = (startpageindex + this.perpage) % (this.$store.state.tilecarousel.perpage - 1)
+      const newShownPosts: any = []
+      for (let i = startpage; i < endpage; i++) {
+        let start = i === startpage ? startpageindex : 0
+        let end = i === endpage ? (this.$store.state.tilecarousel.perpage - 1) : endpageindex
+        for (let j = start; j <= end; j++) {
+          newShownPosts.push(this.allPosts[i][j])
+        }
+      }
+      this.shownPosts = newShownPosts
+    },
     changePage(increase) {
       let newindex = (increase ? this.currentIndex + 1 : this.currentIndex - 1) % this.count
       if (newindex < 0) newindex += this.count
+      this.currentIndex = newindex
+      this.updateShownPosts()
     },
     updateCount() {
-      this.$store.dispatch('tilecarousel/updateCount', {
+      console.log(`got type ${this.type}`)
+      return this.$store.dispatch('tilecarousel/updateCount', {
         type: this.type
       }).then(res => {
         console.log(`got res ${res}`)
@@ -106,9 +173,22 @@ export default Vue.extend({
         })
       })
     },
-    updatePosts() {
-      this.$store.dispatch('tilecarousel/updatePosts', {
+    initializePosts() {
+      return this.$store.dispatch('tilecarousel/initializePosts', {
         type: this.type
+      }).then(res => {
+        console.log(`got res ${res}`)
+      }).catch(err => {
+        console.log(err)
+        this.$toasted.global.error({
+          message: err
+        })
+      })
+    },
+    addPosts(page) {
+      return this.$store.dispatch('tilecarousel/addPosts', {
+        type: this.type,
+        page: page
       }).then(res => {
         console.log(`got res ${res}`)
       }).catch(err => {
@@ -123,6 +203,15 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
+.button-link {
+  display: inline-block;
+  position: relative;
+  background-color: transparent;
+  cursor: pointer;
+  border: 0;
+  padding: 0;
+  font: inherit;
+}
 .tile-img {
   object-fit: cover;
   width: 300px;

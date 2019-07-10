@@ -2,10 +2,21 @@ package main
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/go-redis/redis"
 	"github.com/olivere/elastic"
-	"net/http"
 )
+
+func removeEmptyStrings(input []string) []string {
+	var result []string
+	for _, str := range input {
+		if str != "" {
+			result = append(result, str)
+		}
+	}
+	return result
+}
 
 /**
  * @api {get} /countPosts Count posts for search term
@@ -40,12 +51,14 @@ func countPosts(response http.ResponseWriter, request *http.Request) {
 		handleError("error getting categories string array from query", http.StatusBadRequest, response)
 		return
 	}
+	categories = removeEmptyStrings(categories)
 	tagsStr := request.URL.Query().Get("tags")
 	tags := request.Form["tags"]
 	if tags == nil {
 		handleError("error getting tags string array from query", http.StatusBadRequest, response)
 		return
 	}
+	tags = removeEmptyStrings(tags)
 	response.Header().Set("content-type", "application/json")
 	pathMap := map[string]string{
 		"path":       "count",
@@ -78,7 +91,10 @@ func countPosts(response http.ResponseWriter, request *http.Request) {
 	for i, category := range categories {
 		mustQueries[i+numtags] = elastic.NewTermQuery("categories", category)
 	}
-	query := elastic.NewBoolQuery().Must(mustQueries...)
+	query := elastic.NewBoolQuery()
+	if len(mustQueries) > 0 {
+		query = query.Must(mustQueries...)
+	}
 	if len(searchterm) > 0 {
 		mainquery := elastic.NewMultiMatchQuery(searchterm, postSearchFields...)
 		query = query.Filter(mainquery)
