@@ -87,19 +87,22 @@ export default Vue.extend({
     }
   },
   data() {
-    const perpage = 4
-    const currentIndex = Math.floor(
-      (this.$store.state.tilecarousel.perpage - perpage) / 2
-    )
     return {
       imgUrl: cloudStorageURLs.posts,
       shownPosts: [],
-      perpage: perpage,
-      currentIndex: currentIndex
+      perpage: 4
     }
   },
   async mounted() {
     /* eslint-disable */
+    if (!this.currentIndex) {
+      this.$store.commit('setIndex', {
+        type: this.type,
+        index: Math.floor((
+          this.$store.state.tilecarousel.perpage - this.perpage) / 2
+        )
+      })
+    }
     await this.updateCount()
     if (this.count !== 0 && this.count !== this.allPosts.length) {
       await this.initializePosts()
@@ -107,6 +110,12 @@ export default Vue.extend({
     this.updateShownPosts()
   },
   computed: {
+    currentIndex() {
+      if (this.type === 'blog') {
+        return this.$store.state.tilecarousel.blogindex
+      }
+      return this.$store.state.tilecarousel.projectindex
+    },
     count() {
       if (this.type === 'blog') {
         return this.$store.state.tilecarousel.blogcount
@@ -157,7 +166,10 @@ export default Vue.extend({
     changePage(increase) {
       let newindex = (increase ? this.currentIndex + 1 : this.currentIndex - 1) % this.count
       if (newindex < 0) newindex += this.count
-      this.currentIndex = newindex
+      this.$store.commit('setIndex', {
+        type: this.type,
+        index: newindex
+      })
       this.updateShownPosts()
     },
     updateCount() {

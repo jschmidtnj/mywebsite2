@@ -7,6 +7,8 @@ export const state = () => ({
   blogs: [],
   blogcount: 0,
   projectcount: 0,
+  blogindex: null,
+  projectindex: null,
   perpage: 8,
   sortBy: 'title',
   sortDesc: true,
@@ -42,6 +44,13 @@ export const mutations = {
       state.blogcount = payload.count
     } else {
       state.projectcount = payload.count
+    }
+  },
+  setIndex(state, payload) {
+    if (payload.type === 'blog') {
+      state.blogindex = payload.index
+    } else {
+      state.projectindex = payload.index
     }
   }
 }
@@ -128,7 +137,7 @@ export const actions = {
                 commit('addPosts', {
                   type: payload.type,
                   index: payload.page,
-                  posts: res.data.data.posts.filter(post => post.tileimage.length > 0)
+                  posts: res.data.data.posts
                 })
                 resolve('found posts')
               } else if (res.data.errors) {

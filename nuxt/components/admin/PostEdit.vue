@@ -725,7 +725,9 @@ export default Vue.extend({
         file: {}
       },
       tileimage: {
-        file: {}
+        file: {
+          required
+        }
       },
       tags: {
         $each: {
