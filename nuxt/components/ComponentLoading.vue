@@ -18,8 +18,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-@import '~/node_modules/epic-spinners/dist/lib/epic-spinners.min.css';
-
 .centered {
   display: block;
   margin-left: auto;

@@ -1,25 +1,5 @@
 <template>
   <div id="tiles" class="mb-5">
-    <b-button
-      variant="primary"
-      @click="
-        evt => {
-          evt.preventDefault()
-          changePage(true)
-        }
-      "
-      >Forward</b-button
-    >
-    <b-button
-      variant="primary"
-      @click="
-        evt => {
-          evt.preventDefault()
-          changePage(false)
-        }
-      "
-      >Backwards</b-button
-    >
     <b-card-group v-if="shownPosts.length > 0" deck>
       <no-ssr>
         <button
@@ -74,7 +54,7 @@ import Vue from 'vue'
 import Loading from '~/components/ComponentLoading.vue'
 import { validTypes, cloudStorageURLs } from '~/assets/config'
 export default Vue.extend({
-  name: 'TileCarousel',
+  name: 'TileRows',
   components: {
     Loading
   },
@@ -89,32 +69,18 @@ export default Vue.extend({
   data() {
     return {
       imgUrl: cloudStorageURLs.posts,
-      shownPosts: [],
-      perpage: 4
+      shownPosts: []
     }
   },
   async mounted() {
     /* eslint-disable */
-    if (!this.currentIndex) {
-      this.$store.commit('setIndex', {
-        type: this.type,
-        index: Math.floor((
-          this.$store.state.tiles.perpage - this.perpage) / 2
-        )
-      })
-    }
+    await this.updateCount()
     if (this.count !== 0 && this.count !== this.allPosts.length) {
       await this.initializePosts()
     }
     this.updateShownPosts()
   },
   computed: {
-    currentIndex() {
-      if (this.type === 'blog') {
-        return this.$store.state.tiles.blogindex
-      }
-      return this.$store.state.tiles.projectindex
-    },
     count() {
       if (this.type === 'blog') {
         return this.$store.state.tiles.blogcount
@@ -143,33 +109,13 @@ export default Vue.extend({
         this.shownPosts = []
         return
       }
-      const startpage = Math.floor(this.currentIndex / this.$store.state.tiles.perpage)
-      const endpage = Math.ceil((this.currentIndex + this.perpage) / this.$store.state.tiles.perpage)
-      for (let i = startpage; i < endpage; i++) {
+      const endpage = Math.ceil(this.count / this.$store.state.tiles.perpage)
+      for (let i = 0; i < endpage; i++) {
         if (!this.allPosts[i]) {
           await this.addPosts(i)
         }
       }
-      const startpageindex = this.currentIndex % (this.$store.state.tiles.perpage - 1)
-      const endpageindex = (startpageindex + this.perpage) % (this.$store.state.tiles.perpage - 1)
-      const newShownPosts: any = []
-      for (let i = startpage; i < endpage; i++) {
-        let start = i === startpage ? startpageindex : 0
-        let end = i === endpage ? (this.$store.state.tiles.perpage - 1) : endpageindex
-        for (let j = start; j <= end; j++) {
-          newShownPosts.push(this.allPosts[i][j])
-        }
-      }
-      this.shownPosts = newShownPosts
-    },
-    changePage(increase) {
-      let newindex = (increase ? this.currentIndex + 1 : this.currentIndex - 1) % this.count
-      if (newindex < 0) newindex += this.count
-      this.$store.commit('setIndex', {
-        type: this.type,
-        index: newindex
-      })
-      this.updateShownPosts()
+      this.shownPosts = this.allPosts
     },
     updateCount() {
       console.log(`got type ${this.type}`)

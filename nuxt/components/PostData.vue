@@ -154,5 +154,4 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-@import '~/node_modules/prismjs/themes/prism.css';
 </style>

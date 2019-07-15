@@ -1,0 +1,23 @@
+@import '~bootstrap/scss/bootstrap';
+@import '~/node_modules/prismjs/themes/prism.css';
+@import '~/node_modules/vue-select/src/scss/vue-select.scss';
+@import '~/node_modules/epic-spinners/dist/lib/epic-spinners.min.css';
+@import '~/node_modules/progressive-image.js/dist/progressive-image.css';
+
+/* get bullet points back */
+.markdown ul {
+  list-style-type: disc !important;
+  padding-left:1em !important;
+  margin-left:1em;
+}
+
+/* button without styling */
+.button-link {
+  display: inline-block;
+  position: relative;
+  background-color: transparent;
+  cursor: pointer;
+  border: 0;
+  padding: 0;
+  font: inherit;
+}

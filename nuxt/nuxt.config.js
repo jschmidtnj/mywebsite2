@@ -161,7 +161,9 @@ module.exports = {
    ** scss global config
    */
   styleResources: {
-    scss: ['~assets/styles/bootstrap.scss']
+    scss: [
+      '~assets/styles/global.scss'
+    ]
   },
 
   /*

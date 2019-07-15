@@ -1637,9 +1637,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-@import '~/node_modules/prismjs/themes/prism.css';
-@import '~/node_modules/vue-select/src/scss/vue-select.scss';
-
 .markdown {
   overflow: auto;
   max-height: 20rem;
