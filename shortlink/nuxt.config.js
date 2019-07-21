@@ -97,8 +97,7 @@ module.exports = {
     '@nuxtjs/style-resources',
     '@nuxtjs/dotenv',
     '@nuxtjs/sitemap',
-    '@nuxtjs/google-analytics',
-    '@nuxtjs/auth'
+    '@nuxtjs/google-analytics'
   ],
 
   /*
