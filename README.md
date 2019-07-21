@@ -9,3 +9,8 @@ personal website with nuxt and graphql api
 ### bypass commit hooks
 
 `git commit --no-verify -m "message-here"` bypasses the git commit hooks, and forces trigger of ci build.
+
+### set default shell for npm / yarn
+
+`npm config set script-shell bash`
+`yarn config set script-shell bash`
