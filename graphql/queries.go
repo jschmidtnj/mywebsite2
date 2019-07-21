@@ -114,6 +114,37 @@ func rootQuery() *graphql.Object {
 					return userData, nil
 				},
 			},
+			"shortlinks": &graphql.Field{
+				Type:        graphql.NewList(ShortLinkType),
+				Description: "Get user short links",
+				Args: graphql.FieldConfigArgument{
+					"linkids": &graphql.ArgumentConfig{
+						Type: graphql.NewList(graphql.String),
+					},
+				},
+				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+					_, err := validateLoggedIn(params.Context.Value(tokenKey).(string))
+					if err != nil {
+						return nil, err
+					}
+					if params.Args["shortlinks"] == nil {
+						return nil, errors.New("no shortlinks argument found")
+					}
+					shortlinkidsInterface, ok := params.Args["shortlinks"].([]interface{})
+					if !ok {
+						return nil, errors.New("unable to cast shortlinks to array")
+					}
+					shortlinkids, err := interfaceListToStringList(shortlinkidsInterface)
+					if err != nil {
+						return nil, err
+					}
+					shortlinks, err := getShortLinks(shortlinkids)
+					if err != nil {
+						return nil, err
+					}
+					return shortlinks, nil
+				},
+			},
 			"posts": &graphql.Field{
 				Type:        graphql.NewList(PostType),
 				Description: "Get list of posts",

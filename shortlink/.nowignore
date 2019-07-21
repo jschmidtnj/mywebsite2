@@ -1,0 +1,7 @@
+# frontend build ignore
+.nuxt/
+.vscode/
+.netlify/
+.firebase/
+node_modules/
+static/sw.js

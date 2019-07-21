@@ -22,9 +22,7 @@
             :state="!$v.form.email.$invalid"
           >
             <div v-if="!$v.form.email.required">email is required</div>
-            <div v-else-if="!$v.form.email.email">
-              email is invalid
-            </div>
+            <div v-else-if="!$v.form.email.email">email is invalid</div>
           </b-form-invalid-feedback>
         </b-form-group>
         <b-form-group
@@ -85,6 +83,7 @@ export default Vue.extend({
   middleware: 'loginredirect',
   data() {
     return {
+      redirect_uri: null,
       form: {
         email: '',
         password: ''
@@ -155,6 +154,9 @@ export default Vue.extend({
           })
         })
     }
+    if (this.$route.query && this.$route.query.redirect_uri) {
+      this.redirect_uri = this.$route.query.redirect_uri
+    }
   },
   methods: {
     logingoogle(evt) {
@@ -164,37 +166,63 @@ export default Vue.extend({
         console.log(e)
       })
     },
+    loginSuccess(token) {
+      this.$toasted.global.success({
+        message: 'logged in'
+      })
+      if (!this.redirect_uri) {
+        this.$router.push({
+          path: '/account'
+        })
+      } else {
+        this.redirect_uri += `?token=${token}`
+        if (
+          this.redirect_uri.indexOf('https://') === 0 ||
+          this.redirect_uri.indexOf('http://') === 0
+        ) {
+          window.location.replace(this.redirect_uri)
+        } else if (this.redirect_uri.indexOf('/') === 0) {
+          this.$router.push({
+            path: this.redirect_uri
+          })
+        } else {
+          this.$toasted.global.error({
+            message: 'invalid url redirect'
+          })
+        }
+      }
+    },
     loginlocal(evt) {
       evt.preventDefault()
-      this.$recaptcha('login').then(recaptchatoken => {
-        console.log(`got recaptcha token ${recaptchatoken}`)
-        this.$auth.loginWith('local', {
-          data: {
-            email: this.form.email,
-            password: this.form.password,
-            recaptcha: recaptchatoken
-          }
-        }).then(() => {
-          this.$toasted.global.success({
-            message: 'logged in'
-          })
-          this.$router.push({
-            path: '/account'
-          })
-        }).catch(err => {
-          let message = `got error: ${err}`
-          if (err.response && err.response.data) {
-            message = err.response.data.message
-          }
+      this.$recaptcha('login')
+        .then(recaptchatoken => {
+          console.log(`got recaptcha token ${recaptchatoken}`)
+          this.$auth
+            .loginWith('local', {
+              data: {
+                email: this.form.email,
+                password: this.form.password,
+                recaptcha: recaptchatoken
+              }
+            })
+            .then(() => {
+              this.loginSuccess(token)
+            })
+            .catch(err => {
+              let message = `got error: ${err}`
+              if (err.response && err.response.data) {
+                message = err.response.data.message
+              }
+              this.$toasted.global.error({
+                message: message
+              })
+            })
+        })
+        .catch(err => {
           this.$toasted.global.error({
-            message: message
+            message: `got error with recaptcha ${err}`
           })
         })
-      }).catch(err => {
-        this.$toasted.global.error({
-          message: `got error with recaptcha ${err}`
-        })
-      })
     }
   }
 })

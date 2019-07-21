@@ -100,5 +100,8 @@ var PostType *graphql.Object = graphql.NewObject(graphql.ObjectConfig{
 		"comments": &graphql.Field{
 			Type: jsonType,
 		},
+		"shortlink": &graphql.Field{
+			Type: graphql.String,
+		},
 	},
 })

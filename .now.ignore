@@ -1,0 +1,19 @@
+# frontend build ignore
+/.nuxt/
+/.vscode/
+/.netlify/
+/.firebase/
+/node_modules/
+/amp/
+/docs/
+/electron/
+/graphql/
+/init/
+/shortlink/
+/.gitignore
+/travis.yml
+/checkcichanges.sh
+/LICENSE
+/package.json
+/README.md
+/yarn.lock

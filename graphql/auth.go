@@ -37,7 +37,7 @@ type loginClaims struct {
 	jwt.StandardClaims
 }
 
-func verifyRecaptcha(recaptchaToken string) error {
+func verifyRecaptcha(recaptchaToken string, recaptchaSecret string) error {
 	request, err := http.NewRequest("POST", "https://www.google.com/recaptcha/api/siteverify", nil)
 	if err != nil {
 		return err
@@ -122,7 +122,7 @@ func register(response http.ResponseWriter, request *http.Request) {
 		handleError("recaptcha token cannot be cast to string", http.StatusBadRequest, response)
 		return
 	}
-	err = verifyRecaptcha(recaptchatoken)
+	err = verifyRecaptcha(recaptchatoken, mainRecaptchaSecret)
 	if err != nil {
 		handleError("recaptcha error: "+err.Error(), http.StatusUnauthorized, response)
 		return
@@ -154,6 +154,7 @@ func register(response http.ResponseWriter, request *http.Request) {
 		"password":      string(passwordhashed),
 		"emailverified": false,
 		"type":          "user",
+		"shortlinks":    []string{},
 	})
 	if err != nil {
 		handleError("error inserting user to database: "+err.Error(), http.StatusBadRequest, response)
@@ -214,7 +215,7 @@ func loginEmailPassword(response http.ResponseWriter, request *http.Request) {
 		handleError("recaptcha token cannot be cast to string", http.StatusBadRequest, response)
 		return
 	}
-	err = verifyRecaptcha(recaptchatoken)
+	err = verifyRecaptcha(recaptchatoken, mainRecaptchaSecret)
 	if err != nil {
 		handleError("recaptcha error: "+err.Error(), http.StatusUnauthorized, response)
 		return

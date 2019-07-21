@@ -219,15 +219,15 @@ class PostsState extends State<PostsPage> {
             rows: posts
                 .map(
                   (post) => DataRow(
-                        cells: [
-                          DataCell(Text(post['title']),
-                              onTap: () => _goToPostPage(post['id'])),
-                          DataCell(Text(post['date']),
-                              onTap: () => _goToPostPage(post['id'])),
-                          DataCell(Text('${post['views']}'),
-                              onTap: () => _goToPostPage(post['id']))
-                        ],
-                      ),
+                    cells: [
+                      DataCell(Text(post['title']),
+                          onTap: () => _goToPostPage(post['id'])),
+                      DataCell(Text(post['date']),
+                          onTap: () => _goToPostPage(post['id'])),
+                      DataCell(Text('${post['views']}'),
+                          onTap: () => _goToPostPage(post['id']))
+                    ],
+                  ),
                 )
                 .toList(),
             sortColumnIndex: sortColumnIndex,

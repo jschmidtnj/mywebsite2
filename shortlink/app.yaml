@@ -1,0 +1,2 @@
+runtime: nodejs10
+service: shortlink # change to shortlink if adding other app engine stuff, or default for main app

@@ -36,7 +36,7 @@ var mongoClient *mongo.Client
 
 var ctxMongo context.Context
 
-var database = "testing"
+var mainDatabase = "testing"
 
 var userCollection *mongo.Collection
 
@@ -49,6 +49,10 @@ var blogMongoName = "blogs"
 var projectCollection *mongo.Collection
 
 var projectMongoName = "projects"
+
+var shortLinkCollection *mongo.Collection
+
+var shortLinkMongoName = "shortlink"
 
 var elasticClient *elastic.Client
 
@@ -81,9 +85,9 @@ var blogFileIndex = "blogfiles"
 
 var projectFileIndex = "projectfiles"
 
-var progressiveImageSize int = 30
+var progressiveImageSize = 30
 
-var progressiveImageBlurAmount float64 = 20
+var progressiveImageBlurAmount = 20.0
 
 var logger *zap.Logger
 
@@ -104,7 +108,9 @@ var postSearchFields = []string{
 	"content",
 }
 
-var recaptchaSecret string
+var mainRecaptchaSecret string
+
+var shortlinkRecaptchaSecret string
 
 var mode string
 
@@ -170,9 +176,10 @@ func main() {
 	if err != nil {
 		logger.Fatal(err.Error())
 	}
-	userCollection = mongoClient.Database(database).Collection(userMongoName)
-	projectCollection = mongoClient.Database(database).Collection(projectMongoName)
-	blogCollection = mongoClient.Database(database).Collection(blogMongoName)
+	userCollection = mongoClient.Database(mainDatabase).Collection(userMongoName)
+	projectCollection = mongoClient.Database(mainDatabase).Collection(projectMongoName)
+	blogCollection = mongoClient.Database(mainDatabase).Collection(blogMongoName)
+	shortLinkCollection = mongoClient.Database(mainDatabase).Collection(shortLinkMongoName)
 	elasticuri := os.Getenv("ELASTICURI")
 	elasticClient, err = elastic.NewClient(elastic.SetSniff(false), elastic.SetURL(elasticuri))
 	if err != nil {
@@ -222,7 +229,8 @@ func main() {
 	if err != nil {
 		logger.Fatal(err.Error())
 	}
-	recaptchaSecret = os.Getenv("RECAPTCHASECRET")
+	mainRecaptchaSecret = os.Getenv("MAINRECAPTCHASECRET")
+	shortlinkRecaptchaSecret = os.Getenv("SHORTLINKRECAPTCHASECRET")
 	/*
 		mediumAccessToken := os.Getenv("MEDIUMACCESSTOKEN")
 		mediumClient = medium.NewClientWithAccessToken(mediumAccessToken)
@@ -268,6 +276,8 @@ func main() {
 	http.HandleFunc("/getPostFile", getPostFile)
 	http.HandleFunc("/writePostFile", writePostFile)
 	http.HandleFunc("/deletePostFiles", deletePostFiles)
+	http.HandleFunc("/shortlink", shortLinkRedirect)
+	http.HandleFunc("/createShortLink", createShortLink)
 	http.ListenAndServe(port, nil)
 	logger.Info("Starting the application at " + port + " 🚀")
 }

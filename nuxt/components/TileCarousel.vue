@@ -2,6 +2,7 @@
   <div id="tiles" class="mb-5">
     <b-button
       variant="primary"
+      :disabled="count <= perpage"
       @click="
         evt => {
           evt.preventDefault()
@@ -12,6 +13,7 @@
     >
     <b-button
       variant="primary"
+      :disabled="count <= perpage"
       @click="
         evt => {
           evt.preventDefault()
@@ -20,7 +22,7 @@
       "
       >Backwards</b-button
     >
-    <b-card-group v-if="shownPosts.length > 0" deck>
+    <b-card-group v-if="!loading" deck>
       <no-ssr>
         <button
           v-for="(postval, index) in shownPosts"
@@ -90,17 +92,21 @@ export default Vue.extend({
     return {
       imgUrl: cloudStorageURLs.posts,
       shownPosts: [],
-      perpage: 4
+      perpage: 4,
+      loading: true
     }
   },
   async mounted() {
     /* eslint-disable */
+    await this.updateCount()
     if (!this.currentIndex) {
-      this.$store.commit('setIndex', {
+      let currentindex = Math.floor((this.$store.state.tiles.perpage - this.perpage) / 2)
+      if (this.count < this.perpage) {
+        currentindex = Math.floor(this.count / 2)
+      }
+      this.$store.commit('tiles/setIndex', {
         type: this.type,
-        index: Math.floor((
-          this.$store.state.tiles.perpage - this.perpage) / 2
-        )
+        index: currentindex
       })
     }
     if (this.count !== 0 && this.count !== this.allPosts.length) {
@@ -141,6 +147,7 @@ export default Vue.extend({
     async updateShownPosts() {
       if (this.count === 0) {
         this.shownPosts = []
+        this.loading = false
         return
       }
       const startpage = Math.floor(this.currentIndex / this.$store.state.tiles.perpage)
@@ -151,16 +158,20 @@ export default Vue.extend({
         }
       }
       const startpageindex = this.currentIndex % (this.$store.state.tiles.perpage - 1)
-      const endpageindex = (startpageindex + this.perpage) % (this.$store.state.tiles.perpage - 1)
+      let endpageindex = (startpageindex + this.perpage) % (this.$store.state.tiles.perpage - 1)
+      if (this.count < this.perpage) {
+        endpageindex = this.count
+      }
       const newShownPosts: any = []
       for (let i = startpage; i < endpage; i++) {
         let start = i === startpage ? startpageindex : 0
         let end = i === endpage ? (this.$store.state.tiles.perpage - 1) : endpageindex
-        for (let j = start; j <= end; j++) {
+        for (let j = start; j < end; j++) {
           newShownPosts.push(this.allPosts[i][j])
         }
       }
       this.shownPosts = newShownPosts
+      this.loading = false
     },
     changePage(increase) {
       let newindex = (increase ? this.currentIndex + 1 : this.currentIndex - 1) % this.count
@@ -172,11 +183,10 @@ export default Vue.extend({
       this.updateShownPosts()
     },
     updateCount() {
-      console.log(`got type ${this.type}`)
       return this.$store.dispatch('tiles/updateCount', {
         type: this.type
       }).then(res => {
-        console.log(`got res ${res}`)
+        console.log(`got count ${res}`)
       }).catch(err => {
         console.log(err)
         this.$toasted.global.error({
@@ -188,7 +198,7 @@ export default Vue.extend({
       return this.$store.dispatch('tiles/initializePosts', {
         type: this.type
       }).then(res => {
-        console.log(`got res ${res}`)
+        console.log(`got init res ${res}`)
       }).catch(err => {
         console.log(err)
         this.$toasted.global.error({
@@ -201,7 +211,7 @@ export default Vue.extend({
         type: this.type,
         page: page
       }).then(res => {
-        console.log(`got res ${res}`)
+        console.log(`got add post res ${res}`)
       }).catch(err => {
         console.log(err)
         this.$toasted.global.error({

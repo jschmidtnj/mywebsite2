@@ -19,6 +19,7 @@ require (
 	github.com/mongodb/mongo-go-driver v1.0.2 // indirect
 	github.com/olivere/elastic v6.2.18+incompatible
 	github.com/pkg/errors v0.8.1 // indirect
+	github.com/rs/xid v1.2.1 // indirect
 	github.com/sendgrid/rest v2.4.1+incompatible
 	github.com/sendgrid/sendgrid-go v3.4.1+incompatible
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect

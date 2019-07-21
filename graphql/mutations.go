@@ -63,12 +63,27 @@ func deleteAccount(idstring string) (interface{}, error) {
 	if !foundstuff {
 		return nil, errors.New("user not found with given id")
 	}
+	shortlinksInterface, ok := userData["shortlinks"].([]interface{})
+	if !ok {
+		return nil, errors.New("unable to cast shortlinks to array")
+	}
+	shortlinks, err := interfaceListToStringList(shortlinksInterface)
+	if err != nil {
+		return nil, err
+	}
+	for _, link := range shortlinks {
+		err = deleteShortLink(link)
+		if err != nil {
+			return nil, err
+		}
+	}
 	_, err = userCollection.DeleteOne(ctxMongo, bson.M{
 		"_id": id,
 	})
 	if err != nil {
 		return nil, err
 	}
+
 	return userData, nil
 }
 
@@ -216,7 +231,14 @@ func rootMutation() *graphql.Object {
 						postElasticIndex = projectElasticIndex
 						postElasticType = projectElasticType
 					}
+					id := primitive.NewObjectID()
+					idstring := id.Hex()
+					shortlink, err := generateShortLink(websiteURL + "/" + thetype + "?id=" + idstring)
+					if err != nil {
+						return nil, err
+					}
 					postData := bson.M{
+						"_id":        id,
 						"title":      title,
 						"caption":    caption,
 						"content":    content,
@@ -230,13 +252,12 @@ func rootMutation() *graphql.Object {
 						"images":     images,
 						"files":      files,
 						"comments":   []string{},
+						"shortlink":  shortlink,
 					}
-					res, err := mongoCollection.InsertOne(ctxMongo, postData)
+					_, err = mongoCollection.InsertOne(ctxMongo, postData)
 					if err != nil {
 						return nil, err
 					}
-					id := res.InsertedID.(primitive.ObjectID)
-					idstring := id.Hex()
 					timestamp := objectidtimestamp(id)
 					postData["date"] = timestamp.Unix()
 					_, err = elasticClient.Index().
@@ -582,6 +603,10 @@ func rootMutation() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
+					err = deleteShortLink(postData["shortLink"].(string))
+					if err != nil {
+						return nil, err
+					}
 					heroimageid, ok := postData["heroimage"].(string)
 					if !ok {
 						return nil, errors.New("cannot convert heroimage to string")
@@ -648,6 +673,119 @@ func rootMutation() *graphql.Object {
 						return nil, err
 					}
 					return postData, nil
+				},
+			},
+			"addShortlink": &graphql.Field{
+				Type:        ShortLinkType,
+				Description: "Add Short Link",
+				Args: graphql.FieldConfigArgument{
+					"link": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
+				},
+				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+					claims, err := validateLoggedIn(params.Context.Value(tokenKey).(string))
+					if err != nil {
+						return nil, err
+					}
+					idstring, ok := claims["id"].(string)
+					if !ok {
+						return nil, errors.New("cannot cast id to string")
+					}
+					id, err := primitive.ObjectIDFromHex(idstring)
+					if err != nil {
+						return nil, err
+					}
+					if params.Args["link"] == nil {
+						return nil, errors.New("link not provided")
+					}
+					linkstring, ok := params.Args["link"].(string)
+					if !ok {
+						return nil, errors.New("cannot cast link to string")
+					}
+					if params.Args["recaptcha"] == nil {
+						return nil, errors.New("recaptcha not provided")
+					}
+					recaptchastring, ok := params.Args["recaptcha"].(string)
+					if !ok {
+						return nil, errors.New("cannot cast recaptcha to string")
+					}
+					err = verifyRecaptcha(recaptchastring, shortlinkRecaptchaSecret)
+					if err != nil {
+						return nil, err
+					}
+					linkid, err := generateShortLink(linkstring)
+					if err != nil {
+						return nil, err
+					}
+					_, err = userCollection.UpdateOne(ctxMongo, bson.M{
+						"_id": id,
+					}, bson.M{
+						"$push": bson.M{
+							"shortlinks": linkid,
+						},
+					})
+					if err != nil {
+						return nil, err
+					}
+					shortLinkData := bson.M{
+						"id":   linkid,
+						"link": linkstring,
+					}
+					return shortLinkData, nil
+				},
+			},
+			"removeShortlink": &graphql.Field{
+				Type:        ShortLinkType,
+				Description: "Remove Short Link",
+				Args: graphql.FieldConfigArgument{
+					"linkid": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
+				},
+				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+					claims, err := validateLoggedIn(params.Context.Value(tokenKey).(string))
+					if err != nil {
+						return nil, err
+					}
+					idstring, ok := claims["id"].(string)
+					if !ok {
+						return nil, errors.New("cannot cast id to string")
+					}
+					id, err := primitive.ObjectIDFromHex(idstring)
+					if err != nil {
+						return nil, err
+					}
+					if params.Args["linkid"] == nil {
+						return nil, errors.New("link not provided")
+					}
+					linkid, ok := params.Args["linkid"].(string)
+					if !ok {
+						return nil, errors.New("cannot cast linkid to string")
+					}
+					shortLink, err := getShortLink(linkid)
+					if err != nil {
+						return nil, err
+					}
+					err = deleteShortLink(linkid)
+					if err != nil {
+						return nil, err
+					}
+					_, err = userCollection.UpdateOne(ctxMongo, bson.M{
+						"_id": id,
+					}, bson.M{
+						"$pull": bson.M{
+							"shortlinks": linkid,
+						},
+					})
+					if err != nil {
+						return nil, err
+					}
+					shortLinkData := bson.M{
+						"id":   linkid,
+						"link": shortLink,
+					}
+					return shortLinkData, nil
 				},
 			},
 			"deleteUser": &graphql.Field{

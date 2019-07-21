@@ -1,6 +1,6 @@
 <template>
   <div id="tiles" class="mb-5">
-    <b-card-group v-if="shownPosts.length > 0" deck>
+    <b-card-group v-if="!loading" deck>
       <no-ssr>
         <button
           v-for="(postval, index) in shownPosts"
@@ -69,7 +69,8 @@ export default Vue.extend({
   data() {
     return {
       imgUrl: cloudStorageURLs.posts,
-      shownPosts: []
+      shownPosts: [],
+      loading: true
     }
   },
   async mounted() {
@@ -107,6 +108,7 @@ export default Vue.extend({
     async updateShownPosts() {
       if (this.count === 0) {
         this.shownPosts = []
+        this.loading = false
         return
       }
       const endpage = Math.ceil(this.count / this.$store.state.tiles.perpage)
@@ -116,6 +118,7 @@ export default Vue.extend({
         }
       }
       this.shownPosts = this.allPosts
+      this.loading = false
     },
     updateCount() {
       console.log(`got type ${this.type}`)

@@ -1,0 +1,4 @@
+User-agent: * 
+Disallow: /admin/*
+Disallow: /calliback/*
+Sitemap: https://joshuashort.ml/sitemap.xml

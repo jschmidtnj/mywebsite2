@@ -65,12 +65,12 @@ class NavState extends State<Nav> {
       bottomNavigationBar: BottomNavBar(
         index: index,
         callback: (newIndex) => setState(
-              () {
-                index = newIndex;
-                viewPost = false;
-                print('new index $index');
-              },
-            ),
+          () {
+            index = newIndex;
+            viewPost = false;
+            print('new index $index');
+          },
+        ),
       ),
     );
   }

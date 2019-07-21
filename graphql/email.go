@@ -4,14 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
-	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/sendgrid/rest"
-	"github.com/sendgrid/sendgrid-go"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/PuerkitoBio/goquery"
+	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/sendgrid/rest"
+	"github.com/sendgrid/sendgrid-go"
 )
 
 var sendEmail = "noreply@joshuaschmidt.tech"
@@ -132,7 +133,7 @@ func sendPasswordResetEmail(response http.ResponseWriter, request *http.Request)
 		handleError("recaptcha token cannot be cast to string", http.StatusBadRequest, response)
 		return
 	}
-	err = verifyRecaptcha(recaptchatoken)
+	err = verifyRecaptcha(recaptchatoken, mainRecaptchaSecret)
 	if err != nil {
 		handleError("recaptcha error: "+err.Error(), http.StatusUnauthorized, response)
 		return
