@@ -26,8 +26,10 @@
 
 <script lang="ts">
 import Vue from 'vue'
-const mainurl = process.env.mainurl
-const currenturl = JSON.parse(process.env.seoconfig).url
+const mainurl = process.env.mainurl ? process.env.mainurl : ''
+const currenturl = process.env.seoconfig
+  ? JSON.parse(process.env.seoconfig).url
+  : ''
 const redirecturl = encodeURIComponent(`${currenturl}/callback`)
 export default Vue.extend({
   name: 'Navbar',
@@ -39,7 +41,7 @@ export default Vue.extend({
   },
   computed: {
     loggedin() {
-      return this.$auth.user
+      return this.$store.state.auth.loggedIn
     }
   }
 })

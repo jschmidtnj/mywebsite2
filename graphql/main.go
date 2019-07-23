@@ -112,6 +112,8 @@ var mainRecaptchaSecret string
 
 var shortlinkRecaptchaSecret string
 
+var shortlinkURL string
+
 var mode string
 
 // var mediumClient *medium.Medium
@@ -231,6 +233,7 @@ func main() {
 	}
 	mainRecaptchaSecret = os.Getenv("MAINRECAPTCHASECRET")
 	shortlinkRecaptchaSecret = os.Getenv("SHORTLINKRECAPTCHASECRET")
+	shortlinkURL = os.Getenv("SHORTLINKURL")
 	/*
 		mediumAccessToken := os.Getenv("MEDIUMACCESSTOKEN")
 		mediumClient = medium.NewClientWithAccessToken(mediumAccessToken)

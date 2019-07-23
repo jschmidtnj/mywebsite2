@@ -1,69 +1,71 @@
 <template>
   <div id="tiles" class="mb-5">
-    <b-button
-      variant="primary"
-      :disabled="count <= perpage"
-      @click="
-        evt => {
-          evt.preventDefault()
-          changePage(true)
-        }
-      "
-      >Forward</b-button
-    >
-    <b-button
-      variant="primary"
-      :disabled="count <= perpage"
-      @click="
-        evt => {
-          evt.preventDefault()
-          changePage(false)
-        }
-      "
-      >Backwards</b-button
-    >
-    <b-card-group v-if="!loading" deck>
-      <no-ssr>
-        <button
-          v-for="(postval, index) in shownPosts"
-          :key="`tile-${index}`"
-          class="button-link"
-          @click="
-            evt => {
-              evt.preventDefault()
-              navigate(postval.id)
-            }
-          "
-        >
-          <b-card class="tile" no-body>
-            <b-card-body class="tile zoom">
-              <b-card-img-lazy
-                :src="
-                  `${imgUrl}/${
-                    type === 'blog' ? 'blogimages' : 'projectimages'
-                  }/${encodeURI(postval.tileimage)}/original`
-                "
-                :blank-src="
-                  `${imgUrl}/${
-                    type === 'blog' ? 'blogimages' : 'projectimages'
-                  }/${encodeURI(postval.tileimage)}/blur`
-                "
-                :alt="postval.title"
-                class="tile-img"
-              />
-              <b-container>
-                <b-card-title>
-                  {{ postval.title }}
-                </b-card-title>
-                <b-card-sub-title>
-                  {{ postval.caption }}
-                </b-card-sub-title>
-              </b-container>
-            </b-card-body>
-          </b-card>
-        </button>
-      </no-ssr>
-    </b-card-group>
+    <div v-if="!loading" id="tile-data">
+      <b-button
+        variant="primary"
+        :disabled="count <= perpage"
+        @click="
+          evt => {
+            evt.preventDefault()
+            changePage(true)
+          }
+        "
+        >Forward</b-button
+      >
+      <b-button
+        variant="primary"
+        :disabled="count <= perpage"
+        @click="
+          evt => {
+            evt.preventDefault()
+            changePage(false)
+          }
+        "
+        >Backwards</b-button
+      >
+      <b-card-group deck>
+        <no-ssr>
+          <button
+            v-for="(postval, index) in shownPosts"
+            :key="`tile-${index}`"
+            class="button-link"
+            @click="
+              evt => {
+                evt.preventDefault()
+                navigate(postval.id)
+              }
+            "
+          >
+            <b-card class="tile" no-body>
+              <b-card-body class="tile zoom">
+                <b-card-img-lazy
+                  :src="
+                    `${imgUrl}/${
+                      type === 'blog' ? 'blogimages' : 'projectimages'
+                    }/${encodeURI(postval.tileimage)}/original`
+                  "
+                  :blank-src="
+                    `${imgUrl}/${
+                      type === 'blog' ? 'blogimages' : 'projectimages'
+                    }/${encodeURI(postval.tileimage)}/blur`
+                  "
+                  :alt="postval.title"
+                  class="tile-img"
+                />
+                <b-container>
+                  <b-card-title>
+                    {{ postval.title }}
+                  </b-card-title>
+                  <b-card-sub-title>
+                    {{ postval.caption }}
+                  </b-card-sub-title>
+                </b-container>
+              </b-card-body>
+            </b-card>
+          </button>
+        </no-ssr>
+      </b-card-group>
+    </div>
     <loading v-else />
     <!-- need arrow right and left from fontawesome, and start in the middle
     then if you move too far to one side, query for more posts and save the

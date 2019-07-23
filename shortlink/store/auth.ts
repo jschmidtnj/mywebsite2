@@ -6,7 +6,8 @@ import * as jwt from 'jsonwebtoken'
 
 export const state = () => ({
   token: null,
-  user: null
+  user: null,
+  loggedIn: false
 })
 
 export const getters = {

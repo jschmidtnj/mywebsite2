@@ -3,13 +3,13 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"github.com/graphql-go/graphql"
-	"github.com/rs/xid"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+
+	"github.com/graphql-go/graphql"
+	"github.com/rs/xid"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // AccountType account type object for user accounts graphql
@@ -112,15 +112,7 @@ func getShortLink(idstring string) (string, error) {
 	return idstrings[0], nil
 }
 
-func getShortLinks(idstrings []string) ([]string, error) {
-	ids := make([]primitive.ObjectID, len(idstrings))
-	for i, idstring := range idstrings {
-		id, err := primitive.ObjectIDFromHex(idstring)
-		if err != nil {
-			return nil, err
-		}
-		ids[i] = id
-	}
+func getShortLinks(ids []string) ([]string, error) {
 	cursor, err := shortLinkCollection.Find(ctxMongo, bson.M{
 		"_id": bson.M{
 			"$in": ids,
@@ -155,12 +147,12 @@ func getShortLinks(idstrings []string) ([]string, error) {
 func shortLinkRedirect(response http.ResponseWriter, request *http.Request) {
 	id := request.URL.Query().Get("id")
 	if len(id) != 20 {
-		handleError("error getting valid id from query", http.StatusBadRequest, response)
+		http.Redirect(response, request, shortlinkURL+"/404", 301)
 		return
 	}
 	fullLink, err := getShortLink(id)
 	if err != nil {
-		handleError(err.Error(), http.StatusBadRequest, response)
+		http.Redirect(response, request, shortlinkURL+"/404", 301)
 		return
 	}
 	http.Redirect(response, request, fullLink, 301)
