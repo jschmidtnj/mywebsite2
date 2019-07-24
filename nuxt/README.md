@@ -44,6 +44,8 @@ $ firebase deploy
 
 `now secret add key value`
 
+add secret without escaped characters in json
+
 ## Git Cheat sheet
 
 ``` bash
