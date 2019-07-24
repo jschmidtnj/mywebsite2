@@ -7,7 +7,7 @@ const mainurl = process.env.MAINURL
 const recaptchasitekey = process.env.RECAPTCHASITEKEY
 
 module.exports = {
-  mode: 'universal',
+  mode: 'spa',
 
   globalName: 'Joshua Short',
 

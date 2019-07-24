@@ -682,6 +682,9 @@ func rootMutation() *graphql.Object {
 					"link": &graphql.ArgumentConfig{
 						Type: graphql.String,
 					},
+					"recaptcha": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
 				},
 				Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 					claims, err := validateLoggedIn(params.Context.Value(tokenKey).(string))

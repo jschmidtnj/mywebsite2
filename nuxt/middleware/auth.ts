@@ -1,10 +1,25 @@
+/* eslint-disable */
+
 export default ({ store, redirect }) => {
-  console.log(`auth: ${JSON.stringify(store.state.auth)}`)
-  if (store.state.auth && store.state.auth.loggedIn 
-      && store.state.auth.user.emailverified) {
-    console.log('signed in')
-  } else {
-    console.log('not signed in')
-    redirect('/login')
-  }
+  return new Promise((resolve, reject) => {
+    if (!store.state.auth) {
+      redirect('/login')
+    } else {
+      store.dispatch('auth/checkLoggedIn').then(loggedin => {
+        if (!loggedin) {
+          redirect('/login')
+        } else if (!store.state.auth.user) {
+          store.dispatch('auth/getUser').then(res => {
+            resolve()
+          }).catch(err => {
+            redirect('/login')
+          })
+        } else {
+          resolve()
+        }
+      }).catch(err => {
+        redirect('/login')
+      })
+    }
+  })
 }

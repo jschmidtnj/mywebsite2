@@ -2,13 +2,12 @@ const pkg = require('./package')
 require('dotenv').config()
 
 const seodata = JSON.parse(process.env.SEOCONFIG)
-const authdata = JSON.parse(process.env.AUTHCONFIG)
 const apiurl = process.env.APIURL
 const ampurl = process.env.AMPURL
 const recaptchasitekey = process.env.RECAPTCHASITEKEY
 
 module.exports = {
-  mode: 'universal',
+  mode: 'spa',
 
   globalName: 'Joshua Schmidt',
 
@@ -100,48 +99,8 @@ module.exports = {
     '@nuxtjs/style-resources',
     '@nuxtjs/dotenv',
     '@nuxtjs/sitemap',
-    '@nuxtjs/google-analytics',
-    '@nuxtjs/auth'
+    '@nuxtjs/google-analytics'
   ],
-
-  /*
-   ** auth config
-   */
-  auth: {
-    strategies: {
-      local: {
-        endpoints: {
-          login: {
-            url: '/loginEmailPassword',
-            method: 'put',
-            propertyName: 'token'
-          },
-          user: {
-            url: '/graphql',
-            method: 'get',
-            params: {
-              query: '{account{id email type emailverified}}'
-            },
-            propertyName: 'data.account'
-          },
-          logout: {
-            url: '/logoutEmailPassword',
-            method: 'put'
-          }
-        }
-      },
-      google: {
-        client_id: authdata.google.client_id
-      }
-    },
-    redirect: {
-      callback: '/callback',
-      logout: '/login',
-      login: '/login',
-      home: '/account'
-    },
-    resetOnError: true
-  },
 
   /*
    ** google analytics config

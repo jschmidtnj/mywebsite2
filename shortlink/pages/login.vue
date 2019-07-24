@@ -5,9 +5,9 @@
 <script lang="ts">
 import Vue from 'vue'
 export default Vue.extend({
-  name: 'Callback',
+  name: 'Login',
   // @ts-ignore
-  middleware: 'callback',
+  middleware: 'login',
   layout: 'redirect'
 })
 </script>

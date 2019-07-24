@@ -1,15 +1,16 @@
 /* eslint-disable */
 
 export default ({ store, redirect, query }) => {
-  if (query && query.token) {
-    store.dispatch('auth/setToken', query.token).then(res => {
-      console.log(res)
-    }).catch(err => {
-      console.log(err)
+  return new Promise((resolve, reject) => {
+    if (query && query.token) {
+      store.commit('auth/setToken', query.token)
+      store.dispatch('auth/getUser').then(res => {
+        redirect('/account')
+      }).catch(err => {
+        redirect('/')
+      })
+    } else {
       redirect('/')
-    })
-  } else {
-    console.log('no token found')
-    redirect('/')
-  }
+    }
+  })
 }

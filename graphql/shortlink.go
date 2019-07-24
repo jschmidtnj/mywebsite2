@@ -80,11 +80,15 @@ func createShortLink(response http.ResponseWriter, request *http.Request) {
 func generateShortLink(link string) (string, error) {
 	guid := xid.New()
 	id := guid.String()
+	decodedLink, err := url.QueryUnescape(link)
+	if err != nil {
+		return "", err
+	}
 	shortLinkData := bson.M{
 		"_id":  id,
-		"link": link,
+		"link": decodedLink,
 	}
-	_, err := shortLinkCollection.InsertOne(ctxMongo, shortLinkData)
+	_, err = shortLinkCollection.InsertOne(ctxMongo, shortLinkData)
 	if err != nil {
 		return "", err
 	}
@@ -120,7 +124,7 @@ func getShortLinks(ids []string) ([]string, error) {
 	})
 	defer cursor.Close(ctxMongo)
 	if err != nil {
-		return nil, errors.New("no link data found")
+		return nil, errors.New("error: " + err.Error())
 	}
 	fullLinks := make([]string, 0)
 	var foundstuff = false
@@ -139,7 +143,7 @@ func getShortLinks(ids []string) ([]string, error) {
 		fullLinks = append(fullLinks, fullLink)
 	}
 	if !foundstuff {
-		return nil, errors.New("no link data found")
+		return fullLinks, nil
 	}
 	return fullLinks, nil
 }
@@ -155,5 +159,6 @@ func shortLinkRedirect(response http.ResponseWriter, request *http.Request) {
 		http.Redirect(response, request, shortlinkURL+"/404", 301)
 		return
 	}
+	logger.Info("got link " + fullLink)
 	http.Redirect(response, request, fullLink, 301)
 }

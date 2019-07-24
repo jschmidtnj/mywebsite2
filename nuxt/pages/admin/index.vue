@@ -1,7 +1,7 @@
 <template>
   <div>
     <p>Admin Page</p>
-    <b-btn block @click="$auth.logout()">Logout</b-btn>
+    <b-btn block @click="logout">Logout</b-btn>
   </div>
 </template>
 
@@ -9,7 +9,16 @@
 import Vue from 'vue'
 export default Vue.extend({
   // @ts-ignore
-  layout: 'admin'
+  layout: 'admin',
+  methods: {
+    logout(evt) {
+      evt.preventDefault()
+      this.$store.commit('auth/logout')
+      this.$router.push({
+        path: '/login'
+      })
+    }
+  }
 })
 </script>
 

@@ -56,16 +56,20 @@ export default Vue.extend({
     if (this.$route.query && this.$route.query.id) {
       this.id = this.$route.query.id
       // update document amphtml for spa
-      // @ts-ignore
-      document.head.querySelector(
-        "link[rel='amphtml']"
-      // @ts-ignore
-      ).href = `${ampurl}/blog/${this.id}`
-      // @ts-ignore
-      document.head.querySelector(
-        "link[rel='canonical']"
-      // @ts-ignore
-      ).href = `${seo.url}/blog?id=${this.$route.query.id}`
+      try {
+        // @ts-ignore
+        document.head.querySelector(
+          "link[rel='amphtml']"
+        // @ts-ignore
+        ).href = `${ampurl}/blog/${this.id}`
+        // @ts-ignore
+        document.head.querySelector(
+          "link[rel='canonical']"
+        // @ts-ignore
+        ).href = `${seo.url}/blog?id=${this.$route.query.id}`
+      } catch(err) {
+        console.log(err)
+      }
       this.$axios
         .get('/graphql', {
           params: {
@@ -123,6 +127,7 @@ export default Vue.extend({
       : validTypes.includes(this.type)
       ? this.type
       : 'Post'
+    console.log('update head now')
     return {
       title: title,
       link: [

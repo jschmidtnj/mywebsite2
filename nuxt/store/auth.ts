@@ -23,23 +23,6 @@ export const mutations = {
   setUser(state, payload) {
     state.user = payload
   },
-  updateUser(state, payload) {
-    let schema = state.user
-    const pList = payload.path.split('.')
-    const len = pList.length
-    for (let i = 0; i < len - 1; i++) {
-      const elem = pList[i]
-      if (!schema[elem]) schema[elem] = {}
-      schema = schema[elem]
-    }
-    if (
-      payload.value && payload.value === 'DELETE'
-    ) {
-      delete schema[pList[len - 1]]
-    } else {
-      schema[pList[len - 1]] = payload.value
-    }
-  },
   setLoggedIn(state, payload) {
     state.loggedIn = payload
   },
@@ -54,10 +37,8 @@ export const actions = {
   checkLoggedIn({state, commit}) {
     let res = true
     try {
-      const decoded = jwt.decode(state.token, {
-        complete: true
-      })
-      if (Date.now() >= decoded.exp * 1000) {
+      const { exp } = jwt.decode(state.token)
+      if (Date.now() >= exp * 1000) {
         res = false
       }
     } catch (err) {
@@ -65,6 +46,35 @@ export const actions = {
     }
     commit('setLoggedIn', res)
     return res
+  },
+  async loginLocal({ commit }, payload) {
+    return new Promise((resolve, reject) => {
+      this.$axios.put('/loginEmailPassword', {
+        email: payload.email,
+        password: payload.password,
+        recaptcha: payload.recaptcha
+      }).then(res => {
+        if (res.status === 200) {
+          if (res.data) {
+            if (res.data.token) {
+              resolve(res.data.token)
+            } else {
+              reject('could not find token data')
+            }
+          } else {
+            reject('could not get data')
+          }
+        } else {
+          reject(`status code of ${res.status}`)
+        }
+      }).catch(err => {
+        let message = `got error: ${err}`
+        if (err.response && err.response.data) {
+          message = err.response.data.message
+        }
+        reject(message)
+      })
+    })
   },
   async getUser({ state, commit }) {
     return new Promise((resolve, reject) => {

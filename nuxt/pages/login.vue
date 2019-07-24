@@ -1,7 +1,6 @@
 <template>
   <div>
     <b-card title="Login" footer-tag="footer">
-      <!--b-btn block @click="logingoogle">Login with Google</b-btn-->
       <b-form @submit="loginlocal">
         <b-form-group
           id="email-address-group"
@@ -159,62 +158,49 @@ export default Vue.extend({
     }
   },
   methods: {
-    logingoogle(evt) {
-      evt.preventDefault()
-      /* eslint-disable */
-      this.$auth.loginWith('google').catch(e => {
-        console.log(e)
-      })
-    },
-    loginSuccess(token) {
-      this.$toasted.global.success({
-        message: 'logged in'
-      })
-      if (!this.redirect_uri) {
-        this.$router.push({
-          path: '/account'
-        })
-      } else {
-        this.redirect_uri += `?token=${token}`
-        if (
-          this.redirect_uri.indexOf('https://') === 0 ||
-          this.redirect_uri.indexOf('http://') === 0
-        ) {
-          window.location.replace(this.redirect_uri)
-        } else if (this.redirect_uri.indexOf('/') === 0) {
-          this.$router.push({
-            path: this.redirect_uri
-          })
-        } else {
-          this.$toasted.global.error({
-            message: 'invalid url redirect'
-          })
-        }
-      }
-    },
     loginlocal(evt) {
       evt.preventDefault()
       this.$recaptcha('login')
         .then(recaptchatoken => {
+          /* eslint-disable */
           console.log(`got recaptcha token ${recaptchatoken}`)
-          this.$auth
-            .loginWith('local', {
-              data: {
-                email: this.form.email,
-                password: this.form.password,
-                recaptcha: recaptchatoken
-              }
+          this.$store
+            .dispatch('auth/loginLocal', {
+              email: this.form.email,
+              password: this.form.password,
+              recaptcha: recaptchatoken
             })
-            .then(() => {
-              this.loginSuccess(token)
+            .then(token => {
+              this.$toasted.global.success({
+                message: 'logged in'
+              })
+              if (!this.redirect_uri) {
+                this.$store.commit('auth/setToken', token)
+                this.$router.push({
+                  path: '/account'
+                })
+              } else {
+                this.redirect_uri += `?token=${token}`
+                if (
+                  this.redirect_uri.indexOf('https://') === 0 ||
+                  this.redirect_uri.indexOf('http://') === 0
+                ) {
+                  window.location.replace(this.redirect_uri)
+                } else if (this.redirect_uri.indexOf('/') === 0) {
+                  this.$store.commit('auth/setToken', token)
+                  this.$router.push({
+                    path: this.redirect_uri
+                  })
+                } else {
+                  this.$toasted.global.error({
+                    message: 'invalid url redirect'
+                  })
+                }
+              }
             })
             .catch(err => {
-              let message = `got error: ${err}`
-              if (err.response && err.response.data) {
-                message = err.response.data.message
-              }
               this.$toasted.global.error({
-                message: message
+                message: err
               })
             })
         })

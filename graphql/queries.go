@@ -127,10 +127,10 @@ func rootQuery() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
-					if params.Args["shortlinks"] == nil {
-						return nil, errors.New("no shortlinks argument found")
+					if params.Args["linkids"] == nil {
+						return nil, errors.New("no linkids argument found")
 					}
-					shortlinkidsInterface, ok := params.Args["shortlinks"].([]interface{})
+					shortlinkidsInterface, ok := params.Args["linkids"].([]interface{})
 					if !ok {
 						return nil, errors.New("unable to cast shortlinks to array")
 					}
@@ -142,7 +142,14 @@ func rootQuery() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
-					return shortlinks, nil
+					shortlinkObjects := make([]bson.M, len(shortlinks))
+					for i, shortlink := range shortlinks {
+						shortlinkObjects[i] = bson.M{
+							"id":   shortlinkids[i],
+							"link": shortlink,
+						}
+					}
+					return shortlinkObjects, nil
 				},
 			},
 			"posts": &graphql.Field{

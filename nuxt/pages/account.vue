@@ -1,7 +1,8 @@
 <template>
   <b-card title="Account Page">
-    <p>user: {{ $auth.user }}</p>
-    <b-btn @click="$auth.logout()">Logout</b-btn>
+    <p>user: {{ this.$store.state.auth.user }}</p>
+    <p>token: {{ this.$store.state.auth.token }}</p>
+    <b-btn @click="logout">Logout</b-btn>
     <b-btn @click="deleteAccount">Delete</b-btn>
   </b-card>
 </template>
@@ -18,6 +19,13 @@ export default Vue.extend({
     }
   },
   methods: {
+    logout(evt) {
+      evt.preventDefault()
+      this.$store.commit('auth/logout')
+      this.$router.push({
+        path: '/login'
+      })
+    },
     deleteAccount(evt) {
       evt.preventDefault()
       this.$axios

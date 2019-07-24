@@ -1,6 +1,13 @@
 <template>
   <b-card>
-    <b-table striped hover :items="shortlinks" :fields="fields"></b-table>
+    <b-table
+      striped
+      hover
+      :items="shortlinks"
+      :fields="fields"
+      :show-empty="true"
+      empty-text="no links found"
+    ></b-table>
   </b-card>
 </template>
 
@@ -36,16 +43,23 @@ export default Vue.extend({
       this.$axios
         .get('/graphql', {
           params: {
-            query: `{shortlinks(linkids:${encodeURIComponent(
+            query: `{shortlinks(linkids:${JSON.stringify(
               this.$store.state.auth.user.shortlinks
-            )}){link id}}`
+            )}){link}}`
           }
         })
         .then(res => {
           if (res.status === 200) {
             if (res.data) {
               if (res.data.data && res.data.data.shortlinks) {
-                this.shortlinks = res.data.data.shortlinks
+                const shortlinks = []
+                for (let i = 0; i < res.data.data.shortlinks.length; i++) {
+                  shortlinks.push({
+                    id: this.$store.state.auth.user.shortlinks[i],
+                    link: decodeURIComponent(res.data.data.shortlinks[i].link)
+                  })
+                }
+                this.shortlinks = shortlinks
               } else if (res.data.errors) {
                 this.$toasted.global.error({
                   message: `found errors: ${JSON.stringify(res.data.errors)}`
@@ -75,10 +89,6 @@ export default Vue.extend({
             message: message
           })
         })
-    } else {
-      this.$toasted.global.error({
-        message: `no shortlink ids found`
-      })
     }
   }
 })

@@ -39,9 +39,7 @@
       <a href="https://policies.google.com/privacy">Privacy Policy</a> and
       <a href="https://policies.google.com/terms">Terms of Service</a> apply.
     </p>
-    <p v-if="shortlink">
-      {{ `${currenturl}/${shortlink}` }}
-    </p>
+    <p v-if="shortlink">{{ `${currenturl}/${shortlink}` }}</p>
   </b-card>
 </template>
 
@@ -92,84 +90,101 @@ export default Vue.extend({
         .then(recaptchatoken => {
           console.log(`got recaptcha token ${recaptchatoken}`)
           if (this.$store.state.auth && this.$store.state.auth.loggedIn) {
-        this.$axios.post('/graphql', {}, {
-          params: {
-            query: `mutation{addShortlink(link:"${encodeURIComponent(this.form.link)}",recaptcha:"${encodeURIComponent(recaptchatoken)}"){id}}`
-          }
-        })
-        .then(res => {
-          if (res.status === 200) {
-            if (res.data) {
-              if (res.data.data && res.data.data.addShortlink) {
-                this.shortlink = res.data.data.addShortlink.id
-                console.log(`short link ${this.shortlink}`)
-                this.$toasted.global.success({
-                  message: 'created short link'
-                })
-              } else if (res.data.errors) {
-                this.$toasted.global.error({
-                  message: `found errors: ${JSON.stringify(res.data.errors)}`
-                })
-              } else {
-                this.$toasted.global.error({
-                  message: 'could not find data or errors'
-                })
-              }
-            } else {
-              this.$toasted.global.error({
-                message: 'could not get data'
+            console.log('user logged in')
+            this.$axios
+              .post(
+                '/graphql',
+                {},
+                {
+                  params: {
+                    query: `mutation{addShortlink(link:"${encodeURIComponent(
+                      this.form.link
+                    )}",recaptcha:"${encodeURIComponent(recaptchatoken)}"){id}}`
+                  }
+                }
+              )
+              .then(res => {
+                if (res.status === 200) {
+                  if (res.data) {
+                    if (res.data.data && res.data.data.addShortlink) {
+                      this.shortlink = res.data.data.addShortlink.id
+                      this.$toasted.global.success({
+                        message: 'created short link'
+                      })
+                      const newShortlinks = [...this.$store.state.auth.user.shortlinks]
+                      newShortlinks.push(this.shortlink)
+                      this.$store.commit('auth/updateUser', {
+                        path: 'shortlinks',
+                        value: newShortlinks
+                      })
+                    } else if (res.data.errors) {
+                      this.$toasted.global.error({
+                        message: `found errors: ${JSON.stringify(
+                          res.data.errors
+                        )}`
+                      })
+                    } else {
+                      this.$toasted.global.error({
+                        message: 'could not find data or errors'
+                      })
+                    }
+                  } else {
+                    this.$toasted.global.error({
+                      message: 'could not get data'
+                    })
+                  }
+                } else {
+                  this.$toasted.global.error({
+                    message: `status code of ${res.status}`
+                  })
+                }
               })
-            }
+              .catch(err => {
+                let message = `got error: ${err}`
+                if (err.response && err.response.data) {
+                  message = err.response.data.message
+                }
+                this.$toasted.global.error({
+                  message: message
+                })
+              })
           } else {
-            this.$toasted.global.error({
-              message: `status code of ${res.status}`
-            })
+            this.$axios
+              .post('/createShortLink', {
+                link: encodeURIComponent(this.form.link),
+                recaptcha: recaptchatoken
+              })
+              .then(res => {
+                if (res.status === 200) {
+                  if (res.data) {
+                    this.shortlink = res.data.id
+                    console.log(`short link ${this.shortlink}`)
+                    this.$toasted.global.success({
+                      message: 'created short link'
+                    })
+                  } else {
+                    this.$toasted.global.error({
+                      message: 'could not get data'
+                    })
+                  }
+                } else {
+                  this.$toasted.global.error({
+                    message: `status code of ${res.status}`
+                  })
+                }
+              })
+              .catch(err => {
+                let message = `got error: ${err}`
+                if (err.response && err.response.data) {
+                  message = err.response.data.message
+                }
+                this.$toasted.global.error({
+                  message: message
+                })
+              })
           }
         })
         .catch(err => {
-          let message = `got error: ${err}`
-          if (err.response && err.response.data) {
-            message = err.response.data.message
-          }
-          this.$toasted.global.error({
-            message: message
-          })
-        })
-      } else {
-        this.$axios.post('/createShortLink', {
-          link: this.form.link,
-          recaptcha: recaptchatoken
-        })
-        .then(res => {
-          if (res.status === 200) {
-            if (res.data) {
-              this.shortlink = res.data.id
-              console.log(`short link ${this.shortlink}`)
-              this.$toasted.global.success({
-                message: 'created short link'
-              })
-            } else {
-              this.$toasted.global.error({
-                message: 'could not get data'
-              })
-            }
-          } else {
-            this.$toasted.global.error({
-              message: `status code of ${res.status}`
-            })
-          }
-        })
-        .catch(err => {
-          let message = `got error: ${err}`
-          if (err.response && err.response.data) {
-            message = err.response.data.message
-          }
-          this.$toasted.global.error({
-            message: message
-          })
-        })
-      }
-        }).catch(err => {
           this.$toasted.global.error({
             message: `got error with recaptcha ${err}`
           })

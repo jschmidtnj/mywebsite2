@@ -16,7 +16,7 @@
             <em>User</em>
           </template>
           <b-dropdown-item href="/account">Profile</b-dropdown-item>
-          <b-dropdown-item href="#" @click="$auth.logout()">
+          <b-dropdown-item href="#" @click="logout">
             Sign Out
           </b-dropdown-item>
         </b-nav-item-dropdown>
@@ -34,7 +34,20 @@ export default Vue.extend({
   },
   computed: {
     loggedin() {
-      return this.$auth.user
+      return this.$store.state.auth && this.$store.state.auth.loggedIn
+    }
+  },
+  methods: {
+    logout(evt) {
+      /* eslint-disable */
+      evt.preventDefault()
+      this.$store.commit('auth/logout')
+      console.log(`layout name ${this.$nuxt.$data.layoutName}`)
+      if (this.$nuxt.$data.layoutName === 'secure') {
+        this.$router.push({
+          path: '/login'
+        })
+      }
     }
   }
 })

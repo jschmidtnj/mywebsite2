@@ -1,6 +1,6 @@
 <template>
   <div>
-    <admin-navbar v-if="$auth.user && $auth.user.type === 'admin'" />
+    <admin-navbar v-if="admin" />
     <nuxt />
   </div>
 </template>
@@ -14,6 +14,15 @@ export default Vue.extend({
   middleware: 'auth',
   components: {
     AdminNavbar
+  },
+  computed: {
+    admin() {
+      return (
+        this.$store.state.auth &&
+        this.$store.state.auth.user &&
+        this.$store.state.auth.user.type === 'admin'
+      )
+    }
   }
 })
 </script>
