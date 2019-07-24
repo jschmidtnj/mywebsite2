@@ -26,9 +26,6 @@ var ShortLinkType *graphql.Object = graphql.NewObject(graphql.ObjectConfig{
 })
 
 func createShortLink(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(&response, request) {
-		return
-	}
 	if request.Method != http.MethodPost {
 		handleError("short link http method not POST", http.StatusBadRequest, response)
 		return

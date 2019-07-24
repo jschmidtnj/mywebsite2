@@ -34,6 +34,7 @@ require (
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/ramya-rao-a/go-outline v0.0.0-20181122025142-7182a932836a // indirect
 	github.com/rogpeppe/godef v1.1.1 // indirect
+	github.com/rs/cors v1.6.0 // indirect
 	github.com/rs/xid v1.2.1
 	github.com/sendgrid/rest v2.4.1+incompatible
 	github.com/sendgrid/sendgrid-go v3.4.1+incompatible

@@ -85,9 +85,6 @@ func verifyRecaptcha(recaptchaToken string, recaptchaSecret string) error {
  * @apiGroup authentication
  */
 func register(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(&response, request) {
-		return
-	}
 	if request.Method != http.MethodPost {
 		handleError("register http method not POST", http.StatusBadRequest, response)
 		return
@@ -178,9 +175,6 @@ func register(response http.ResponseWriter, request *http.Request) {
  * @apiGroup authentication
  */
 func loginEmailPassword(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(&response, request) {
-		return
-	}
 	if request.Method != http.MethodPut {
 		handleError("login http method not PUT", http.StatusBadRequest, response)
 		return
@@ -281,9 +275,6 @@ func loginEmailPassword(response http.ResponseWriter, request *http.Request) {
  * @apiGroup authentication
  */
 func logoutEmailPassword(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(&response, request) {
-		return
-	}
 	if request.Method != http.MethodPut {
 		handleError("logout http method not PUT", http.StatusBadRequest, response)
 		return
@@ -298,9 +289,6 @@ func logoutEmailPassword(response http.ResponseWriter, request *http.Request) {
 }
 
 func verifyEmail(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(&response, request) {
-		return
-	}
 	if request.Method != http.MethodPost {
 		handleError("verify http method not POST", http.StatusBadRequest, response)
 		return
@@ -412,9 +400,6 @@ func verifyEmail(response http.ResponseWriter, request *http.Request) {
  * @apiGroup authentication
  */
 func resetPassword(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(&response, request) {
-		return
-	}
 	if request.Method != http.MethodPost {
 		handleError("reset http method not POST", http.StatusBadRequest, response)
 		return

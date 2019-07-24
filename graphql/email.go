@@ -101,9 +101,6 @@ func sendEmailVerification(email string) (*rest.Response, error) {
  * @apiGroup emails
  */
 func sendPasswordResetEmail(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(&response, request) {
-		return
-	}
 	if request.Method != http.MethodPut {
 		handleError("reset http method not PUT", http.StatusBadRequest, response)
 		return
@@ -232,9 +229,6 @@ func sendPasswordResetEmail(response http.ResponseWriter, request *http.Request)
  * @apiGroup emails
  */
 func sendTestEmail(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(&response, request) {
-		return
-	}
 	if request.Method != http.MethodPost {
 		handleError("register http method not POST", http.StatusBadRequest, response)
 		return

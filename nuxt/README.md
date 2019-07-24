@@ -43,7 +43,6 @@ $ firebase deploy
 ## now secrets
 
 `now secret add key value`
-`now -e MY_VARIABLE=@secret`
 
 ## Git Cheat sheet
 

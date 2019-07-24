@@ -2,15 +2,16 @@ package main
 
 import (
 	"bytes"
-	"cloud.google.com/go/storage"
 	"encoding/json"
-	"github.com/disintegration/imaging"
 	"image"
 	"image/jpeg"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
+
+	"cloud.google.com/go/storage"
+	"github.com/disintegration/imaging"
 )
 
 func uploadFile(fileBuffer *bytes.Buffer, filewriter *storage.Writer) string {
@@ -26,9 +27,6 @@ func uploadFile(fileBuffer *bytes.Buffer, filewriter *storage.Writer) string {
 }
 
 func writePostFile(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(&response, request) {
-		return
-	}
 	if request.Method != http.MethodPut {
 		handleError("upload file http method not PUT", http.StatusBadRequest, response)
 		return
@@ -76,9 +74,7 @@ func writePostFile(response http.ResponseWriter, request *http.Request) {
 }
 
 func writePostPicture(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(&response, request) {
-		return
-	}
+
 	if request.Method != http.MethodPut {
 		handleError("post picture http method not PUT", http.StatusBadRequest, response)
 		return
@@ -151,9 +147,7 @@ func writePostPicture(response http.ResponseWriter, request *http.Request) {
 }
 
 func deletePostPictures(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(&response, request) {
-		return
-	}
+
 	if request.Method != http.MethodDelete {
 		handleError("delete post picture http method not Delete", http.StatusBadRequest, response)
 		return
@@ -208,9 +202,6 @@ func deletePostPictures(response http.ResponseWriter, request *http.Request) {
 }
 
 func deletePostFiles(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(&response, request) {
-		return
-	}
 	if request.Method != http.MethodDelete {
 		handleError("delete post files http method not Delete", http.StatusBadRequest, response)
 		return
@@ -265,9 +256,6 @@ func deletePostFiles(response http.ResponseWriter, request *http.Request) {
 }
 
 func getPostPicture(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(&response, request) {
-		return
-	}
 	if request.Method != http.MethodGet {
 		handleError("get post picture http method not GET", http.StatusBadRequest, response)
 		return
@@ -309,9 +297,6 @@ func getPostPicture(response http.ResponseWriter, request *http.Request) {
 }
 
 func getPostFile(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(&response, request) {
-		return
-	}
 	if request.Method != http.MethodGet {
 		handleError("get post file http method not GET", http.StatusBadRequest, response)
 		return

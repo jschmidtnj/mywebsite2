@@ -12,7 +12,7 @@ module.exports = {
   globalName: 'Joshua Short',
 
   env: {
-    seoconfig: process.env.SEOCONFIG,
+    seoconfig: process.env.seoconfig,
     authconfig: process.env.AUTHCONFIG,
     apiurl: apiurl,
     mainurl: mainurl,

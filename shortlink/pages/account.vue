@@ -52,7 +52,7 @@ export default Vue.extend({
           if (res.status === 200) {
             if (res.data) {
               if (res.data.data && res.data.data.shortlinks) {
-                const shortlinks = []
+                const shortlinks: any = []
                 for (let i = 0; i < res.data.data.shortlinks.length; i++) {
                   shortlinks.push({
                     id: this.$store.state.auth.user.shortlinks[i],

@@ -99,6 +99,8 @@ github.com/ramya-rao-a/go-outline v0.0.0-20181122025142-7182a932836a h1:rJS9v8Wl
 github.com/ramya-rao-a/go-outline v0.0.0-20181122025142-7182a932836a/go.mod h1:1WL5IqM+CnRCAbXetRnL1YVoS9KtU2zMhOi/5oAVPo4=
 github.com/rogpeppe/godef v1.1.1 h1:NujOtt9q9vIClRTB3sCZpavac+NMRaIayzrcz1h4fSE=
 github.com/rogpeppe/godef v1.1.1/go.mod h1:oEo1eMy1VUEHUzUIX4F7IqvMJRiz9UId44mvnR8oPlQ=
+github.com/rs/cors v1.6.0 h1:G9tHG9lebljV9mfp9SNPDL36nCDxmo3zTlAf1YgvzmI=
+github.com/rs/cors v1.6.0/go.mod h1:gFx+x8UowdsKA9AchylcLynDq+nNFfI8FkUZdN/jGCU=
 github.com/rs/xid v1.2.1 h1:mhH9Nq+C1fY2l1XIpgxIiUOfNpRBYH1kKcr+qfKgjRc=
 github.com/rs/xid v1.2.1/go.mod h1:+uKXf+4Djp6Md1KODXJxgGQPKngRmWyn10oCKFzNHOQ=
 github.com/russross/blackfriday v2.0.0+incompatible h1:cBXrhZNUf9C+La9/YpS+UHpUT8YD6Td9ZMSU9APFcsk=

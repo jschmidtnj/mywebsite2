@@ -7,6 +7,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/graphql-go/graphql"
 	"github.com/joho/godotenv"
+	"github.com/rs/cors"
 
 	// medium "github.com/medium/medium-sdk-go"
 	"net/http"
@@ -127,9 +128,6 @@ var mode string
  * @apiGroup misc
  */
 func hello(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(&response, request) {
-		return
-	}
 	response.Header().Set("content-type", "application/json")
 	response.Write([]byte(`{"message":"Hello!"}`))
 }
@@ -251,10 +249,8 @@ func main() {
 	if err != nil {
 		logger.Fatal(err.Error())
 	}
-	http.HandleFunc("/graphql", func(response http.ResponseWriter, request *http.Request) {
-		if !manageCors(&response, request) {
-			return
-		}
+	mux := http.NewServeMux()
+	mux.HandleFunc("/graphql", func(response http.ResponseWriter, request *http.Request) {
 		tokenKey = tokenKeyType("token")
 		result := graphql.Do(graphql.Params{
 			Schema:        schema,
@@ -264,24 +260,41 @@ func main() {
 		response.Header().Set("content-type", "application/json")
 		json.NewEncoder(response).Encode(result)
 	})
-	http.HandleFunc("/countPosts", countPosts)
-	http.HandleFunc("/sendTestEmail", sendTestEmail)
-	http.HandleFunc("/loginEmailPassword", loginEmailPassword)
-	http.HandleFunc("/logoutEmailPassword", logoutEmailPassword)
-	http.HandleFunc("/register", register)
-	http.HandleFunc("/verify", verifyEmail)
-	http.HandleFunc("/sendResetEmail", sendPasswordResetEmail)
-	http.HandleFunc("/reset", resetPassword)
-	http.HandleFunc("/hello", hello)
-	http.HandleFunc("/getPostPicture", getPostPicture)
-	http.HandleFunc("/writePostPicture", writePostPicture)
-	http.HandleFunc("/deletePostPictures", deletePostPictures)
-	http.HandleFunc("/getPostFile", getPostFile)
-	http.HandleFunc("/writePostFile", writePostFile)
-	http.HandleFunc("/deletePostFiles", deletePostFiles)
-	http.HandleFunc("/shortlink", shortLinkRedirect)
-	http.HandleFunc("/createShortLink", createShortLink)
-	http.ListenAndServe(port, nil)
+	mux.HandleFunc("/countPosts", countPosts)
+	mux.HandleFunc("/sendTestEmail", sendTestEmail)
+	mux.HandleFunc("/loginEmailPassword", loginEmailPassword)
+	mux.HandleFunc("/logoutEmailPassword", logoutEmailPassword)
+	mux.HandleFunc("/register", register)
+	mux.HandleFunc("/verify", verifyEmail)
+	mux.HandleFunc("/sendResetEmail", sendPasswordResetEmail)
+	mux.HandleFunc("/reset", resetPassword)
+	mux.HandleFunc("/hello", hello)
+	mux.HandleFunc("/getPostPicture", getPostPicture)
+	mux.HandleFunc("/writePostPicture", writePostPicture)
+	mux.HandleFunc("/deletePostPictures", deletePostPictures)
+	mux.HandleFunc("/getPostFile", getPostFile)
+	mux.HandleFunc("/writePostFile", writePostFile)
+	mux.HandleFunc("/deletePostFiles", deletePostFiles)
+	mux.HandleFunc("/shortlink", shortLinkRedirect)
+	mux.HandleFunc("/createShortLink", createShortLink)
+	var allowedOrigins []string
+	if mode == "debug" {
+		allowedOrigins = []string{
+			"*",
+		}
+	} else {
+		allowedOrigins = []string{
+			websiteURL,
+			shortlinkURL,
+		}
+	}
+	thecors := cors.New(cors.Options{
+		AllowedOrigins:   allowedOrigins,
+		AllowCredentials: true,
+		Debug:            mode == "debug",
+	})
+	handler := thecors.Handler(mux)
+	http.ListenAndServe(port, handler)
 	logger.Info("Starting the application at " + port + " 🚀")
 }
 
@@ -292,22 +305,6 @@ func getAuthToken(request *http.Request) string {
 		authToken = splitToken[1]
 	}
 	return authToken
-}
-
-func manageCors(w *http.ResponseWriter, r *http.Request) bool {
-	var allowedOrigins = websiteURL
-	if mode == "debug" {
-		allowedOrigins = "*"
-	}
-	(*w).Header().Set("Access-Control-Allow-Origin", allowedOrigins)
-	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	(*w).Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Access-Control-Allow-Headers, X-Requested-With, Strategy")
-	if (*r).Method == "OPTIONS" {
-		(*w).Header().Set("Access-Control-Max-Age", "86400")
-		(*w).WriteHeader(http.StatusOK)
-		return false
-	}
-	return true
 }
 
 func validType(thetype string) bool {

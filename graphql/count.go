@@ -27,9 +27,6 @@ func removeEmptyStrings(input []string) []string {
  * @apiGroup misc
  */
 func countPosts(response http.ResponseWriter, request *http.Request) {
-	if !manageCors(&response, request) {
-		return
-	}
 	if request.Method != http.MethodGet {
 		handleError("register http method not Get", http.StatusBadRequest, response)
 		return
