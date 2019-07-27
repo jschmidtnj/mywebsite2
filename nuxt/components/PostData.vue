@@ -5,6 +5,8 @@
       <p>{{ post.author }}</p>
       <p v-if="post.id">{{ formatDate(mongoidToDate(post.id), 'M/D/YYYY') }}</p>
       <p>{{ post.views }}</p>
+      {{ post }}
+      <a :href="`${shortlinkurl}/${post.shortlink}`">shortlink</a>
       <vue-markdown
         :source="post.content"
         class="mb-4 markdown"
@@ -30,6 +32,8 @@ import { validTypes } from '~/assets/config'
 const ampurl = process.env.ampurl
 // @ts-ignore
 const seo = JSON.parse(process.env.seoconfig)
+// @ts-ignore
+const shortlinkurl = process.env.shortlinkurl
 export default Vue.extend({
   name: 'Post',
   components: {
@@ -48,7 +52,8 @@ export default Vue.extend({
   data() {
     return {
       id: null,
-      post: null
+      post: null,
+      shortlinkurl: shortlinkurl
     }
   },
   /* eslint-disable */
@@ -62,7 +67,7 @@ export default Vue.extend({
               this.type
             )}",id:"${encodeURIComponent(
               this.id
-            )}",cache:true){title content id author views}}`
+            )}",cache:true){title content id author views shortlink}}`
           }
         })
         .then(res => {

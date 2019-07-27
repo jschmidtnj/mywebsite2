@@ -48,6 +48,7 @@ import Vue from 'vue'
 import { validationMixin } from 'vuelidate'
 import { required, url } from 'vuelidate/lib/validators'
 const mainurl = process.env.mainurl ? process.env.mainurl : ''
+// @ts-ignore
 const currenturl = JSON.parse(process.env.seoconfig).url
 export default Vue.extend({
   name: 'Home',

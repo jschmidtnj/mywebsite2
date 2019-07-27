@@ -292,8 +292,17 @@ func main() {
 		AllowedOrigins: allowedOrigins,
 		AllowedHeaders: []string{
 			"Authorization",
+			"Content-Type",
 		},
-		Debug: mode == "debug",
+		AllowedMethods: []string{
+			"GET",
+			"POST",
+			"PUT",
+			"DELETE",
+			"OPTIONS",
+		},
+		OptionsPassthrough: false,
+		Debug:              mode == "debug",
 	})
 	handler := thecors.Handler(mux)
 	http.ListenAndServe(port, handler)

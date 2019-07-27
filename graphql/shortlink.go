@@ -50,7 +50,12 @@ func createShortLink(response http.ResponseWriter, request *http.Request) {
 		handleError("link cannot be cast to string", http.StatusBadRequest, response)
 		return
 	}
-	_, err = url.ParseRequestURI(link)
+	decodedLink, err := url.QueryUnescape(link)
+	if err != nil {
+		handleError("cannot decode url from query: "+err.Error(), http.StatusBadRequest, response)
+		return
+	}
+	_, err = url.ParseRequestURI(decodedLink)
 	if err != nil {
 		handleError("invalid url: "+err.Error(), http.StatusBadRequest, response)
 		return

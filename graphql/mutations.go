@@ -260,6 +260,7 @@ func rootMutation() *graphql.Object {
 					}
 					timestamp := objectidtimestamp(id)
 					postData["date"] = timestamp.Unix()
+					delete(postData, "_id")
 					_, err = elasticClient.Index().
 						Index(postElasticIndex).
 						Type(postElasticType).

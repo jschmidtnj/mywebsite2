@@ -82,3 +82,7 @@ now.sh doesn't work currently because we need an ssr config. instead I'm using h
 ## heroku
 
 deploy to heroku using the script. see [this](https://support.cloudflare.com/hc/en-us/articles/205893698-Configure-Cloudflare-and-Heroku-over-HTTPS) for connecting to cloudflare. also look at [this](https://nuxtjs.org/faq/heroku-deployment/) first.
+
+## netlify
+
+just make a cname pointing to netlify domain name and set ssl to flexible in cloudflare. add custom domain for api and set dns from google following [this](https://medium.com/@matryer/cloud-hack-how-to-get-production-ready-free-static-website-hosting-cbc2d25c5771).

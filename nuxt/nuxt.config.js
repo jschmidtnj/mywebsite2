@@ -16,6 +16,7 @@ module.exports = {
     authconfig: process.env.AUTHCONFIG,
     apiurl: apiurl,
     ampurl: ampurl,
+    shortlinkurl: process.env.SHORTLINKURL,
     recaptchasitekey: recaptchasitekey
   },
 
