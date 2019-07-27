@@ -233,7 +233,7 @@ func rootMutation() *graphql.Object {
 					}
 					id := primitive.NewObjectID()
 					idstring := id.Hex()
-					shortlink, err := generateShortLink(websiteURL + "/" + thetype + "?id=" + idstring)
+					shortlink, err := generateShortLink(websiteURL + "/" + thetype + "/" + idstring)
 					if err != nil {
 						return nil, err
 					}

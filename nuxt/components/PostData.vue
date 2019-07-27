@@ -58,8 +58,8 @@ export default Vue.extend({
   },
   /* eslint-disable */
   mounted() {
-    if (this.$route.query && this.$route.query.id) {
-      this.id = this.$route.query.id
+    if (this.$route.params && this.$route.params.id) {
+      this.id = this.$route.params.id
       this.$axios
         .get('/graphql', {
           params: {
@@ -122,7 +122,7 @@ export default Vue.extend({
       link: [
         {
           rel: 'canonical',
-          href: `${seo.url}/blog?id=${this.$route.query.id}`
+          href: `${seo.url}/blog/${this.$route.query.id}`
         },
         {
           rel: 'amphtml',

@@ -66,7 +66,7 @@ const handlePostRequest = (req, res, type) => {
             const postdata = res1.data.data.post
             const posttemplate = type === 'blog' ? blogtemplate : projecttemplate
             const $ = cheerio.load(posttemplate)
-            const websiteurl = `${config.websiteurl}/${type}?id=${id}`
+            const websiteurl = `${config.websiteurl}/${type}/${id}`
             $('link[rel=canonical]').attr('href', websiteurl)
             $('#title').text(postdata.title)
             $('#author').text(postdata.author)

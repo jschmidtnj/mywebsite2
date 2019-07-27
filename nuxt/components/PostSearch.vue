@@ -85,7 +85,7 @@
       }}</template>
       <template slot="views" slot-scope="row">{{ row.value }}</template>
       <template slot="read" slot-scope="row">
-        <a class="btn btn-primary btn-sm" :href="`/blog?id=${row.item.id}`"
+        <a class="btn btn-primary btn-sm" :href="`/blog/${row.item.id}`"
           >Read</a
         >
       </template>

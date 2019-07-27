@@ -100,7 +100,7 @@ export default Vue.extend({
       // @ts-ignore
       if (process.client) {
         this.$router.push({
-          path: `/${this.type}?id=${id}`
+          path: `/${this.type}/${id}`
         })
         window.location.reload(true)
       }
