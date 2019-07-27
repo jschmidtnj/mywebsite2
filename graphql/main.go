@@ -289,9 +289,11 @@ func main() {
 		}
 	}
 	thecors := cors.New(cors.Options{
-		AllowedOrigins:   allowedOrigins,
-		AllowCredentials: true,
-		Debug:            mode == "debug",
+		AllowedOrigins: allowedOrigins,
+		AllowedHeaders: []string{
+			"Authorization",
+		},
+		Debug: mode == "debug",
 	})
 	handler := thecors.Handler(mux)
 	http.ListenAndServe(port, handler)
