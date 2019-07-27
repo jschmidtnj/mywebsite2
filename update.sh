@@ -13,4 +13,8 @@ cd ../init
 yarn upgrade
 cd ../nuxt
 yarn upgrade
-cd ..
+cd ../flutter/android
+bundle update
+cd ../ios
+bundle update
+cd ../..
