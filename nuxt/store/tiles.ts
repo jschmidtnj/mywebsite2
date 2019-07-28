@@ -9,7 +9,7 @@ export const state = () => ({
   projectcount: 0,
   blogindex: null,
   projectindex: null,
-  perpage: 8,
+  perpage: 1,
   sortBy: 'title',
   sortDesc: true,
   tags: [],

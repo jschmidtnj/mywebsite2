@@ -116,9 +116,11 @@ export default Vue.extend({
     /* eslint-disable */
     await this.updateCount()
     if (!this.currentIndex) {
-      let currentindex = Math.floor((this.$store.state.tiles.perpage - this.perpage) / 2)
-      if (this.count < this.perpage) {
-        currentindex = 0
+      let currentindex = 0
+      if (this.count > this.perpage) {
+        let currentindex = Math.floor((this.$store.state.tiles.perpage - this.perpage) / 2)
+        if (currentindex < 0) currentindex = this.count - 1
+        else if (currentindex >= this.count) currentindex = 0
       }
       this.$store.commit('tiles/setIndex', {
         type: this.type,
@@ -160,50 +162,47 @@ export default Vue.extend({
       }
     },
     async updateShownPosts() {
-      if (this.count === 0 || this.perpage < 1) {
+      if (this.count === 0 || this.perpage < 1 || this.currentIndex >= this.count) {
         this.shownPosts = []
         this.loading = false
         return
       }
       const startpage = Math.floor(this.currentIndex / this.$store.state.tiles.perpage)
-      const endpage = Math.ceil((this.currentIndex + this.perpage - 1) / this.$store.state.tiles.perpage)
+      const endpage = Math.ceil((this.currentIndex + this.perpage) / this.$store.state.tiles.perpage)
       console.log(`start at ${this.currentIndex}`)
       console.log(`start page ${startpage}, end ${endpage}`)
-      for (let i = startpage; i < endpage; i++) {
-        if (!this.allPosts[i]) {
-          await this.addPosts(i)
-        }
-      }
       const startpageindex = this.currentIndex % this.$store.state.tiles.perpage
-      let endpageindex = (startpageindex + this.count) % this.$store.state.tiles.perpage
+      let endpageindex = (this.currentIndex + this.perpage) % this.$store.state.tiles.perpage
       if (this.count < this.$store.state.tiles.perpage) {
-        endpageindex = this.count
+        endpageindex = this.count % this.$store.state.tiles.perpage
       }
       console.log(`count ${this.count}, perpage: ${this.perpage}`)
-      console.log(`start ${startpageindex} end page index ${endpageindex}`)
+      console.log(`start ${this.currentIndex} end page index ${endpageindex}`)
       const newShownPosts: any = []
       for (let i = startpage; i < endpage; i++) {
-        console.log(`i ${i} ${endpage - 1}`)
+        console.log(`i ${i} ${endpage}`)
         let start = i === startpage ? startpageindex : 0
-        let end = i === (endpage - 1) ? endpageindex : this.$store.state.tiles.perpage
+        let end = i === endpage ? endpageindex : this.$store.state.tiles.perpage
         console.log(`start ${start}, end ${end}`)
-        console.log(this.allPosts[i])
+        await this.addPosts(i % this.allPosts.length)
+        console.log(this.allPosts[i % this.allPosts.length])
         for (let j = start; j < end; j++) {
-          console.log(`j ${j}`)
-          const newPost: any = this.allPosts[i][j]
+          const newPost: any = this.allPosts[i % this.allPosts.length][j]
           newPost.title = decodeURIComponent(newPost.title)
           newPost.caption = decodeURIComponent(newPost.caption)
           newShownPosts.push(newPost)
           console.log(`j ${j}`)
+          console.log(this.allPosts[i % this.allPosts.length][j])
         }
       }
       this.shownPosts = newShownPosts
       this.loading = false
     },
     changePage(increase) {
-      console.log('change the page')
-      let newindex = (increase ? this.currentIndex + 1 : this.currentIndex - 1) % this.count
-      if (newindex < 0) newindex += this.count
+      let newindex = (increase ? this.currentIndex + 1 : this.currentIndex - 1)
+      if (newindex < 0) newindex = this.count - 1
+      else if (newindex >= this.count) newindex = 0
+      console.log(`change the page to ${newindex}`)
       this.$store.commit('tiles/setIndex', {
         type: this.type,
         index: newindex
