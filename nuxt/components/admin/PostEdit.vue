@@ -1464,12 +1464,7 @@ export default Vue.extend({
       }
 
       // send to database logic (do this first)
-      const postdata = Object.assign({}, this.post)
-      postdata.heroimage = null
-      postdata.tileimage = null
-      postdata.images = []
-      postdata.files = []
-      postdata.color = postdata.color.hex
+      const color = this.post.color.hex ? this.post.color.hex : this.post.color.toUpperCase()
       if (this.mode === this.modetypes.add) {
         this.$axios
           .post(
@@ -1484,7 +1479,7 @@ export default Vue.extend({
                 )}",content:"${encodeURIComponent(
                   this.post.content
                 )}",color:"${encodeURIComponent(
-                  this.post.color.toUpperCase()
+                  color
                 )}",caption:"${encodeURIComponent(
                   this.post.caption
                 )}",author:"${encodeURIComponent(
@@ -1569,7 +1564,7 @@ export default Vue.extend({
                 )}",content:"${encodeURIComponent(
                   this.post.content
                 )}",color:"${encodeURIComponent(
-                  this.post.color.toUpperCase()
+                  color
                 )}",caption:"${encodeURIComponent(
                   this.post.caption
                 )}",author:"${encodeURIComponent(

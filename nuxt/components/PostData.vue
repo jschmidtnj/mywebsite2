@@ -5,6 +5,24 @@
       <p>{{ post.author }}</p>
       <p v-if="post.id">{{ formatDate(mongoidToDate(post.id), 'M/D/YYYY') }}</p>
       <p>{{ post.views }}</p>
+      <a
+        :href="
+          `${postCdn}/${type === 'blog' ? 'blogimages' : 'projectimages'}/${
+            post.heroimage
+          }/original`
+        "
+        class="progressive replace"
+      >
+        <img
+          :src="
+            `${postCdn}/${type === 'blog' ? 'blogimages' : 'projectimages'}/${
+              post.heroimage
+            }/blur`
+          "
+          class="preview"
+          alt="Hero"
+        />
+      </a>
       <a :href="`${shortlinkurl}/${post.shortlink}`">shortlink</a>
       <vue-markdown
         :source="post.content"
@@ -26,7 +44,7 @@ import VueMarkdown from 'vue-markdown'
 import Prism from 'prismjs'
 import Loading from '~/components/PageLoading.vue'
 import TileCarousel from '~/components/TileCarousel.vue'
-import { validTypes } from '~/assets/config'
+import { validTypes, cloudStorageURLs } from '~/assets/config'
 // @ts-ignore
 const ampurl = process.env.ampurl
 // @ts-ignore
@@ -52,7 +70,8 @@ export default Vue.extend({
     return {
       id: null,
       post: null,
-      shortlinkurl: shortlinkurl
+      shortlinkurl: shortlinkurl,
+      postCdn: cloudStorageURLs.posts
     }
   },
   /* eslint-disable */
@@ -64,9 +83,10 @@ export default Vue.extend({
           params: {
             query: `{post(type:"${encodeURIComponent(
               this.type
-            )}",id:"${encodeURIComponent(
-              this.id
-            )}",cache:true){title content id author views shortlink}}`
+            )}",id:"${encodeURIComponent(this.id)}",cache:${(!(
+              this.$store.state.auth.user &&
+              this.$store.state.auth.user.type === 'admin'
+            )).toString()}){title content id author views shortlink heroimage}}`
           }
         })
         .then(res => {
@@ -75,6 +95,7 @@ export default Vue.extend({
               if (res.data.data && res.data.data.post) {
                 const post = res.data.data.post
                 post.content = decodeURIComponent(post.content)
+                post.author = decodeURIComponent(post.author)
                 this.post = post
                 // update title for spa
                 document.title = this.post.title

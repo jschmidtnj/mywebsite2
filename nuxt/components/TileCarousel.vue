@@ -168,7 +168,10 @@ export default Vue.extend({
         let start = i === startpage ? startpageindex : 0
         let end = i === endpage ? (this.$store.state.tiles.perpage - 1) : endpageindex
         for (let j = start; j < end; j++) {
-          newShownPosts.push(this.allPosts[i][j])
+          const newPost: any = this.allPosts[i][j]
+          newPost.title = decodeURIComponent(newPost.title)
+          newPost.caption = decodeURIComponent(newPost.caption)
+          newShownPosts.push(newPost)
         }
       }
       this.shownPosts = newShownPosts

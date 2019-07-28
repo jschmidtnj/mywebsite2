@@ -238,14 +238,21 @@ export default Vue.extend({
             )}",sort:"${encodeURIComponent(sort)}",ascending:${!this
               .sortDesc},tags:${JSON.stringify([])},categories:${JSON.stringify(
               []
-            )},cache:true){title views id author date}}`
+            )},cache:${(!(
+              this.$store.state.auth.user &&
+              this.$store.state.auth.user.type === 'admin'
+            )).toString()}){title views id author date}}`
           }
         })
         .then(res => {
           if (res.status === 200) {
             if (res.data) {
               if (res.data.data && res.data.data.posts) {
-                this.items = res.data.data.posts
+                const posts = res.data.data.posts
+                posts.forEach(post => {
+                  post.author = decodeURIComponent(post.author)
+                })
+                this.items = posts
               } else if (res.data.errors) {
                 this.$toasted.global.error({
                   message: `found errors: ${JSON.stringify(res.data.errors)}`

@@ -115,7 +115,10 @@ export default Vue.extend({
       let newShownPosts: any = []
       for (let i = 0; i < this.allPosts.length; i++) {
         for (let j = 0; j < this.allPosts[i].length; j++) {
-          newShownPosts.push(this.allPosts[i][j])
+          const newPost: any = this.allPosts[i][j]
+          newPost.title = decodeURIComponent(newPost.title)
+          newPost.caption = decodeURIComponent(newPost.caption)
+          newShownPosts.push(newPost)
         }
       }
       this.shownPosts = newShownPosts
