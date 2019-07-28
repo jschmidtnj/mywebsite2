@@ -1,19 +1,8 @@
 <template>
   <div id="tiles" class="mb-5">
     <div v-if="!loading" id="tile-data">
-      <b-button
-        variant="primary"
-        :disabled="count <= perpage"
-        @click="
-          evt => {
-            evt.preventDefault()
-            changePage(true)
-          }
-        "
-        >Forward</b-button
-      >
-      <b-button
-        variant="primary"
+      <button
+        class="button-link"
         :disabled="count <= perpage"
         @click="
           evt => {
@@ -21,8 +10,33 @@
             changePage(false)
           }
         "
-        >Backwards</b-button
       >
+        <no-ssr>
+          <font-awesome-icon
+            class="mr-2"
+            style="max-width: 13px;"
+            icon="arrow-left"
+          />
+        </no-ssr>
+      </button>
+      <button
+        class="button-link"
+        :disabled="count <= perpage"
+        @click="
+          evt => {
+            evt.preventDefault()
+            changePage(true)
+          }
+        "
+      >
+        <no-ssr>
+          <font-awesome-icon
+            class="mr-2"
+            style="max-width: 13px;"
+            icon="arrow-right"
+          />
+        </no-ssr>
+      </button>
       <b-card-group deck>
         <no-ssr>
           <button
@@ -94,7 +108,7 @@ export default Vue.extend({
     return {
       imgUrl: cloudStorageURLs.posts,
       shownPosts: [],
-      perpage: 4,
+      perpage: 2,
       loading: true
     }
   },
@@ -146,41 +160,51 @@ export default Vue.extend({
       }
     },
     async updateShownPosts() {
-      if (this.count === 0) {
+      if (this.count === 0 || this.perpage < 1) {
         this.shownPosts = []
         this.loading = false
         return
       }
       const startpage = Math.floor(this.currentIndex / this.$store.state.tiles.perpage)
-      const endpage = Math.ceil((this.currentIndex + this.perpage) / this.$store.state.tiles.perpage)
+      const endpage = Math.ceil((this.currentIndex + this.perpage - 1) / this.$store.state.tiles.perpage)
+      console.log(`start at ${this.currentIndex}`)
+      console.log(`start page ${startpage}, end ${endpage}`)
       for (let i = startpage; i < endpage; i++) {
         if (!this.allPosts[i]) {
           await this.addPosts(i)
         }
       }
-      const startpageindex = this.currentIndex % (this.$store.state.tiles.perpage - 1)
-      let endpageindex = (startpageindex + this.perpage) % (this.$store.state.tiles.perpage - 1)
-      if (this.count < this.perpage) {
+      const startpageindex = this.currentIndex % this.$store.state.tiles.perpage
+      let endpageindex = (startpageindex + this.count) % this.$store.state.tiles.perpage
+      if (this.count < this.$store.state.tiles.perpage) {
         endpageindex = this.count
       }
+      console.log(`count ${this.count}, perpage: ${this.perpage}`)
+      console.log(`start ${startpageindex} end page index ${endpageindex}`)
       const newShownPosts: any = []
       for (let i = startpage; i < endpage; i++) {
+        console.log(`i ${i} ${endpage - 1}`)
         let start = i === startpage ? startpageindex : 0
-        let end = i === endpage ? (this.$store.state.tiles.perpage - 1) : endpageindex
+        let end = i === (endpage - 1) ? endpageindex : this.$store.state.tiles.perpage
+        console.log(`start ${start}, end ${end}`)
+        console.log(this.allPosts[i])
         for (let j = start; j < end; j++) {
+          console.log(`j ${j}`)
           const newPost: any = this.allPosts[i][j]
           newPost.title = decodeURIComponent(newPost.title)
           newPost.caption = decodeURIComponent(newPost.caption)
           newShownPosts.push(newPost)
+          console.log(`j ${j}`)
         }
       }
       this.shownPosts = newShownPosts
       this.loading = false
     },
     changePage(increase) {
+      console.log('change the page')
       let newindex = (increase ? this.currentIndex + 1 : this.currentIndex - 1) % this.count
       if (newindex < 0) newindex += this.count
-      this.$store.commit('setIndex', {
+      this.$store.commit('tiles/setIndex', {
         type: this.type,
         index: newindex
       })
@@ -230,12 +254,12 @@ export default Vue.extend({
 <style lang="scss">
 .tile-img {
   object-fit: cover;
-  width: 300px;
-  height: 300px;
+  width: 200px;
+  height: 200px;
 }
 .tile {
   text-align: center;
-  max-width: 350px;
+  max-width: 250px;
 }
 .zoom:hover {
   transform: scale(1.05);

@@ -4,7 +4,9 @@ import {
   faSearch,
   faTimes,
   faAngleDoubleRight,
-  faPlusCircle
+  faPlusCircle,
+  faArrowLeft,
+  faArrowRight
 } from '@fortawesome/free-solid-svg-icons'
 
 import { faStackOverflow } from '@fortawesome/free-brands-svg-icons'
@@ -16,7 +18,9 @@ library.add(
   faStackOverflow,
   faTimes,
   faAngleDoubleRight,
-  faPlusCircle
+  faPlusCircle,
+  faArrowLeft,
+  faArrowRight
 )
 
 Vue.component('font-awesome-icon', FontAwesomeIcon)

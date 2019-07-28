@@ -110,7 +110,7 @@ export const actions = {
       })
     }
   },
-  async addPosts({ state, commit }, payload) {
+  async addPosts({ state, commit, rootState }, payload) {
     return new Promise((resolve, reject) => {
       this.$axios
         .get('/graphql', {
@@ -129,7 +129,10 @@ export const actions = {
               JSON.stringify(state.tags)
             },categories:${
               JSON.stringify(state.categories)
-            },cache:true){tileimage id title caption}}`
+            },cache:${(!(
+              rootState.auth.user &&
+              rootState.auth.user.type === 'admin'
+            )).toString()}){tileimage id title caption color}}`
           }
         })
         .then(res => {

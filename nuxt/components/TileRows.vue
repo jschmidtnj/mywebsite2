@@ -1,47 +1,57 @@
 <template>
   <div id="tiles" class="mb-5">
-    <b-card-group v-if="!loading" deck>
-      <no-ssr>
-        <button
-          v-for="(postval, index) in shownPosts"
-          :key="`tile-${index}`"
-          class="button-link"
-          @click="
-            evt => {
-              evt.preventDefault()
-              navigate(postval.id)
-            }
-          "
+    <div v-if="!loading">
+      <b-row v-for="(rowval, rowindex) in shownPosts" :key="`row-${rowindex}`">
+        <b-col
+          v-for="(postval, colindex) in shownPosts[rowindex]"
+          :key="`post-${rowindex}-${colindex}`"
+          sm
+          style="padding:0px;"
         >
-          <b-card class="tile" no-body>
-            <b-card-body class="tile zoom">
-              <b-card-img-lazy
-                :src="
-                  `${imgUrl}/${
-                    type === 'blog' ? 'blogimages' : 'projectimages'
-                  }/${encodeURI(postval.tileimage)}/original`
-                "
-                :blank-src="
-                  `${imgUrl}/${
-                    type === 'blog' ? 'blogimages' : 'projectimages'
-                  }/${encodeURI(postval.tileimage)}/blur`
-                "
-                :alt="postval.title"
-                class="tile-img"
-              />
-              <b-container>
-                <b-card-title>{{ postval.title }}</b-card-title>
-                <b-card-sub-title>{{ postval.caption }}</b-card-sub-title>
-              </b-container>
-            </b-card-body>
-          </b-card>
-        </button>
-      </no-ssr>
-    </b-card-group>
+          <a v-if="postval" :href="`/${type}/${postval.id}`">
+            <b-card class="tile rounded-0" no-body>
+              <b-card-body
+                class="tile-body zoom"
+                @mouseover="shownPosts[rowindex][colindex].hover = true"
+                @mouseleave="shownPosts[rowindex][colindex].hover = false"
+              >
+                <b-card-img-lazy
+                  :src="
+                    `${imgUrl}/${
+                      type === 'blog' ? 'blogimages' : 'projectimages'
+                    }/${encodeURI(postval.tileimage)}/original`
+                  "
+                  :blank-src="
+                    `${imgUrl}/${
+                      type === 'blog' ? 'blogimages' : 'projectimages'
+                    }/${encodeURI(postval.tileimage)}/blur`
+                  "
+                  :alt="postval.title"
+                  class="tile-img rounded-0"
+                />
+                <b-container
+                  v-if="postval.hover"
+                  :style="{ 'background-color': getColor(rowindex, colindex) }"
+                  class="main-overlay"
+                >
+                  <div class="text-overlay">
+                    <b-card-title class="white-color">{{
+                      postval.title
+                    }}</b-card-title>
+                    <b-card-sub-title class="white-color">{{
+                      postval.caption
+                    }}</b-card-sub-title>
+                  </div>
+                </b-container>
+              </b-card-body>
+            </b-card>
+          </a>
+          <div v-else></div>
+        </b-col>
+      </b-row>
+    </div>
+
     <loading v-else />
-    <!-- need arrow right and left from fontawesome, and start in the middle
-    then if you move too far to one side, query for more posts and save the
-    current posts in case you cycle through again-->
   </div>
 </template>
 
@@ -49,6 +59,11 @@
 import Vue from 'vue'
 import Loading from '~/components/ComponentLoading.vue'
 import { validTypes, cloudStorageURLs } from '~/assets/config'
+const defaultOpacity = 10 // %
+const numPerRow = 2
+const defaultOpacityHex = Math.round((defaultOpacity / 100.0) * 255)
+  .toString(16)
+  .toUpperCase()
 export default Vue.extend({
   name: 'TileRows',
   components: {
@@ -92,13 +107,15 @@ export default Vue.extend({
     }
   },
   methods: {
-    navigate(id) {
-      // @ts-ignore
-      if (process.client) {
-        this.$router.push({
-          path: `/${this.type}/${id}`
-        })
+    getColor(rowindex, colindex) {
+      if (this.shownPosts[rowindex][colindex].hover) {
+        let colorHex = this.shownPosts[rowindex][colindex].color
+        if (colorHex.length === 7) {
+          colorHex = `#${defaultOpacityHex}${colorHex.substring(1)}`
+        }
+        return colorHex
       }
+      return 'white'
     },
     async updateShownPosts() {
       if (this.count === 0) {
@@ -113,13 +130,25 @@ export default Vue.extend({
         }
       }
       let newShownPosts: any = []
+      newShownPosts.push([])
+      let currentIndex = 0
       for (let i = 0; i < this.allPosts.length; i++) {
         for (let j = 0; j < this.allPosts[i].length; j++) {
           const newPost: any = this.allPosts[i][j]
           newPost.title = decodeURIComponent(newPost.title)
           newPost.caption = decodeURIComponent(newPost.caption)
-          newShownPosts.push(newPost)
+          newPost.color = decodeURIComponent(newPost.color)
+          newPost.hover = false
+          if (newShownPosts[currentIndex].length === numPerRow) {
+            newShownPosts.push([newPost])
+            currentIndex++
+          } else {
+            newShownPosts[currentIndex].push(newPost)
+          }
         }
+      }
+      for (let i = newShownPosts[currentIndex].length; i < numPerRow; i++) {
+        newShownPosts[currentIndex].push(null)
       }
       this.shownPosts = newShownPosts
       this.loading = false
@@ -175,16 +204,39 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-.tile-img {
+.white-color {
+  color: white;
+}
+.tile-img img {
   object-fit: cover;
-  width: 300px;
-  height: 300px;
+  width: 100%;
+  height: 200px;
+  position: relative;
 }
 .tile {
+  overflow: hidden;
+}
+.tile-body {
   text-align: center;
-  max-width: 350px;
+  width: 100%;
+  height: 200px;
+  padding: 0;
+}
+.main-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height:100%;
+}
+.text-overlay {
+  margin-top: 10%;
+  width: 100%;
+  height: 100%;
 }
 .zoom:hover {
   transform: scale(1.05);
+  -moz-transform: scale(1.05);
+  -webkit-transform: scale(1.05);
 }
 </style>
