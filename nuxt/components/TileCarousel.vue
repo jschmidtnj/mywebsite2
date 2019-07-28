@@ -108,7 +108,7 @@ export default Vue.extend({
     return {
       imgUrl: cloudStorageURLs.posts,
       shownPosts: [],
-      perpage: 2,
+      perpage: 3,
       loading: true
     }
   },
@@ -169,30 +169,18 @@ export default Vue.extend({
       }
       const startpage = Math.floor(this.currentIndex / this.$store.state.tiles.perpage)
       const endpage = Math.ceil((this.currentIndex + this.perpage) / this.$store.state.tiles.perpage)
-      console.log(`start at ${this.currentIndex}`)
-      console.log(`start page ${startpage}, end ${endpage}`)
       const startpageindex = this.currentIndex % this.$store.state.tiles.perpage
-      let endpageindex = (this.currentIndex + this.perpage) % this.$store.state.tiles.perpage
-      if (this.count < this.$store.state.tiles.perpage) {
-        endpageindex = this.count % this.$store.state.tiles.perpage
-      }
-      console.log(`count ${this.count}, perpage: ${this.perpage}`)
-      console.log(`start ${this.currentIndex} end page index ${endpageindex}`)
+      const allPostsLen = Math.ceil(this.count / this.$store.state.tiles.perpage)
+      const allPostsIndexLen = this.count < this.$store.state.tiles.perpage ? this.count : this.$store.state.tiles.perpage
       const newShownPosts: any = []
       for (let i = startpage; i < endpage; i++) {
-        console.log(`i ${i} ${endpage}`)
         let start = i === startpage ? startpageindex : 0
-        let end = i === endpage ? endpageindex : this.$store.state.tiles.perpage
-        console.log(`start ${start}, end ${end}`)
-        await this.addPosts(i % this.allPosts.length)
-        console.log(this.allPosts[i % this.allPosts.length])
-        for (let j = start; j < end; j++) {
-          const newPost: any = this.allPosts[i % this.allPosts.length][j]
+        await this.addPosts(i % allPostsLen)
+        for (let j = start; (j < allPostsIndexLen || (i === endpage - 1 && j < allPostsIndexLen * 2)) && newShownPosts.length < this.perpage; j++) {
+          const newPost: any = this.allPosts[i % allPostsLen][j % allPostsIndexLen]
           newPost.title = decodeURIComponent(newPost.title)
           newPost.caption = decodeURIComponent(newPost.caption)
           newShownPosts.push(newPost)
-          console.log(`j ${j}`)
-          console.log(this.allPosts[i % this.allPosts.length][j])
         }
       }
       this.shownPosts = newShownPosts

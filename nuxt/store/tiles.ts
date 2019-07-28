@@ -9,7 +9,7 @@ export const state = () => ({
   projectcount: 0,
   blogindex: null,
   projectindex: null,
-  perpage: 1,
+  perpage: 8,
   sortBy: 'title',
   sortDesc: true,
   tags: [],
@@ -56,7 +56,7 @@ export const mutations = {
 }
 
 export const actions = {
-  async updateCount({ state, commit }, payload) {
+  async updateCount({ state, commit, rootState }, payload) {
     return new Promise((resolve, reject) => {
       this.$axios
         .get('/countPosts', {
@@ -64,7 +64,11 @@ export const actions = {
             searchterm: '',
             type: payload.type,
             tags: state.tags.join(',tags='),
-            categories: state.categories.join(',categories=')
+            categories: state.categories.join(',categories='),
+            cache: !(
+              rootState.auth.user &&
+              rootState.auth.user.type === 'admin'
+            )
           }
         })
         .then(res => {
@@ -121,18 +125,18 @@ export const actions = {
               state.perpage
             )},page:${
               payload.page
-            },searchterm:"",sort:"${encodeURIComponent(
-              state.sortBy
-            )}",ascending:${
+              },searchterm:"",sort:"${encodeURIComponent(
+                state.sortBy
+              )}",ascending:${
               !state.sortDesc
-            },tags:${
+              },tags:${
               JSON.stringify(state.tags)
-            },categories:${
+              },categories:${
               JSON.stringify(state.categories)
-            },cache:${(!(
-              rootState.auth.user &&
-              rootState.auth.user.type === 'admin'
-            )).toString()}){tileimage id title caption color}}`
+              },cache:${(!(
+                rootState.auth.user &&
+                rootState.auth.user.type === 'admin'
+              )).toString()}){tileimage id title caption color}}`
           }
         })
         .then(res => {

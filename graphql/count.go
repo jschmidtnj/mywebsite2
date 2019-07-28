@@ -56,6 +56,7 @@ func countPosts(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 	tags = removeEmptyStrings(tags)
+	getcache := request.URL.Query().Get("cache")
 	response.Header().Set("content-type", "application/json")
 	pathMap := map[string]string{
 		"path":       "count",
@@ -70,15 +71,17 @@ func countPosts(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 	cachepath := string(cachepathBytes)
-	cachedres, err := redisClient.Get(cachepath).Result()
-	if err != nil {
-		if err != redis.Nil {
-			handleError(err.Error(), http.StatusBadRequest, response)
+	if getcache != "false" {
+		cachedres, err := redisClient.Get(cachepath).Result()
+		if err != nil {
+			if err != redis.Nil {
+				handleError(err.Error(), http.StatusBadRequest, response)
+				return
+			}
+		} else {
+			response.Write([]byte(cachedres))
 			return
 		}
-	} else {
-		response.Write([]byte(cachedres))
-		return
 	}
 	var numtags = len(tags)
 	mustQueries := make([]elastic.Query, numtags+len(categories))
