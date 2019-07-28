@@ -97,14 +97,16 @@ export const actions = {
   },
   initializePosts({ state, commit }, payload) {
     if (payload.type === 'blog') {
+      const numPages = Math.ceil(state.blogcount / state.perpage)
       commit('setPosts', {
         type: 'blog',
-        posts: Array.apply(null, Array(state.blogcount))
+        posts: Array.apply(null, Array(numPages))
       })
     } else {
+      const numPages = Math.ceil(state.projectcount / state.perpage)
       commit('setPosts', {
         type: 'project',
-        posts: Array.apply(null, Array(state.projectcount))
+        posts: Array.apply(null, Array(numPages))
       })
     }
   },

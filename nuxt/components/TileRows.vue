@@ -30,12 +30,8 @@
                 class="tile-img"
               />
               <b-container>
-                <b-card-title>
-                  {{ postval.title }}
-                </b-card-title>
-                <b-card-sub-title>
-                  {{ postval.caption }}
-                </b-card-sub-title>
+                <b-card-title>{{ postval.title }}</b-card-title>
+                <b-card-sub-title>{{ postval.caption }}</b-card-sub-title>
               </b-container>
             </b-card-body>
           </b-card>
@@ -45,7 +41,7 @@
     <loading v-else />
     <!-- need arrow right and left from fontawesome, and start in the middle
     then if you move too far to one side, query for more posts and save the
-    current posts in case you cycle through again -->
+    current posts in case you cycle through again-->
   </div>
 </template>
 
@@ -102,7 +98,6 @@ export default Vue.extend({
         this.$router.push({
           path: `/${this.type}/${id}`
         })
-        window.location.reload(true)
       }
     },
     async updateShownPosts() {
@@ -117,46 +112,60 @@ export default Vue.extend({
           await this.addPosts(i)
         }
       }
-      this.shownPosts = this.allPosts
+      let newShownPosts: any = []
+      for (let i = 0; i < this.allPosts.length; i++) {
+        for (let j = 0; j < this.allPosts[i].length; j++) {
+          newShownPosts.push(this.allPosts[i][j])
+        }
+      }
+      this.shownPosts = newShownPosts
       this.loading = false
     },
     updateCount() {
-      console.log(`got type ${this.type}`)
-      return this.$store.dispatch('tiles/updateCount', {
-        type: this.type
-      }).then(res => {
-        console.log(`got res ${res}`)
-      }).catch(err => {
-        console.log(err)
-        this.$toasted.global.error({
-          message: err
+      return this.$store
+        .dispatch('tiles/updateCount', {
+          type: this.type
         })
-      })
+        .then(res => {
+          console.log(`got res ${res}`)
+        })
+        .catch(err => {
+          console.log(err)
+          this.$toasted.global.error({
+            message: err
+          })
+        })
     },
     initializePosts() {
-      return this.$store.dispatch('tiles/initializePosts', {
-        type: this.type
-      }).then(res => {
-        console.log(`got res ${res}`)
-      }).catch(err => {
-        console.log(err)
-        this.$toasted.global.error({
-          message: err
+      return this.$store
+        .dispatch('tiles/initializePosts', {
+          type: this.type
         })
-      })
+        .then(res => {
+          console.log(`got res ${res}`)
+        })
+        .catch(err => {
+          console.log(err)
+          this.$toasted.global.error({
+            message: err
+          })
+        })
     },
     addPosts(page) {
-      return this.$store.dispatch('tiles/addPosts', {
-        type: this.type,
-        page: page
-      }).then(res => {
-        console.log(`got res ${res}`)
-      }).catch(err => {
-        console.log(err)
-        this.$toasted.global.error({
-          message: err
+      return this.$store
+        .dispatch('tiles/addPosts', {
+          type: this.type,
+          page: page
         })
-      })
+        .then(res => {
+          console.log(`got res ${res}`)
+        })
+        .catch(err => {
+          console.log(err)
+          this.$toasted.global.error({
+            message: err
+          })
+        })
     }
   }
 })

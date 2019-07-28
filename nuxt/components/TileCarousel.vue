@@ -104,7 +104,7 @@ export default Vue.extend({
     if (!this.currentIndex) {
       let currentindex = Math.floor((this.$store.state.tiles.perpage - this.perpage) / 2)
       if (this.count < this.perpage) {
-        currentindex = Math.floor(this.count / 2)
+        currentindex = 0
       }
       this.$store.commit('tiles/setIndex', {
         type: this.type,
@@ -143,7 +143,6 @@ export default Vue.extend({
         this.$router.push({
           path: `/${this.type}/${id}`
         })
-        window.location.reload(true)
       }
     },
     async updateShownPosts() {

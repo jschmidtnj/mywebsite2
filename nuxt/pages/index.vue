@@ -4,7 +4,7 @@
       <h1>Under Construction</h1>
       <h2>Please check again later</h2>
       <hr />
-      <tile-rows type="project" />
+      <tile-rows type="blog" />
     </div>
   </section>
 </template>

@@ -5,7 +5,6 @@
       <p>{{ post.author }}</p>
       <p v-if="post.id">{{ formatDate(mongoidToDate(post.id), 'M/D/YYYY') }}</p>
       <p>{{ post.views }}</p>
-      {{ post }}
       <a :href="`${shortlinkurl}/${post.shortlink}`">shortlink</a>
       <vue-markdown
         :source="post.content"
