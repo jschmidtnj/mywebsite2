@@ -113,10 +113,10 @@ func writePostPicture(response http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		handleError(err.Error(), http.StatusBadRequest, response)
 	}
-	blurredImage := imaging.Blur(imaging.Resize(originalImage, progressiveImageSize, 0, imaging.Lanczos), progressiveImageBlurAmount)
+	blurredImage := imaging.Blur(originalImage, progressiveImageBlurAmount)
 	blurredImageBuffer := new(bytes.Buffer)
 	defer blurredImageBuffer.Reset()
-	jpegOptionsBlurred := jpeg.Options{Quality: 80}
+	jpegOptionsBlurred := jpeg.Options{Quality: 60}
 	err = jpeg.Encode(blurredImageBuffer, blurredImage, &jpegOptionsBlurred)
 	if err != nil {
 		handleError(err.Error(), http.StatusBadRequest, response)

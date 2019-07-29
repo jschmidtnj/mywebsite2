@@ -57,12 +57,11 @@ class PostPage extends StatelessWidget {
                 Uri.decodeComponent(snapshot.data['data']['post']['content'])
                     .replaceAll('</img>', '');
             dom.Document document = parse(content);
-            List<dom.Element> linkTags =
-                document.querySelectorAll('a.progressive, a.replace');
+            List<dom.Element> linkTags = document.querySelectorAll('img.lazy');
             for (dom.Element linkTag in linkTags) {
               String tagToReplace = linkTag.outerHtml;
-              String imgSrc = linkTag.attributes["href"];
-              String alt = linkTag.children.first.attributes["alt"];
+              String imgSrc = linkTag.attributes["data-src"];
+              String alt = linkTag.attributes["alt"];
               content = content.replaceFirst(tagToReplace, '![$alt]($imgSrc)');
             }
             String title =

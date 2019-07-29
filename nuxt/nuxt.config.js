@@ -83,7 +83,6 @@ module.exports = {
     { src: '~/plugins/vuex-persist', ssr: false },
     { src: '~/plugins/axios', ssr: false },
     { src: '~/plugins/toast', ssr: false },
-    { src: '~/plugins/progressive', ssr: false },
     { src: '~/plugins/select', ssr: false },
     { src: '~/plugins/recaptcha', ssr: false }
   ],

@@ -37,7 +37,7 @@ var mongoClient *mongo.Client
 
 var ctxMongo context.Context
 
-var mainDatabase = "testing"
+var mainDatabase = "website"
 
 var userCollection *mongo.Collection
 

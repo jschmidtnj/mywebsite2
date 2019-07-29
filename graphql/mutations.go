@@ -604,7 +604,7 @@ func rootMutation() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
-					err = deleteShortLink(postData["shortLink"].(string))
+					err = deleteShortLink(postData["shortlink"].(string))
 					if err != nil {
 						return nil, err
 					}
@@ -613,13 +613,19 @@ func rootMutation() *graphql.Object {
 						return nil, errors.New("cannot convert heroimage to string")
 					}
 					if len(heroimageid) > 0 {
-						var heroobj *storage.ObjectHandle
+						var heroobjblur *storage.ObjectHandle
+						var heroobjoriginal *storage.ObjectHandle
 						if thetype == "blog" {
-							heroobj = storageBucket.Object(blogImageIndex + "/" + heroimageid)
+							heroobjblur = storageBucket.Object(blogImageIndex + "/" + heroimageid + "/blur")
+							heroobjoriginal = storageBucket.Object(blogImageIndex + "/" + heroimageid + "/original")
 						} else {
-							heroobj = storageBucket.Object(projectImageIndex + "/" + heroimageid)
+							heroobjblur = storageBucket.Object(projectImageIndex + "/" + heroimageid + "/blur")
+							heroobjoriginal = storageBucket.Object(projectImageIndex + "/" + heroimageid + "/original")
 						}
-						if err := heroobj.Delete(ctxStorage); err != nil {
+						if err := heroobjblur.Delete(ctxStorage); err != nil {
+							return nil, err
+						}
+						if err := heroobjoriginal.Delete(ctxStorage); err != nil {
 							return nil, err
 						}
 					}
@@ -628,13 +634,19 @@ func rootMutation() *graphql.Object {
 						return nil, errors.New("cannot convert tileimage to string")
 					}
 					if len(tileimageid) > 0 {
-						var tileobj *storage.ObjectHandle
+						var tileobjblur *storage.ObjectHandle
+						var tileobjoriginal *storage.ObjectHandle
 						if thetype == "blog" {
-							tileobj = storageBucket.Object(blogImageIndex + "/" + tileimageid)
+							tileobjblur = storageBucket.Object(blogImageIndex + "/" + tileimageid + "/blur")
+							tileobjoriginal = storageBucket.Object(blogImageIndex + "/" + tileimageid + "/original")
 						} else {
-							tileobj = storageBucket.Object(projectImageIndex + "/" + tileimageid)
+							tileobjblur = storageBucket.Object(projectImageIndex + "/" + tileimageid + "/blur")
+							tileobjoriginal = storageBucket.Object(projectImageIndex + "/" + tileimageid + "/original")
 						}
-						if err := tileobj.Delete(ctxStorage); err != nil {
+						if err := tileobjblur.Delete(ctxStorage); err != nil {
+							return nil, err
+						}
+						if err := tileobjoriginal.Delete(ctxStorage); err != nil {
 							return nil, err
 						}
 					}
@@ -644,13 +656,19 @@ func rootMutation() *graphql.Object {
 					}
 					for _, primativeimageid := range primativeimageids {
 						imageid := primativeimageid.(string)
-						var imageobj *storage.ObjectHandle
+						var imageobjblur *storage.ObjectHandle
+						var imageobjoriginal *storage.ObjectHandle
 						if thetype == "blog" {
-							imageobj = storageBucket.Object(blogImageIndex + "/" + imageid)
+							imageobjblur = storageBucket.Object(blogImageIndex + "/" + imageid + "/blur")
+							imageobjoriginal = storageBucket.Object(blogImageIndex + "/" + imageid + "/original")
 						} else {
-							imageobj = storageBucket.Object(projectImageIndex + "/" + imageid)
+							imageobjblur = storageBucket.Object(projectImageIndex + "/" + imageid + "/blur")
+							imageobjoriginal = storageBucket.Object(projectImageIndex + "/" + imageid + "/original")
 						}
-						if err := imageobj.Delete(ctxStorage); err != nil {
+						if err := imageobjblur.Delete(ctxStorage); err != nil {
+							return nil, err
+						}
+						if err := imageobjoriginal.Delete(ctxStorage); err != nil {
 							return nil, err
 						}
 					}

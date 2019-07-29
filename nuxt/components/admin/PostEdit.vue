@@ -503,7 +503,7 @@
                     <vue-markdown
                       :source="post.content"
                       class="mb-4 markdown"
-                      @rendered="updateCodeHighlighting"
+                      @rendered="updateMarkdown"
                     />
                   </div>
                   <h2 class="mb-4">Search</h2>
@@ -609,7 +609,11 @@ import { format } from 'date-fns'
 import uuid from 'uuid/v1'
 import axios from 'axios'
 import { Chrome } from 'vue-color'
+import LazyLoad from 'vanilla-lazyload'
 import { cloudStorageURLs, validTypes, options } from '~/assets/config'
+const lazyLoadInstance = new LazyLoad({
+  elements_selector: '.lazy'
+})
 /**
  * posts edit
  */
@@ -782,9 +786,13 @@ export default Vue.extend({
   },
   /* eslint-disable */
   methods: {
-    updateCodeHighlighting() {
+    updateMarkdown() {
       this.$nextTick(() => {
         Prism.highlightAll()
+        if (lazyLoadInstance) {
+          console.log('update lazyload')
+          lazyLoadInstance.update()
+        }
       })
     },
     createId() {
@@ -797,17 +805,17 @@ export default Vue.extend({
       return format(dateUTC, formatStr)
     },
     getImageTag(image) {
-      return `<a href="${cloudStorageURLs.posts}/${
+      return `<img data-src="${cloudStorageURLs.posts}/${
         this.type === 'blog' ? 'blogimages' : 'projectimages'
       }/${encodeURI(image.name)}.${
         image.id
-      }/original" class="progressive replace"><img src="${
+      }/original" src="${
         cloudStorageURLs.posts
       }/${this.type === 'blog' ? 'blogimages' : 'projectimages'}/${
         image.name
-      }.${image.id}/blur" class="preview" alt="${image.name}" data-width="${
+      }.${image.id}/blur" class="lazy" alt="${image.name}" data-width="${
         image.width
-      }" data-height="${image.height}"></img></a>`
+      }" data-height="${image.height}"></img>`
     },
     getFileTag(file) {
       return `<a href="${cloudStorageURLs.posts}/${

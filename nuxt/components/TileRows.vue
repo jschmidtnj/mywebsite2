@@ -59,7 +59,7 @@
 import Vue from 'vue'
 import Loading from '~/components/ComponentLoading.vue'
 import { validTypes, cloudStorageURLs } from '~/assets/config'
-const defaultOpacity = 10 // %
+const defaultOpacity = 20 // %
 const numPerRow = 2
 const defaultOpacityHex = Math.round((defaultOpacity / 100.0) * 255)
   .toString(16)
@@ -111,7 +111,7 @@ export default Vue.extend({
       if (this.shownPosts[rowindex][colindex].hover) {
         let colorHex = this.shownPosts[rowindex][colindex].color
         if (colorHex.length === 7) {
-          colorHex = `#${defaultOpacityHex}${colorHex.substring(1)}`
+          colorHex = colorHex.concat(defaultOpacityHex)
         }
         return colorHex
       }
@@ -228,6 +228,7 @@ export default Vue.extend({
   left: 0;
   width: 100%;
   height:100%;
+  z-index: 9999;
 }
 .text-overlay {
   margin-top: 10%;

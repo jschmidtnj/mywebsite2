@@ -115,7 +115,7 @@ export default Vue.extend({
       this.$route.query.token
     ) {
       this.$axios
-        .post('/verifyEmail', {
+        .post('/verify', {
           token: this.$route.query.token
         })
         .then(res => {

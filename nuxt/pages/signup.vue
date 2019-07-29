@@ -128,7 +128,7 @@ export default Vue.extend({
                   this.$toasted.global.success({
                     message: message
                   })
-                  this.reset()
+                  this.reset(evt)
                 } else {
                   this.$toasted.global.error({
                     message: 'could not get data'

@@ -363,22 +363,25 @@ func verifyEmail(response http.ResponseWriter, request *http.Request) {
 			return
 		}
 		userData := userDataPrimitive.Map()
-		if userData["emailverified"] != nil && !userData["emailverified"].(bool) {
+		if userData["emailverified"] != nil && userData["emailverified"].(bool) {
 			handleError("email already verified", http.StatusBadRequest, response)
 			return
 		}
-		var id string = userData["_id"].(string)
+		id := userData["_id"].(primitive.ObjectID)
 		_, err := userCollection.UpdateOne(ctxMongo, bson.M{
 			"_id": id,
 		}, bson.M{
-			"emailverified": true,
+			"$set": bson.M{
+				"emailverified": true,
+			},
 		})
 		if err != nil {
 			handleError("error updating user in database: "+err.Error(), http.StatusBadRequest, response)
 			return
 		}
+		idstring := id.Hex()
 		logger.Info("User email verify",
-			zap.String("id", id),
+			zap.String("id", idstring),
 			zap.String("email", userData["email"].(string)),
 		)
 		response.Header().Set("content-type", "application/json")

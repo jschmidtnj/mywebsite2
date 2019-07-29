@@ -73,15 +73,19 @@ const handlePostRequest = (req, res, type) => {
             const markdownconverter = new showdown.Converter()
             const postcontenthtml = markdownconverter.makeHtml(decodeURIComponent(postdata.content))
             $('#content').html(postcontenthtml)
-            $('a.progressive, a.replace').each((i, item) => {
+            $('img.lazy').each((i, item) => {
               item.tagName = 'amp-img'
-              const blursrc = (' ' + item.firstChild.attribs["src"]).slice(1)
-              const originalsrc = (' ' + item.attribs["href"]).slice(1)
-              item.attribs = {}
-              item.attribs.src = originalsrc
-              item.attribs.width = (' ' + item.firstChild.attribs['data-width']).slice(1)
-              item.attribs.height = (' ' + item.firstChild.attribs['data-height']).slice(1)
-              item.attribs.alt = (' ' + item.firstChild.attribs.alt).slice(1)
+              const blursrc = (' ' + item.attribs["src"]).slice(1)
+              const originalsrc = (' ' + item.attribs["data-src"]).slice(1)
+              const width = (' ' + item.attribs['data-width']).slice(1)
+              const height = (' ' + item.attribs['data-height']).slice(1)
+              const alt = (' ' + item.attribs.alt).slice(1)
+              item.attribs = {
+                src: originalsrc,
+                width: width,
+                height: height,
+                alt: alt
+              }
               $(this).html(`<amp-img placeholder src="${blursrc} layout="fill"></amp-img>`)
             })
             $('#views').text(postdata.views)

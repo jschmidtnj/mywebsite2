@@ -172,11 +172,12 @@ export default Vue.extend({
       const startpageindex = this.currentIndex % this.$store.state.tiles.perpage
       const allPostsLen = Math.ceil(this.count / this.$store.state.tiles.perpage)
       const allPostsIndexLen = this.count < this.$store.state.tiles.perpage ? this.count : this.$store.state.tiles.perpage
+      const shownPostsLen = this.count < this.perpage ? this.count : this.perpage
       const newShownPosts: any = []
       for (let i = startpage; i < endpage; i++) {
         let start = i === startpage ? startpageindex : 0
         await this.addPosts(i % allPostsLen)
-        for (let j = start; (j < allPostsIndexLen || (i === endpage - 1 && j < allPostsIndexLen * 2)) && newShownPosts.length < this.perpage; j++) {
+        for (let j = start; (j < allPostsIndexLen || (i === endpage - 1 && j < allPostsIndexLen * 2)) && newShownPosts.length < shownPostsLen; j++) {
           const newPost: any = this.allPosts[i % allPostsLen][j % allPostsIndexLen]
           newPost.title = decodeURIComponent(newPost.title)
           newPost.caption = decodeURIComponent(newPost.caption)

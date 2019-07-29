@@ -5,29 +5,30 @@
       <p>{{ post.author }}</p>
       <p v-if="post.id">{{ formatDate(mongoidToDate(post.id), 'M/D/YYYY') }}</p>
       <p>{{ post.views }}</p>
-      <a
-        :href="
+      <a :href="`${shortlinkurl}/${post.shortlink}`">{{
+        `${shortlinkurl}/${post.shortlink}`
+      }}</a>
+      <hr />
+      <b-img-lazy
+        v-if="post.heroimage"
+        :loading="
+          `${postCdn}/${type === 'blog' ? 'blogimages' : 'projectimages'}/${
+            post.heroimage
+          }/blur`
+        "
+        :src="
           `${postCdn}/${type === 'blog' ? 'blogimages' : 'projectimages'}/${
             post.heroimage
           }/original`
         "
-        class="progressive replace"
+        alt="Hero"
       >
-        <img
-          :src="
-            `${postCdn}/${type === 'blog' ? 'blogimages' : 'projectimages'}/${
-              post.heroimage
-            }/blur`
-          "
-          class="preview"
-          alt="Hero"
-        />
-      </a>
-      <a :href="`${shortlinkurl}/${post.shortlink}`">shortlink</a>
+      </b-img-lazy>
+      <hr />
       <vue-markdown
         :source="post.content"
         class="mb-4 markdown"
-        @rendered="updateCodeHighlighting"
+        @rendered="updateMarkdown"
       />
       <b-container>
         <tile-carousel :type="type" />
@@ -42,9 +43,13 @@ import Vue from 'vue'
 import { format } from 'date-fns'
 import VueMarkdown from 'vue-markdown'
 import Prism from 'prismjs'
+import LazyLoad from 'vanilla-lazyload'
 import Loading from '~/components/PageLoading.vue'
 import TileCarousel from '~/components/TileCarousel.vue'
 import { validTypes, cloudStorageURLs } from '~/assets/config'
+const lazyLoadInstance = new LazyLoad({
+  elements_selector: '.lazy'
+})
 // @ts-ignore
 const ampurl = process.env.ampurl
 // @ts-ignore
@@ -152,9 +157,13 @@ export default Vue.extend({
     }
   },
   methods: {
-    updateCodeHighlighting() {
+    updateMarkdown() {
       this.$nextTick(() => {
         Prism.highlightAll()
+        if (lazyLoadInstance) {
+          console.log('update lazyload')
+          lazyLoadInstance.update()
+        }
       })
     },
     formatDate(dateUTC, formatStr) {
