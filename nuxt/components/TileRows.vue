@@ -49,6 +49,7 @@
           <div v-else></div>
         </b-col>
       </b-row>
+      <p v-if="shownPosts.length === 0">No {{ `${type}s` }} found.</p>
     </div>
 
     <loading v-else />

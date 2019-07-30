@@ -1,42 +1,44 @@
 <template>
   <div id="tiles" class="mb-5">
     <div v-if="!loading" id="tile-data">
-      <button
-        class="button-link"
-        :disabled="count <= perpage"
-        @click="
-          evt => {
-            evt.preventDefault()
-            changePage(false)
-          }
-        "
-      >
-        <no-ssr>
-          <font-awesome-icon
-            class="mr-2"
-            style="max-width: 13px;"
-            icon="arrow-left"
-          />
-        </no-ssr>
-      </button>
-      <button
-        class="button-link"
-        :disabled="count <= perpage"
-        @click="
-          evt => {
-            evt.preventDefault()
-            changePage(true)
-          }
-        "
-      >
-        <no-ssr>
-          <font-awesome-icon
-            class="mr-2"
-            style="max-width: 13px;"
-            icon="arrow-right"
-          />
-        </no-ssr>
-      </button>
+      <div v-if="count > perpage" id="navigation-buttons">
+        <button
+          class="button-link"
+          :disabled="count <= perpage"
+          @click="
+            evt => {
+              evt.preventDefault()
+              changePage(false)
+            }
+          "
+        >
+          <no-ssr>
+            <font-awesome-icon
+              class="mr-2"
+              style="max-width: 13px;"
+              icon="arrow-left"
+            />
+          </no-ssr>
+        </button>
+        <button
+          class="button-link"
+          :disabled="count <= perpage"
+          @click="
+            evt => {
+              evt.preventDefault()
+              changePage(true)
+            }
+          "
+        >
+          <no-ssr>
+            <font-awesome-icon
+              class="mr-2"
+              style="max-width: 13px;"
+              icon="arrow-right"
+            />
+          </no-ssr>
+        </button>
+      </div>
       <b-card-group deck>
         <no-ssr>
           <button

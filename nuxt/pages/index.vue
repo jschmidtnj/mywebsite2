@@ -1,10 +1,17 @@
 <template>
   <section class="container">
     <div>
-      <h1>Under Construction</h1>
-      <h2>Please check again later</h2>
-      <hr />
+      <b-jumbotron
+        header="Joshua Schmidt"
+        lead="Programmer, Computer Engineer, Developer"
+        class="mt-4"
+      >
+        <b-button variant="primary" href="/about">About</b-button>
+      </b-jumbotron>
+      <h3>Blogs</h3>
       <tile-rows type="blog" />
+      <h3>Projects</h3>
+      <tile-rows type="project" />
     </div>
   </section>
 </template>
