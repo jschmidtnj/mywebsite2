@@ -84,9 +84,10 @@ const handlePostRequest = (req, res, type) => {
                 src: originalsrc,
                 width: width,
                 height: height,
-                alt: alt
+                alt: alt,
+                layout: 'responsive'
               }
-              $(this).html(`<amp-img placeholder src="${blursrc} layout="fill"></amp-img>`)
+              $(this).html(`<amp-img placeholder src="${blursrc}" layout="fill"></amp-img>`)
             })
             $('#views').text(postdata.views)
             $('#date').text(date)

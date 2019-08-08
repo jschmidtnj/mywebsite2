@@ -45,7 +45,7 @@
                         type="text"
                         class="form-control"
                         aria-describedby="authorfeedback"
-                        placeholder
+                        placeholder="author"
                       />
                     </span>
                     <b-form-invalid-feedback
@@ -71,7 +71,7 @@
                         type="text"
                         class="form-control"
                         aria-describedby="titlefeedback"
-                        placeholder
+                        placeholder="title"
                       />
                     </span>
                     <b-form-invalid-feedback
@@ -97,7 +97,7 @@
                         type="text"
                         class="form-control"
                         aria-describedby="captionfeedback"
-                        placeholder
+                        placeholder="caption"
                       />
                     </span>
                     <b-form-invalid-feedback
@@ -516,7 +516,7 @@
                         :state="!$v.search.$invalid"
                         class="form-control mb-2"
                         aria-describedby="searchfeedback"
-                        placeholder
+                        placeholder="search..."
                       />
                     </span>
                     <b-form-invalid-feedback
@@ -813,9 +813,9 @@ export default Vue.extend({
         cloudStorageURLs.posts
       }/${this.type === 'blog' ? 'blogimages' : 'projectimages'}/${
         image.name
-      }.${image.id}/blur" class="lazy" alt="${image.name}" data-width="${
+      }.${image.id}/blur" class="lazy img-fluid" alt="${image.name}" data-width="${
         image.width
-      }" data-height="${image.height}"></img>`
+      }" data-height="${image.height}">`
     },
     getFileTag(file) {
       return `<a href="${cloudStorageURLs.posts}/${

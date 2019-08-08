@@ -22,6 +22,7 @@
           }/original`
         "
         alt="Hero"
+        class="img-fluid"
       >
       </b-img-lazy>
       <hr />
