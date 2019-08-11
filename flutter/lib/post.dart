@@ -3,7 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'config.dart';
 import 'dart:io';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:markdown/markdown.dart' as markdown;
+import 'package:flutter_html/flutter_html.dart';
 import 'package:intl/intl.dart';
 import 'package:html/parser.dart' show parse;
 import 'package:html/dom.dart' as dom;
@@ -53,16 +54,16 @@ class PostPage extends StatelessWidget {
         future: postdata,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            String content =
+            String content = markdown.markdownToHtml(
                 Uri.decodeComponent(snapshot.data['data']['post']['content'])
-                    .replaceAll('</img>', '');
+                    .replaceAll('</img>', ''));
             dom.Document document = parse(content);
             List<dom.Element> linkTags = document.querySelectorAll('img.lazy');
             for (dom.Element linkTag in linkTags) {
               String tagToReplace = linkTag.outerHtml;
               String imgSrc = linkTag.attributes["data-src"];
-              String alt = linkTag.attributes["alt"];
-              content = content.replaceFirst(tagToReplace, '![$alt]($imgSrc)');
+              content =
+                  content.replaceFirst(tagToReplace, '<img src="$imgSrc">');
             }
             String title =
                 Uri.decodeComponent(snapshot.data['data']['post']['title']);
@@ -77,9 +78,10 @@ class PostPage extends StatelessWidget {
                 1000);
             DateFormat formatter = new DateFormat('yyyy-MM-dd');
             String dateStr = formatter.format(date);
-            return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+            return SingleChildScrollView(
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                   Padding(padding: EdgeInsets.only(top: 40.0)),
                   Text(title,
                       style: TextStyle(
@@ -89,8 +91,8 @@ class PostPage extends StatelessWidget {
                   Padding(padding: EdgeInsets.only(top: 10.0)),
                   Text('by $author. $dateStr. $views views'),
                   Padding(padding: EdgeInsets.only(top: 10.0)),
-                  Flexible(child: Markdown(data: content))
-                ]);
+                  Html(data: content)
+                ]));
           } else if (snapshot.hasError) {
             return Text("${snapshot.error}");
           }
@@ -99,41 +101,5 @@ class PostPage extends StatelessWidget {
         },
       ),
     );
-  }
-}
-
-/// The first line of a HTTP request body
-class Quotation extends StatefulWidget {
-  Quotation({Key key, this.url}) : super(key: key);
-
-  final String url;
-
-  @override
-  createState() => _QuotationState();
-}
-
-class _QuotationState extends State<Quotation> {
-  String data = 'Loading ...';
-
-  @override
-  void initState() {
-    super.initState();
-    _get();
-  }
-
-  _get() async {
-    final res = await http.get(widget.url);
-    setState(() => data = _parseQuoteFromJson(res.body));
-  }
-
-  String _parseQuoteFromJson(String jsonStr) {
-    // In the real world, this should check for errors
-    final jsonQuote = json.decode(jsonStr);
-    return jsonQuote['contents']['quotes'][0]['quote'];
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(data, textAlign: TextAlign.center);
   }
 }

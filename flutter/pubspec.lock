@@ -76,6 +76,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_html:
+    dependency: "direct main"
+    description:
+      name: flutter_html
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.10.4"
   flutter_launcher_icons:
     dependency: "direct dev"
     description:
@@ -83,13 +90,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.7.2"
-  flutter_markdown:
-    dependency: "direct main"
-    description:
-      name: flutter_markdown
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.2.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -131,7 +131,7 @@ packages:
     source: hosted
     version: "0.15.8"
   markdown:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: markdown
       url: "https://pub.dartlang.org"
@@ -256,3 +256,4 @@ packages:
     version: "2.1.16"
 sdks:
   dart: ">=2.2.2 <3.0.0"
+  flutter: ">=0.5.0"
