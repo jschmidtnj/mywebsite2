@@ -9,7 +9,7 @@ const recaptchasitekey = process.env.RECAPTCHASITEKEY
 module.exports = {
   mode: 'spa',
 
-  globalName: 'Joshua Schmidt',
+  globalName: pkg.author,
 
   env: {
     seoconfig: process.env.SEOCONFIG,
@@ -28,35 +28,75 @@ module.exports = {
     meta: [
       { charset: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { hid: 'description', name: 'description', content: pkg.description },
       // OpenGraph Data
-      { property: 'og:title', content: 'Find Vericts' },
-      { property: 'og:site_name', content: 'Find Vericts' },
+      { property: 'og:site_name', content: pkg.author },
       // The list of types is available here: http://ogp.me/#types
       { property: 'og:type', content: 'website' },
-      {
-        property: 'og:image',
-        content: `${seodata.url}/opengraph.png`
-      },
-      { property: 'og:description', content: pkg.description },
       // Twitter card
-      { name: 'twitter:card', content: 'summary' },
+      { name: 'twitter:card', content: 'summary_large_image' },
       {
         name: 'twitter:site',
-        content: seodata.url
+        content: `@${seodata.twitterhandle}`
       },
-      { name: 'twitter:title', content: 'Find Vericts' },
-      {
-        name: 'twitter:description',
-        content: pkg.description
-      },
-      { name: 'twitter:creator', content: `@${seodata.twitterhandle}` },
-      {
-        name: 'twitter:image:src',
-        content: `${seodata.url}/twitter.png`
-      }
+      { name: 'twitter:creator', content: `@${seodata.twitterhandle}` }
     ],
-    link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }]
+    link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
+    __dangerouslyDisableSanitizers: ['script'],
+    script: [
+      {
+        innerHTML: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Organization',
+          name: pkg.author,
+          url: seodata.url,
+          logo: `${seodata.url}/icon.png`,
+          contactPoint: {
+            '@type': 'ContactPoint',
+            email: seodata.email
+          },
+          sameAs: [
+            `https://twitter.com/${seodata.twitterhandle}`,
+            seodata.facebook,
+            seodata.linkedin,
+            seodata.github
+          ]
+        }),
+        type: 'application/ld+json'
+      },
+      {
+        innerHTML: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Person',
+          email: seodata.email,
+          image: 'me.jpg',
+          jobTitle: seodata.jobtitle,
+          name: pkg.author,
+          birthDate: seodata.birthday,
+          gender: seodata.gender,
+          url: seodata.url,
+          sameAs: [
+            `https://twitter.com/${seodata.twitterhandle}`,
+            seodata.facebook,
+            seodata.linkedin,
+            seodata.github
+          ]
+        }),
+        type: 'application/ld+json'
+      },
+      {
+        innerHTML: JSON.stringify({
+          '@context': 'http://schema.org',
+          '@type': 'WebSite',
+          url: seodata.url,
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: `${seodata.url}/blogs?phrase={query}`,
+            query: 'required'
+          }
+        }),
+        type: 'application/ld+json'
+      }
+    ]
   },
 
   /*

@@ -34,11 +34,12 @@ export default Vue.extend({
   },
   methods: {
     logout(evt) {
-      /* eslint-disable */
       evt.preventDefault()
       this.$store.commit('auth/logout')
-      console.log(`layout name ${this.$nuxt.$data.layoutName}`)
-      if (this.$nuxt.$data.layoutName === 'secure') {
+      if (
+        this.$nuxt.$data.layoutName === 'secure' ||
+        this.$nuxt.$data.layoutName === 'admin'
+      ) {
         this.$router.push({
           path: '/login'
         })

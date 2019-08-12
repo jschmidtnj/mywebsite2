@@ -75,6 +75,7 @@ import { validationMixin } from 'vuelidate'
 import { required, email } from 'vuelidate/lib/validators'
 import { regex } from '~/assets/config'
 const validPassword = val => regex.password.test(val)
+const seo = JSON.parse(process.env.seoconfig)
 export default Vue.extend({
   name: 'SignUp',
   mixins: [validationMixin],
@@ -97,6 +98,33 @@ export default Vue.extend({
         required,
         validPassword
       }
+    }
+  },
+  // @ts-ignore
+  head() {
+    const title = 'Sign Up'
+    const description = 'sign up for an account'
+    const image = `${seo.url}/icon.png`
+    return {
+      title: title,
+      meta: [
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        {
+          property: 'og:image',
+          content: image
+        },
+        { name: 'twitter:title', content: title },
+        {
+          name: 'twitter:description',
+          content: description
+        },
+        {
+          name: 'twitter:image',
+          content: image
+        },
+        { hid: 'description', name: 'description', content: description }
+      ]
     }
   },
   methods: {

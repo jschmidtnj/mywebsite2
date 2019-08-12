@@ -113,6 +113,7 @@
 import Vue from 'vue'
 import { format } from 'date-fns'
 import { validTypes } from '~/assets/config'
+const seo = JSON.parse(process.env.seoconfig)
 export default Vue.extend({
   props: {
     type: {
@@ -174,7 +175,48 @@ export default Vue.extend({
         })
     }
   },
+  // @ts-ignore
+  head() {
+    const title = `Search ${this.type}`
+    const description = `search for ${this.type}s, by name, views, etc`
+    const image = `${seo.url}/icon.png`
+    return {
+      title: title,
+      meta: [
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        {
+          property: 'og:image',
+          content: image
+        },
+        { name: 'twitter:title', content: title },
+        {
+          name: 'twitter:description',
+          content: description
+        },
+        {
+          name: 'twitter:image',
+          content: image
+        },
+        { hid: 'description', name: 'description', content: description }
+      ]
+    }
+  },
   mounted() {
+    if (this.$route.query) {
+      if (this.$route.query.phrase) this.search = this.$route.query.phrase
+      if (this.$route.query.perpage)
+        this.perPage = parseInt(this.$route.query.perpage)
+      if (this.$route.query.currentpage)
+        this.currentPage = parseInt(this.$route.query.currentpage)
+      if (this.$route.query.sortdescending)
+        this.sortDesc = this.$route.query.sortdescending === 'true'
+      if (
+        this.$route.query.sortby &&
+        this.fields.some(field => field.key === this.$route.query.sortby)
+      )
+        this.sortBy = this.$route.query.sortby
+    }
     this.searchPosts(this.currentPage)
   },
   methods: {

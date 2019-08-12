@@ -150,21 +150,69 @@ export default Vue.extend({
   head() {
     const title = this.post
       ? this.post.title
-      : validTypes.includes(this.type)
-      ? this.type
-      : 'Post'
+      : this.type
+    const description = this.post ? this.post.caption : this.type
+    const meta: any = [
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { name: 'twitter:title', content: title },
+        {
+          name: 'twitter:description',
+          content: description
+        },
+        { hid: 'description', name: 'description', content: description }
+      ]
+    const script: any = []
+    if (this.post) {
+      const image = `${cloudStorageURLs.posts}/${
+                      this.type === 'blog' ? 'blogimages' : 'projectimages'
+                    }/${encodeURI(this.post.tileimage)}/original`
+      meta.push({
+        property: 'og:image',
+        content: image
+      })
+      meta.push({
+        name: 'twitter:image',
+        content: image
+      })
+      const date = this.formatDate(this.mongoidToDate(this.post.id), 'YYYY-MM-DD')
+      script.push({
+        innerHTML: JSON.stringify({ 
+          '@context': 'https://schema.org', 
+          '@type': 'BlogPosting',
+          headline: this.post.title,
+          alternativeHeadline: this.post.caption,
+          image: image,
+          editor: this.post.author, 
+          genre: this.post.categories.join(' '),
+          keywords: this.post.tags.join(' '),
+          wordcount: this.post.content.length,
+          publisher: seo.url,
+          url: seo.url,
+          datePublished: date,
+          dateCreated: date,
+          dateModified: date,
+          description: this.post.caption,
+          articleBody: this.post.content,
+          author: {
+            '@type': 'Person',
+            name: this.post.author
+          }
+        }),
+        type: 'application/ld+json'
+      })
+    }
     return {
       title: title,
+      meta: meta,
       link: [
-        {
-          rel: 'canonical',
-          href: `${seo.url}/blog/${this.$route.query.id}`
-        },
         {
           rel: 'amphtml',
           href: `${ampurl}/blog/${this.$route.query.id}`
         }
-      ]
+      ],
+      __dangerouslyDisableSanitizers: ['script'],
+      script: script
     }
   },
   methods: {

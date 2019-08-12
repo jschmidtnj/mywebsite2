@@ -7,7 +7,7 @@
             <div class="card-body">
               <b-form @submit="manageposts" @reset="resetposts">
                 <span class="card-text">
-                  <h2 class="mb-4">{{ mode }} Post</h2>
+                  <h2 class="mb-4">{{ mode }} {{ type }}</h2>
                   <b-form-group>
                     <label>Content</label>
                     <span>
@@ -611,6 +611,7 @@ import axios from 'axios'
 import { Chrome } from 'vue-color'
 import LazyLoad from 'vanilla-lazyload'
 import { cloudStorageURLs, validTypes, options } from '~/assets/config'
+const seo = JSON.parse(process.env.seoconfig)
 const lazyLoadInstance = new LazyLoad({
   elements_selector: '.lazy'
 })
@@ -769,19 +770,31 @@ export default Vue.extend({
       }
     }
   },
+  // @ts-ignore
   head() {
-    // @ts-ignore
-    const seo = JSON.parse(process.env.seoconfig)
-    const links: any = []
-    if (seo) {
-      links.push({
-        rel: 'canonical',
-        href: `${seo.url}/admin/posts`
-      })
-    }
+    const title = `Admin Edit ${this.type}`
+    const description = `admin page for editing ${this.type}s`
+    const image = `${seo.url}/icon.png`
     return {
-      title: 'Admin Posts',
-      links: links
+      title: title,
+      meta: [
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        {
+          property: 'og:image',
+          content: image
+        },
+        { name: 'twitter:title', content: title },
+        {
+          name: 'twitter:description',
+          content: description
+        },
+        {
+          name: 'twitter:image',
+          content: image
+        },
+        { hid: 'description', name: 'description', content: description }
+      ]
     }
   },
   /* eslint-disable */

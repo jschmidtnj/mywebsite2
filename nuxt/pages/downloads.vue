@@ -29,6 +29,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import { androidAppURL, cloudStorageURLs } from '~/assets/config'
+const seo = JSON.parse(process.env.seoconfig)
 export default Vue.extend({
   name: 'Downloads',
   data() {
@@ -41,8 +42,30 @@ export default Vue.extend({
   },
   // @ts-ignore
   head() {
+    const title = 'Downloads'
+    const description =
+      'download application for mac, linux, windows, or android'
+    const image = `${seo.url}/icon.png`
     return {
-      title: 'Downloads'
+      title: title,
+      meta: [
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        {
+          property: 'og:image',
+          content: image
+        },
+        { name: 'twitter:title', content: title },
+        {
+          name: 'twitter:description',
+          content: description
+        },
+        {
+          name: 'twitter:image',
+          content: image
+        },
+        { hid: 'description', name: 'description', content: description }
+      ]
     }
   }
 })

@@ -9,13 +9,35 @@
 
 <script lang="ts">
 import Vue from 'vue'
+const seo = JSON.parse(process.env.seoconfig)
 export default Vue.extend({
   // @ts-ignore
   layout: 'secure',
   // @ts-ignore
   head() {
+    const title = 'Account'
+    const description = `your account: ${this.$store.state.auth.user.email}`
+    const image = `${seo.url}/icon.png`
     return {
-      title: 'Account'
+      title: title,
+      meta: [
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        {
+          property: 'og:image',
+          content: image
+        },
+        { name: 'twitter:title', content: title },
+        {
+          name: 'twitter:description',
+          content: description
+        },
+        {
+          name: 'twitter:image',
+          content: image
+        },
+        { hid: 'description', name: 'description', content: description }
+      ]
     }
   },
   methods: {

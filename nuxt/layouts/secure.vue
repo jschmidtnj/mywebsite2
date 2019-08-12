@@ -23,6 +23,28 @@ export default Vue.extend({
         this.$store.state.auth.user.type === 'admin'
       )
     }
+  },
+  // @ts-ignore
+  head() {
+    // @ts-ignore
+    const seo = JSON.parse(process.env.seoconfig)
+    const links: any = []
+    const meta: any = []
+    if (seo) {
+      const canonical = `${seo.url}/${this.$route.path}`
+      links.push({
+        rel: 'canonical',
+        href: canonical
+      })
+      meta.push({
+        property: 'og:url',
+        content: canonical
+      })
+    }
+    return {
+      links: links,
+      meta: meta
+    }
   }
 })
 </script>

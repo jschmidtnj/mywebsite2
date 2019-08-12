@@ -206,12 +206,34 @@
 
 <script lang="ts">
 import Vue from 'vue'
+const seo = JSON.parse(process.env.seoconfig)
 export default Vue.extend({
   name: 'Privacy',
   // @ts-ignore
   head() {
+    const title = 'Privacy'
+    const description = 'privacy policy and terms of service'
+    const image = `${seo.url}/icon.png`
     return {
-      title: 'Privacy'
+      title: title,
+      meta: [
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        {
+          property: 'og:image',
+          content: image
+        },
+        { name: 'twitter:title', content: title },
+        {
+          name: 'twitter:description',
+          content: description
+        },
+        {
+          name: 'twitter:image',
+          content: image
+        },
+        { hid: 'description', name: 'description', content: description }
+      ]
     }
   }
 })
