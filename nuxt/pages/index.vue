@@ -19,6 +19,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import TileRows from '~/components/TileRows.vue'
+// @ts-ignore
 const seo = JSON.parse(process.env.seoconfig)
 export default Vue.extend({
   components: {

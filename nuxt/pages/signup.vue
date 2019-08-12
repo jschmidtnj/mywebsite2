@@ -75,6 +75,7 @@ import { validationMixin } from 'vuelidate'
 import { required, email } from 'vuelidate/lib/validators'
 import { regex } from '~/assets/config'
 const validPassword = val => regex.password.test(val)
+// @ts-ignore
 const seo = JSON.parse(process.env.seoconfig)
 export default Vue.extend({
   name: 'SignUp',

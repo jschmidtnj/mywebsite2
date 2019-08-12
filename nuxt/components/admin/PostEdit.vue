@@ -611,6 +611,7 @@ import axios from 'axios'
 import { Chrome } from 'vue-color'
 import LazyLoad from 'vanilla-lazyload'
 import { cloudStorageURLs, validTypes, options } from '~/assets/config'
+// @ts-ignore
 const seo = JSON.parse(process.env.seoconfig)
 const lazyLoadInstance = new LazyLoad({
   elements_selector: '.lazy'

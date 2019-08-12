@@ -113,6 +113,7 @@
 import Vue from 'vue'
 import { format } from 'date-fns'
 import { validTypes } from '~/assets/config'
+// @ts-ignore
 const seo = JSON.parse(process.env.seoconfig)
 export default Vue.extend({
   props: {

@@ -14,6 +14,7 @@ module.exports = {
   env: {
     seoconfig: process.env.SEOCONFIG,
     authconfig: process.env.AUTHCONFIG,
+    ampurl: process.env.AMPURL,
     apiurl: apiurl,
     mainurl: mainurl,
     recaptchasitekey: recaptchasitekey

@@ -29,6 +29,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import { androidAppURL, cloudStorageURLs } from '~/assets/config'
+// @ts-ignore
 const seo = JSON.parse(process.env.seoconfig)
 export default Vue.extend({
   name: 'Downloads',

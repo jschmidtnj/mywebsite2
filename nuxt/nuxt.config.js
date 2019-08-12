@@ -1,6 +1,5 @@
 const pkg = require('./package')
 require('dotenv').config()
-
 const seodata = JSON.parse(process.env.SEOCONFIG)
 const apiurl = process.env.APIURL
 const ampurl = process.env.AMPURL
