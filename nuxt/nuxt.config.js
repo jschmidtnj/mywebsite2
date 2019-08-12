@@ -67,7 +67,7 @@ module.exports = {
           '@context': 'https://schema.org',
           '@type': 'Person',
           email: seodata.email,
-          image: 'me.jpg',
+          image: 'me.png',
           jobTitle: seodata.jobtitle,
           name: pkg.author,
           birthDate: seodata.birthday,
