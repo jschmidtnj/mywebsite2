@@ -115,6 +115,8 @@ var shortlinkRecaptchaSecret string
 
 var shortlinkURL string
 
+var serviceEmail string
+
 var mode string
 
 // var mediumClient *medium.Medium
@@ -167,6 +169,7 @@ func main() {
 		logger.Fatal(err.Error())
 	}
 	sendgridAPIKey = os.Getenv("SENDGRIDAPIKEY")
+	serviceEmail = os.Getenv("SERVICEEMAIL")
 	mode = os.Getenv("MODE")
 	websiteURL = os.Getenv("WEBSITEURL")
 	ctxMongo, cancel := context.WithTimeout(context.Background(), 10*time.Second)

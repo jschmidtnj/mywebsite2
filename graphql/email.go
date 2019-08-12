@@ -15,8 +15,6 @@ import (
 	"github.com/sendgrid/sendgrid-go"
 )
 
-var sendEmail = "noreply@joshuaschmidt.tech"
-
 var sendgridAPIUrl = "https://api.sendgrid.com"
 
 var sendgridAPIPath = "/v3"
@@ -74,7 +72,7 @@ func sendEmailVerification(email string) (*rest.Response, error) {
 		]
 	}
 	`
-	body = fmt.Sprintf(body, email, sendEmail)
+	body = fmt.Sprintf(body, email, serviceEmail)
 	if err != nil {
 		return nil, err
 	}
@@ -191,7 +189,7 @@ func sendPasswordResetEmail(response http.ResponseWriter, request *http.Request)
 		]
 	}
 	`
-	body = fmt.Sprintf(body, email, sendEmail)
+	body = fmt.Sprintf(body, email, serviceEmail)
 	if err != nil {
 		handleError(err.Error(), http.StatusBadRequest, response)
 		return
