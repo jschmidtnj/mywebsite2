@@ -1,19 +1,22 @@
 <template>
-  <div>
+  <div class="main-wrapper">
     <admin-navbar v-if="admin" />
-    <nuxt />
+    <nuxt class="content" />
+    <main-footer />
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
 import AdminNavbar from '~/components/admin/Navbar.vue'
+import MainFooter from '~/components/Footer.vue'
 export default Vue.extend({
   name: 'Secure',
   // @ts-ignore
   middleware: 'auth',
   components: {
-    AdminNavbar
+    AdminNavbar,
+    MainFooter
   },
   computed: {
     admin() {

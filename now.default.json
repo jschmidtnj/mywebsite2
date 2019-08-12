@@ -16,7 +16,7 @@
       "RECAPTCHASITEKEY": "@recaptchasitekey"
     }
   },
-  "alias": "joshuaschmidt.tech",
+  "alias": "example.com",
   "routes": [
     {
       "src": "/(.*)",

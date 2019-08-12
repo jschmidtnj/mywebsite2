@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-// AccountType account type object for user accounts graphql
+// ShortLinkType account type object for user accounts graphql
 var ShortLinkType *graphql.Object = graphql.NewObject(graphql.ObjectConfig{
 	Name: "ShortLink",
 	Fields: graphql.Fields{

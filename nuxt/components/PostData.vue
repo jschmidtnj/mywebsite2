@@ -102,7 +102,7 @@ export default Vue.extend({
             )}",id:"${encodeURIComponent(this.id)}",cache:${(!(
               this.$store.state.auth.user &&
               this.$store.state.auth.user.type === 'admin'
-            )).toString()}){title content id author views shortlink heroimage}}`
+            )).toString()}){title content id author views shortlink heroimage categories tags}}`
           }
         })
         .then(res => {

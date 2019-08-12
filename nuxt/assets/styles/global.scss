@@ -3,6 +3,16 @@
 @import '~/node_modules/vue-select/src/scss/vue-select.scss';
 @import '~/node_modules/epic-spinners/dist/lib/epic-spinners.min.css';
 
+/* get footer to stick to the bottom */
+.main-wrapper {
+  display: flex;
+  min-height: 110vh;
+  flex-direction: column;
+}
+.content {
+  flex: 1;
+}
+
 /* get bullet points back */
 .markdown ul {
   list-style-type: disc !important;

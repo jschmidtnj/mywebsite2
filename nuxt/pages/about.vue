@@ -22,7 +22,7 @@ export default Vue.extend({
   // @ts-ignore
   head() {
     const title = 'About'
-    const description = 'description of joshuaschmidt.tech'
+    const description = 'description of this website'
     const image = `${seo.url}/icon.png`
     return {
       title: title,

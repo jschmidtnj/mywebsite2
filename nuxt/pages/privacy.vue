@@ -2,27 +2,19 @@
   <b-card id="privacy">
     <h1>Welcome to our Privacy Policy</h1>
     <h3>Your privacy is critically important to us.</h3>
-    Joshua Schmidt is located at:
-    <br />
-    <address>
-      Joshua Schmidt
-      <br />
-      <br />9085317087
-    </address>
-
     <p>
       It is Joshua Schmidt's policy to respect your privacy regarding any
       information we may collect while operating our website. This Privacy
       Policy applies to
-      <a href="https://joshuaschmidt.tech">https://joshuaschmidt.tech</a>
-      (hereinafter, "us", "we", or "https://joshuaschmidt.tech"). We respect
-      your privacy and are committed to protecting personally identifiable
-      information you may provide us through the Website. We have adopted this
-      privacy policy ("Privacy Policy") to explain what information may be
-      collected on our Website, how we use this information, and under what
-      circumstances we may disclose the information to third parties. This
-      Privacy Policy applies only to information we collect through the Website
-      and does not apply to our collection of information from other sources.
+      <a :href="url">{{ url }}</a>
+      (hereinafter, "us", "we", or "{{ url }}"). We respect your privacy and are
+      committed to protecting personally identifiable information you may
+      provide us through the Website. We have adopted this privacy policy
+      ("Privacy Policy") to explain what information may be collected on our
+      Website, how we use this information, and under what circumstances we may
+      disclose the information to third parties. This Privacy Policy applies
+      only to information we collect through the Website and does not apply to
+      our collection of information from other sources.
     </p>
     <p>
       This Privacy Policy, together with the Terms and conditions posted on our
@@ -46,10 +38,10 @@
     <p>
       Joshua Schmidt also collects potentially personally-identifying
       information like Internet Protocol (IP) addresses for logged in users and
-      for users leaving comments on https://joshuaschmidt.tech blog posts.
-      Joshua Schmidt only discloses logged in user and commenter IP addresses
-      under the same circumstances that it uses and discloses
-      personally-identifying information as described below.
+      for users leaving comments on {{ url }} blog posts. Joshua Schmidt only
+      discloses logged in user and commenter IP addresses under the same
+      circumstances that it uses and discloses personally-identifying
+      information as described below.
     </p>
 
     <h2>Gathering of Personally-Identifying Information</h2>
@@ -59,7 +51,7 @@
       personally-identifying information. The amount and type of information
       that Joshua Schmidt gathers depends on the nature of the interaction. For
       example, we ask visitors who sign up for a blog at
-      https://joshuaschmidt.tech to provide a username and email address.
+      {{ url }} to provide a username and email address.
     </p>
 
     <h2>Security</h2>
@@ -96,13 +88,13 @@
       services.
     </p>
 
-    <h2>Https://joshuaschmidt.tech uses Google AdWords for remarketing</h2>
+    <h2>{{ url }} uses Google AdWords for remarketing</h2>
     <p>
-      Https://joshuaschmidt.tech uses the remarketing services to advertise on
-      third party websites (including Google) to previous visitors to our site.
-      It could mean that we advertise to previous visitors who haven't completed
-      a task on our site, for example using the contact form to make an enquiry.
-      This could be in the form of an advertisement on the Google search results
+      {{ url }} uses the remarketing services to advertise on third party
+      websites (including Google) to previous visitors to our site. It could
+      mean that we advertise to previous visitors who haven't completed a task
+      on our site, for example using the contact form to make an enquiry. This
+      could be in the form of an advertisement on the Google search results
       page, or a site in the Google Display Network. Third-party vendors,
       including Google, use cookies to serve ads based on someone's past visits.
       Of course, any data collected will be used in accordance with our own
@@ -136,18 +128,18 @@
       parties or the public at large.
     </p>
     <p>
-      If you are a registered user of https://joshuaschmidt.tech and have
-      supplied your email address, Joshua Schmidt may occasionally send you an
-      email to tell you about new features, solicit your feedback, or just keep
-      you up to date with what's going on with Joshua Schmidt and our products.
-      We primarily use our blog to communicate this type of information, so we
-      expect to keep this type of email to a minimum. If you send us a request
-      (for example via a support email or via one of our feedback mechanisms),
-      we reserve the right to publish it in order to help us clarify or respond
-      to your request or to help us support other users. Joshua Schmidt takes
-      all measures reasonably necessary to protect against the unauthorized
-      access, use, alteration or destruction of potentially
-      personally-identifying and personally-identifying information.
+      If you are a registered user of {{ url }} and have supplied your email
+      address, Joshua Schmidt may occasionally send you an email to tell you
+      about new features, solicit your feedback, or just keep you up to date
+      with what's going on with Joshua Schmidt and our products. We primarily
+      use our blog to communicate this type of information, so we expect to keep
+      this type of email to a minimum. If you send us a request (for example via
+      a support email or via one of our feedback mechanisms), we reserve the
+      right to publish it in order to help us clarify or respond to your request
+      or to help us support other users. Joshua Schmidt takes all measures
+      reasonably necessary to protect against the unauthorized access, use,
+      alteration or destruction of potentially personally-identifying and
+      personally-identifying information.
     </p>
 
     <h2>Aggregated Statistics</h2>
@@ -169,12 +161,12 @@
       A cookie is a string of information that a website stores on a visitor's
       computer, and that the visitor's browser provides to the website each time
       the visitor returns. Joshua Schmidt uses cookies to help Joshua Schmidt
-      identify and track visitors, their usage of https://joshuaschmidt.tech,
-      and their website access preferences. Joshua Schmidt visitors who do not
-      wish to have cookies placed on their computers should set their browsers
-      to refuse cookies before using Joshua Schmidt's websites, with the
-      drawback that certain features of Joshua Schmidt's websites may not
-      function properly without the aid of cookies.
+      identify and track visitors, their usage of {{ url }}, and their website
+      access preferences. Joshua Schmidt visitors who do not wish to have
+      cookies placed on their computers should set their browsers to refuse
+      cookies before using Joshua Schmidt's websites, with the drawback that
+      certain features of Joshua Schmidt's websites may not function properly
+      without the aid of cookies.
     </p>
     <p>
       By continuing to navigate our website without changing your cookie
@@ -198,8 +190,7 @@
     <h2>Credit and Contact Information</h2>
     <p>
       If you have any questions about this Privacy Policy, please contact us via
-      <a href="mailto:joshuanschmidt@gmail.com">email</a> or
-      <a href="tel:9085317087">phone</a>.
+      <a :href="`mailto:${email}`">email</a>.
     </p>
   </b-card>
 </template>
@@ -210,6 +201,12 @@ import Vue from 'vue'
 const seo = JSON.parse(process.env.seoconfig)
 export default Vue.extend({
   name: 'Privacy',
+  data() {
+    return {
+      email: seo.email,
+      url: seo.url
+    }
+  },
   // @ts-ignore
   head() {
     const title = 'Privacy'

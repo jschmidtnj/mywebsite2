@@ -12,6 +12,7 @@ module.exports = {
 
   env: {
     seoconfig: process.env.SEOCONFIG,
+    githuburl: pkg.repository.url,
     authconfig: process.env.AUTHCONFIG,
     apiurl: apiurl,
     ampurl: ampurl,

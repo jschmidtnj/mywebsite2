@@ -1,18 +1,20 @@
 <template>
-  <div>
+  <div class="main-wrapper">
     <navbar />
-    <nuxt />
+    <nuxt class="content" />
+    <main-footer />
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
 import Navbar from '~/components/Navbar.vue'
-
+import MainFooter from '~/components/Footer.vue'
 export default Vue.extend({
   name: 'Default',
   components: {
-    Navbar
+    Navbar,
+    MainFooter
   },
   // @ts-ignore
   head() {
