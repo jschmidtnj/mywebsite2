@@ -188,20 +188,27 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
+@media (min-width: 1200px) {
+  .container{
+    max-width: 1400px;
+  }
+}
 .white-color {
   color: white;
 }
 .hero-img {
   object-fit: cover;
   width: 100%;
-  max-height: 35em;
+  // set max height for image
+  max-height: 40em;
   position: relative;
 }
 .hero-body {
   overflow: hidden;
   text-align: center;
   width: 100%;
-  max-height: 35em;
+  // set max height for image
+  max-height: 40em;
   padding: 0;
 }
 .main-overlay {
