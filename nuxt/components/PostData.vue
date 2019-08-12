@@ -1,6 +1,33 @@
 <template>
   <div>
+    <b-container v-if="post" class="hero-body">
+      <b-row>
+        <b-col>
+          <b-img-lazy
+            v-if="post.heroimage"
+            :loading="
+              `${postCdn}/${type === 'blog' ? 'blogimages' : 'projectimages'}/${
+                post.heroimage
+              }/blur`
+            "
+            :src="
+              `${postCdn}/${type === 'blog' ? 'blogimages' : 'projectimages'}/${
+                post.heroimage
+              }/original`
+            "
+            alt="Hero"
+            class="hero-img m-0"
+          ></b-img-lazy>
+          <div class="main-overlay">
+            <div class="text-overlay">
+              <!-- add text overlay here -->
+            </div>
+          </div>
+        </b-col>
+      </b-row>
+    </b-container>
     <b-container v-if="post">
+      <hr />
       <h1>{{ post.title }}</h1>
       <p>{{ post.author }}</p>
       <p v-if="post.id">{{ formatDate(mongoidToDate(post.id), 'M/D/YYYY') }}</p>
@@ -8,23 +35,6 @@
       <a :href="`${shortlinkurl}/${post.shortlink}`">{{
         `${shortlinkurl}/${post.shortlink}`
       }}</a>
-      <hr />
-      <b-img-lazy
-        v-if="post.heroimage"
-        :loading="
-          `${postCdn}/${type === 'blog' ? 'blogimages' : 'projectimages'}/${
-            post.heroimage
-          }/blur`
-        "
-        :src="
-          `${postCdn}/${type === 'blog' ? 'blogimages' : 'projectimages'}/${
-            post.heroimage
-          }/original`
-        "
-        alt="Hero"
-        class="img-fluid"
-      >
-      </b-img-lazy>
       <hr />
       <vue-markdown
         :source="post.content"
@@ -178,4 +188,34 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
+.white-color {
+  color: white;
+}
+.hero-img {
+  object-fit: cover;
+  width: 100%;
+  max-height: 35em;
+  position: relative;
+}
+.hero-body {
+  overflow: hidden;
+  text-align: center;
+  width: 100%;
+  max-height: 35em;
+  padding: 0;
+}
+.main-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  // add gradiant to show text clearly
+  // background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2));
+}
+.text-overlay {
+  padding-top: 10%;
+  height: 100%;
+}
 </style>
