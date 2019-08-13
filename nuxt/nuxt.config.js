@@ -52,7 +52,9 @@ module.exports = {
           logo: `${seodata.url}/icon.png`,
           contactPoint: {
             '@type': 'ContactPoint',
-            email: seodata.email
+            email: seodata.email,
+            contactType: 'main',
+            url: `${seodata.url}/about`
           },
           sameAs: [
             `https://twitter.com/${seodata.twitterhandle}`,
@@ -91,7 +93,7 @@ module.exports = {
           potentialAction: {
             '@type': 'SearchAction',
             target: `${seodata.url}/blogs?phrase={query}`,
-            query: 'required'
+            'query-input': 'required name=query'
           }
         }),
         type: 'application/ld+json'
