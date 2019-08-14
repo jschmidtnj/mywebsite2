@@ -1,83 +1,85 @@
 <template>
-  <loading v-if="loading" />
-  <b-card v-else title="Reset" footer-tag="footer">
-    <b-form v-if="sendEmailMode" @submit="sendResetEmail">
-      <b-form-group
-        id="email-address-group"
-        label="Email address:"
-        label-for="email-address"
-        description="Please enter your account email address"
-      >
-        <b-form-input
-          id="email-address"
-          v-model="emailform.email"
-          type="text"
-          autocomplete="off"
-          :state="!$v.emailform.email.$invalid"
-          placeholder="Enter email"
-          aria-describedby="emailfeedback"
-        ></b-form-input>
-        <b-form-invalid-feedback
-          id="emailfeedback"
-          :state="!$v.emailform.email.$invalid"
+  <div>
+    <loading v-if="loading" />
+    <b-card v-else title="Reset" footer-tag="footer">
+      <b-form v-if="sendEmailMode" @submit="sendResetEmail">
+        <b-form-group
+          id="email-address-group"
+          label="Email address:"
+          label-for="email-address"
+          description="Please enter your account email address"
         >
-          <div v-if="!$v.emailform.email.required">email is required</div>
-          <div v-else-if="!$v.emailform.email.email">
-            email is invalid
-          </div>
-        </b-form-invalid-feedback>
-      </b-form-group>
-      <b-button
-        variant="primary"
-        type="submit"
-        class="mt-4"
-        :disabled="$v.emailform.$invalid"
-        >Submit</b-button
-      >
-    </b-form>
-    <b-form v-else @submit="resetPassword">
-      <b-form-group
-        id="password-group"
-        label="Password:"
-        label-for="password"
-        description="Password must be at least 8 characters long, with a number, capital letter and special character"
-      >
-        <b-form-input
-          id="password"
-          v-model="passwordform.password"
-          type="password"
-          :state="!$v.passwordform.password.$invalid"
-          placeholder="Enter password"
-          aria-describedby="passwordfeedback"
-        ></b-form-input>
-        <b-form-invalid-feedback
-          id="passwordfeedback"
-          :state="!$v.passwordform.password.$invalid"
+          <b-form-input
+            id="email-address"
+            v-model="emailform.email"
+            type="text"
+            autocomplete="off"
+            :state="!$v.emailform.email.$invalid"
+            placeholder="Enter email"
+            aria-describedby="emailfeedback"
+          ></b-form-input>
+          <b-form-invalid-feedback
+            id="emailfeedback"
+            :state="!$v.emailform.email.$invalid"
+          >
+            <div v-if="!$v.emailform.email.required">email is required</div>
+            <div v-else-if="!$v.emailform.email.email">
+              email is invalid
+            </div>
+          </b-form-invalid-feedback>
+        </b-form-group>
+        <b-button
+          variant="primary"
+          type="submit"
+          class="mt-4"
+          :disabled="$v.emailform.$invalid"
+          >Submit</b-button
         >
-          <div v-if="!$v.passwordform.password.required">
-            password is required
-          </div>
-          <div v-else-if="!$v.passwordform.password.validPassword">
-            password is invalid
-          </div>
-        </b-form-invalid-feedback>
-      </b-form-group>
-      <b-button
-        variant="primary"
-        type="submit"
-        class="mt-4"
-        :disabled="$v.passwordform.$invalid"
-        >Submit</b-button
-      >
-    </b-form>
-    <p slot="footer">
-      By clicking submit you aggree to the
-      <a href="/privacy">privacy policy</a>. This site is protected by reCAPTCHA
-      and the Google
-      <a href="https://policies.google.com/privacy">Privacy Policy</a> and
-      <a href="https://policies.google.com/terms">Terms of Service</a> apply.
-    </p>
-  </b-card>
+      </b-form>
+      <b-form v-else @submit="resetPassword">
+        <b-form-group
+          id="password-group"
+          label="Password:"
+          label-for="password"
+          description="Password must be at least 8 characters long, with a number, capital letter and special character"
+        >
+          <b-form-input
+            id="password"
+            v-model="passwordform.password"
+            type="password"
+            :state="!$v.passwordform.password.$invalid"
+            placeholder="Enter password"
+            aria-describedby="passwordfeedback"
+          ></b-form-input>
+          <b-form-invalid-feedback
+            id="passwordfeedback"
+            :state="!$v.passwordform.password.$invalid"
+          >
+            <div v-if="!$v.passwordform.password.required">
+              password is required
+            </div>
+            <div v-else-if="!$v.passwordform.password.validPassword">
+              password is invalid
+            </div>
+          </b-form-invalid-feedback>
+        </b-form-group>
+        <b-button
+          variant="primary"
+          type="submit"
+          class="mt-4"
+          :disabled="$v.passwordform.$invalid"
+          >Submit</b-button
+        >
+      </b-form>
+      <p slot="footer">
+        By clicking submit you aggree to the
+        <a href="/privacy">privacy policy</a>. This site is protected by
+        reCAPTCHA and the Google
+        <a href="https://policies.google.com/privacy">Privacy Policy</a> and
+        <a href="https://policies.google.com/terms">Terms of Service</a> apply.
+      </p>
+    </b-card>
+  </div>
 </template>
 
 <script lang="ts">
