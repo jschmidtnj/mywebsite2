@@ -26,7 +26,7 @@ func sendEmailVerification(email string) (*rest.Response, error) {
 		"verify": true,
 		"StandardClaims": jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
-			Issuer:    "Joshua Schmidt",
+			Issuer:    jwtIssuer,
 		},
 	})
 	tokenString, err := token.SignedString(jwtSecret)
@@ -139,7 +139,7 @@ func sendPasswordResetEmail(response http.ResponseWriter, request *http.Request)
 		"reset": true,
 		"StandardClaims": jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
-			Issuer:    "Joshua Schmidt",
+			Issuer:    jwtIssuer,
 		},
 	})
 	tokenString, err := token.SignedString(jwtSecret)

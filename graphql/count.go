@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-redis/redis"
-	"github.com/olivere/elastic"
+	"github.com/olivere/elastic/v7"
 )
 
 func removeEmptyStrings(input []string) []string {

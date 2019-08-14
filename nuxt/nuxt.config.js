@@ -53,7 +53,7 @@ module.exports = {
           contactPoint: {
             '@type': 'ContactPoint',
             email: seodata.email,
-            contactType: 'main',
+            contactType: 'technical support',
             url: `${seodata.url}/about`
           },
           sameAs: [

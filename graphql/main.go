@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis"
-	"github.com/olivere/elastic"
+	"github.com/olivere/elastic/v7"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
@@ -117,6 +117,8 @@ var shortlinkURL string
 
 var serviceEmail string
 
+var jwtIssuer string
+
 var mode string
 
 // var mediumClient *medium.Medium
@@ -170,6 +172,7 @@ func main() {
 	}
 	sendgridAPIKey = os.Getenv("SENDGRIDAPIKEY")
 	serviceEmail = os.Getenv("SERVICEEMAIL")
+	jwtIssuer = os.Getenv("JWTISSUER")
 	mode = os.Getenv("MODE")
 	websiteURL = os.Getenv("WEBSITEURL")
 	ctxMongo, cancel := context.WithTimeout(context.Background(), 10*time.Second)

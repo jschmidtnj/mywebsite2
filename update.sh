@@ -4,7 +4,8 @@
 set -e
 
 yarn upgrade
-cd amp && yarn upgrade
+cd amp
+yarn upgrade
 cd ../docs
 yarn upgrade
 cd ../electron
@@ -13,6 +14,10 @@ cd ../init
 yarn upgrade
 cd ../nuxt
 yarn upgrade
+cd ../shortlink
+yarn upgrade
+cd ../graphql
+go get -u -m
 cd ../flutter/android
 bundle update
 cd ../ios

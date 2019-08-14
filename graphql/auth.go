@@ -26,8 +26,6 @@ import (
  * @apiHeader {String} Authorization "Bearer `token`" - login auth token
  */
 
-var jwtIssuer = "Joshua Schmidt"
-
 var numHashes = 12
 
 type loginClaims struct {

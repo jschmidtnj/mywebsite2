@@ -7,7 +7,7 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
-	"github.com/olivere/elastic"
+	"github.com/olivere/elastic/v7"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -326,11 +326,11 @@ func rootQuery() *graphql.Object {
 						}
 						posts = make([]map[string]interface{}, len(searchResult.Hits.Hits))
 						for i, hit := range searchResult.Hits.Hits {
-							if *hit.Source == nil {
+							if hit.Source == nil {
 								return nil, errors.New("no hit source found")
 							}
 							var postData map[string]interface{}
-							err := json.Unmarshal(*hit.Source, &postData)
+							err := json.Unmarshal(hit.Source, &postData)
 							if err != nil {
 								return nil, err
 							}

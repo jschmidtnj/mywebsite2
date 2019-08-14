@@ -62,7 +62,7 @@ const writeclient = new elasticsearch.Client({
   host: elasticuri
 })
 
-export const initializeposts = (db, postindexname, postdoctype) => {
+export const initializeposts = (postindexname, postdoctype) => {
   return new Promise((resolve, reject) => {
     writeclient
       .ping({
@@ -137,7 +137,8 @@ export const initializeposts = (db, postindexname, postdoctype) => {
                                   .putMapping({
                                     index: postindexname,
                                     type: postdoctype,
-                                    body: postmappings
+                                    body: postmappings,
+                                    include_type_name: true
                                   })
                                   .then(res5 => {
                                     console.log(
@@ -145,55 +146,7 @@ export const initializeposts = (db, postindexname, postdoctype) => {
                                         res5
                                       )}`
                                     )
-                                    db
-                                      .collection(postindexname)
-                                      .find({})
-                                      .toArray()
-                                      .then(docs => {
-                                        if (docs.length === 0) {
-                                          resolve(`finished initializing elasticsearch: ${docs.length} posts`)
-                                        } else {
-                                          let responsecount = 0
-                                          const delay = 100
-                                          let iterationcount = -1
-                                          docs.forEach(doc => {
-                                            iterationcount++
-                                            setTimeout(() => {
-                                              const id = doc._id.toHexString()
-                                              doc.date = new Date(doc._id.getTimestamp()).getTime()
-                                              delete doc._id
-                                              writeclient
-                                                .index({
-                                                  index: postindexname,
-                                                  type: postdoctype,
-                                                  id: id,
-                                                  body: doc
-                                                })
-                                                .then(res6 => {
-                                                  responsecount++
-                                                  console.log(responsecount, docs.length)
-                                                  console.log(
-                                                    `created / updated ${
-                                                    doc.title
-                                                    }: ${JSON.stringify(res6)}`
-                                                  )
-                                                  if (responsecount === docs.length) {
-                                                    resolve(
-                                                      `finished updating everything`
-                                                    )
-                                                  }
-                                                })
-                                                .catch(err => {
-                                                  const errmessage = `could not create / update ${
-                                                    doc.title
-                                                    }: ${err}`
-                                                  console.log(errmessage)
-                                                  reject(errmessage)
-                                                })
-                                            }, delay * iterationcount)
-                                          })
-                                        }
-                                      }).catch(err => reject(err))
+                                    resolve(`finished initializing elasticsearch`)
                                   })
                                   .catch(err => {
                                     const errmessage = `could not create mapping for ${postindexname}: ${err}`

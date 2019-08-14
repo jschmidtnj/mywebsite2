@@ -11,7 +11,7 @@
   "build": {
     "env": {
       "SECRET": "supersecret",
-      "PORT": 12345,
+      "PORT": 8000,
       "MONGOURI": "mongodb://localhost:27017",
       "TOKENEXPIRATION": 3,
       "SENDGRIDAPIKEY": "sendgridkey",

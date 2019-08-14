@@ -85,8 +85,8 @@ adminApp.post('/addAdmin', (req, res) => {
 
 adminApp.post('/initializePosts', (req, res) => {
   if (req.body.token === adminconfig.token) {
-    initializeposts(db, blogIndexName, blogDocType).then(res1 => {
-      initializeposts(db, projectIndexName, projectDocType).then(res2 => {
+    initializeposts(blogIndexName, blogDocType).then(res1 => {
+      initializeposts(projectIndexName, projectDocType).then(res2 => {
         res.json({
           message: `res1: ${res1}, res2: ${res2}`
         }).status(codes.success)

@@ -12,8 +12,14 @@
             <b-card class="tile rounded-0" no-body>
               <b-card-body
                 class="tile-body zoom"
-                @mouseover="shownPosts[rowindex][colindex].hover = true"
-                @mouseleave="shownPosts[rowindex][colindex].hover = false"
+                @mouseenter="
+                  selected[rowindex * shownPosts[0].length + colindex] = true
+                  $forceUpdate()
+                "
+                @mouseleave="
+                  selected[rowindex * shownPosts[0].length + colindex] = false
+                  $forceUpdate()
+                "
               >
                 <b-card-img-lazy
                   :src="
@@ -30,7 +36,7 @@
                   class="tile-img rounded-0"
                 />
                 <b-container
-                  v-if="postval.hover"
+                  v-if="selected[rowindex * shownPosts[0].length + colindex]"
                   :style="{ 'background-color': getColor(rowindex, colindex) }"
                   class="main-overlay"
                 >
@@ -82,7 +88,8 @@ export default Vue.extend({
     return {
       imgUrl: cloudStorageURLs.posts,
       shownPosts: [],
-      loading: true
+      loading: true,
+      selected: []
     }
   },
   async mounted() {
@@ -109,7 +116,7 @@ export default Vue.extend({
   },
   methods: {
     getColor(rowindex, colindex) {
-      if (this.shownPosts[rowindex][colindex].hover) {
+      if (this.selected[rowindex * this.shownPosts[0].length + colindex]) {
         let colorHex = this.shownPosts[rowindex][colindex].color
         if (colorHex.length === 7) {
           colorHex = colorHex.concat(defaultOpacityHex)
@@ -139,7 +146,6 @@ export default Vue.extend({
           newPost.title = decodeURIComponent(newPost.title)
           newPost.caption = decodeURIComponent(newPost.caption)
           newPost.color = decodeURIComponent(newPost.color)
-          newPost.hover = false
           if (newShownPosts[currentIndex].length === numPerRow) {
             newShownPosts.push([newPost])
             currentIndex++
@@ -161,6 +167,7 @@ export default Vue.extend({
         })
         .then(res => {
           console.log(`got res ${res}`)
+          this.selected = new Array(this.count).fill(false)
         })
         .catch(err => {
           console.log(err)
