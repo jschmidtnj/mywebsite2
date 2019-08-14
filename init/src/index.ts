@@ -14,7 +14,8 @@ const MongoClient = mongodb.MongoClient
 const ObjectID = mongodb.ObjectID
 
 const client = new MongoClient(mongoconfig.uri, {
-  useNewUrlParser: true
+  useNewUrlParser: true,
+  useUnifiedTopology: true
 })
 
 let db
