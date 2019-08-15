@@ -11,7 +11,7 @@ require (
 	github.com/alecthomas/chroma v0.6.6 // indirect
 	github.com/alecthomas/gometalinter v3.0.0+incompatible // indirect
 	github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4 // indirect
-	github.com/aws/aws-sdk-go v1.23.0 // indirect
+	github.com/aws/aws-sdk-go v1.23.2 // indirect
 	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/davidrjenni/reftools v0.0.0-20190411195930-981bbac422f8 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -50,6 +50,7 @@ require (
 	github.com/skratchdot/open-golang v0.0.0-20190402232053-79abb63cd66e // indirect
 	github.com/sqs/goreturns v0.0.0-20181028201513-538ac6014518 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
+	github.com/stretchr/testify v1.4.0 // indirect
 	github.com/uudashr/gopkgs v2.0.1+incompatible // indirect
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
 	github.com/xdg/stringprep v1.0.0 // indirect
@@ -62,7 +63,7 @@ require (
 	golang.org/x/mobile v0.0.0-20190814143026-e8b3e6111d02 // indirect
 	golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7 // indirect
 	golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a // indirect
-	golang.org/x/tools v0.0.0-20190813214729-9dba7caff850 // indirect
+	golang.org/x/tools v0.0.0-20190815232600-256244171580 // indirect
 	golang.org/x/tools/gopls v0.1.3 // indirect
 	google.golang.org/api v0.8.0
 	google.golang.org/grpc v1.23.0 // indirect

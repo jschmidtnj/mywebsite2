@@ -142,6 +142,7 @@ module.exports = {
     '@nuxtjs/style-resources',
     '@nuxtjs/dotenv',
     '@nuxtjs/sitemap',
+    'nuxt-webfontloader',
     '@nuxtjs/google-analytics'
   ],
 
@@ -164,6 +165,15 @@ module.exports = {
    */
   styleResources: {
     scss: ['~assets/styles/global.scss']
+  },
+
+  /*
+   ** google web fonts
+   */
+  webfontloader: {
+    google: {
+      families: ['Roboto']
+    }
   },
 
   /*

@@ -6,7 +6,9 @@ import {
   faAngleDoubleRight,
   faPlusCircle,
   faArrowLeft,
-  faArrowRight
+  faArrowRight,
+  faChevronRight,
+  faChevronLeft
 } from '@fortawesome/free-solid-svg-icons'
 
 import { faStackOverflow } from '@fortawesome/free-brands-svg-icons'
@@ -20,7 +22,9 @@ library.add(
   faAngleDoubleRight,
   faPlusCircle,
   faArrowLeft,
-  faArrowRight
+  faArrowRight,
+  faChevronLeft,
+  faChevronRight
 )
 
 Vue.component('font-awesome-icon', FontAwesomeIcon)

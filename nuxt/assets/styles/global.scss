@@ -3,6 +3,17 @@
 @import '~/node_modules/vue-select/src/scss/vue-select.scss';
 @import '~/node_modules/epic-spinners/dist/lib/epic-spinners.min.css';
 
+/* variables */
+:root {
+  --font-family-main: 'Roboto', sans-serif;
+}
+
+/* set fonts */
+* {
+  font-family: var(--font-family-main);
+  font-display: auto;
+}
+
 /* get footer to stick to the bottom */
 .main-wrapper {
   display: flex;
