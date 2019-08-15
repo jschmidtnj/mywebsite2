@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"cloud.google.com/go/storage"
@@ -49,19 +50,25 @@ func writePostFile(response http.ResponseWriter, request *http.Request) {
 		handleError("error getting file id from query", http.StatusBadRequest, response)
 		return
 	}
+	fileidDecoded, err := url.QueryUnescape(fileid)
+	if err != nil {
+		handleError(err.Error(), http.StatusBadRequest, response)
+		return
+	}
 	var filebuffer bytes.Buffer
 	file, _, err := request.FormFile("file")
 	if err != nil {
 		handleError(err.Error(), http.StatusBadRequest, response)
+		return
 	}
 	defer file.Close()
 	io.Copy(&filebuffer, file)
 	defer filebuffer.Reset()
 	var fileobj *storage.ObjectHandle
 	if thetype == "blog" {
-		fileobj = storageBucket.Object(blogFileIndex + "/" + fileid)
+		fileobj = storageBucket.Object(blogFileIndex + "/" + fileidDecoded)
 	} else {
-		fileobj = storageBucket.Object(projectFileIndex + "/" + fileid)
+		fileobj = storageBucket.Object(projectFileIndex + "/" + fileidDecoded)
 	}
 	filewriter := fileobj.NewWriter(ctxStorage)
 	errmessage := uploadFile(&filebuffer, filewriter)
@@ -97,14 +104,21 @@ func writePostPicture(response http.ResponseWriter, request *http.Request) {
 		handleError("error getting image id from query", http.StatusBadRequest, response)
 		return
 	}
+	imageidDecoded, err := url.QueryUnescape(imageid)
+	if err != nil {
+		handleError(err.Error(), http.StatusBadRequest, response)
+		return
+	}
 	file, _, err := request.FormFile("file")
 	if err != nil {
 		handleError(err.Error(), http.StatusBadRequest, response)
+		return
 	}
 	defer file.Close()
 	originalImage, _, err := image.Decode(file)
 	if err != nil {
 		handleError(err.Error(), http.StatusBadRequest, response)
+		return
 	}
 	originalImageBuffer := new(bytes.Buffer)
 	defer originalImageBuffer.Reset()
@@ -112,6 +126,7 @@ func writePostPicture(response http.ResponseWriter, request *http.Request) {
 	err = jpeg.Encode(originalImageBuffer, originalImage, &jpegOptionsOriginal)
 	if err != nil {
 		handleError(err.Error(), http.StatusBadRequest, response)
+		return
 	}
 	blurredImage := imaging.Blur(originalImage, progressiveImageBlurAmount)
 	blurredImageBuffer := new(bytes.Buffer)
@@ -120,15 +135,16 @@ func writePostPicture(response http.ResponseWriter, request *http.Request) {
 	err = jpeg.Encode(blurredImageBuffer, blurredImage, &jpegOptionsBlurred)
 	if err != nil {
 		handleError(err.Error(), http.StatusBadRequest, response)
+		return
 	}
 	var originalImageObj *storage.ObjectHandle
 	var blurredImageObj *storage.ObjectHandle
 	if thetype == "blog" {
-		originalImageObj = storageBucket.Object(blogImageIndex + "/" + imageid + "/original")
-		blurredImageObj = storageBucket.Object(blogImageIndex + "/" + imageid + "/blur")
+		originalImageObj = storageBucket.Object(blogImageIndex + "/" + imageidDecoded + "/original")
+		blurredImageObj = storageBucket.Object(blogImageIndex + "/" + imageidDecoded + "/blur")
 	} else {
-		originalImageObj = storageBucket.Object(projectImageIndex + "/" + imageid + "/original")
-		blurredImageObj = storageBucket.Object(blogImageIndex + "/" + imageid + "/blur")
+		originalImageObj = storageBucket.Object(projectImageIndex + "/" + imageidDecoded + "/original")
+		blurredImageObj = storageBucket.Object(projectImageIndex + "/" + imageidDecoded + "/blur")
 	}
 	originalImageWriter := originalImageObj.NewWriter(ctxStorage)
 	errmessage := uploadFile(originalImageBuffer, originalImageWriter)

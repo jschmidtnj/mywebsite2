@@ -40,10 +40,10 @@ require (
 	github.com/nicksnyder/go-i18n v2.0.2+incompatible // indirect
 	github.com/nicksnyder/go-i18n/v2 v2.0.2 // indirect
 	github.com/nkovacs/streamquote v1.0.0 // indirect
-	github.com/olivere/elastic/v7 v7.0.5
+	github.com/olivere/elastic/v7 v7.0.5 // indirect
 	github.com/ramya-rao-a/go-outline v0.0.0-20181122025142-7182a932836a // indirect
 	github.com/rogpeppe/godef v1.1.1 // indirect
-	github.com/rs/cors v1.7.0
+	github.com/rs/cors v1.7.0 // indirect
 	github.com/rs/xid v1.2.1
 	github.com/sendgrid/rest v2.4.1+incompatible
 	github.com/sendgrid/sendgrid-go v3.5.0+incompatible

@@ -1,7 +1,7 @@
 <template>
-  <div id="tiles" class="mb-5">
+  <div id="tiles">
     <div v-if="!loading" id="tile-data">
-      <div v-if="count > perpage" id="navigation-buttons">
+      <div v-if="count > perpage" id="navigation-buttons" class="mb-3">
         <button
           class="button-link"
           :disabled="count <= perpage"
@@ -14,9 +14,8 @@
         >
           <no-ssr>
             <font-awesome-icon
-              class="mr-2"
-              style="max-width: 13px;"
-              icon="arrow-left"
+              class="mr-2 arrow-size-carousel"
+              icon="chevron-left"
             />
           </no-ssr>
         </button>
@@ -32,14 +31,17 @@
         >
           <no-ssr>
             <font-awesome-icon
-              class="mr-2"
-              style="max-width: 13px;"
-              icon="arrow-right"
+              class="mr-2 arrow-size-carousel"
+              icon="chevron-right"
             />
           </no-ssr>
         </button>
       </div>
-      <b-card-group deck>
+      <b-card-group
+        ref="carouselContent"
+        deck
+        class="scrolling-wrapper flex-row flex-nowrap"
+      >
         <no-ssr>
           <button
             v-for="(postval, index) in shownPosts"
@@ -52,8 +54,8 @@
               }
             "
           >
-            <b-card class="tile" no-body>
-              <b-card-body class="tile zoom">
+            <b-card class="tile m-2" no-body>
+              <b-card-body class="tile zoom p-0">
                 <b-card-img-lazy
                   :src="
                     `${imgUrl}/${
@@ -81,6 +83,24 @@
           </button>
         </no-ssr>
       </b-card-group>
+      <div v-if="window.width < count * 200" id="scroll-buttons" class="mt-3">
+        <button class="button-link" @click="swipeLeft">
+          <no-ssr>
+            <font-awesome-icon
+              class="mr-2 arrow-size-carousel"
+              icon="chevron-left"
+            />
+          </no-ssr>
+        </button>
+        <button class="button-link" @click="swipeRight">
+          <no-ssr>
+            <font-awesome-icon
+              class="mr-2 arrow-size-carousel"
+              icon="chevron-right"
+            />
+          </no-ssr>
+        </button>
+      </div>
     </div>
     <loading v-else />
     <!-- need arrow right and left from fontawesome, and start in the middle
@@ -110,12 +130,21 @@ export default Vue.extend({
     return {
       imgUrl: cloudStorageURLs.posts,
       shownPosts: [],
-      perpage: 3,
-      loading: true
+      perpage: 8,
+      loading: true,
+      window: {
+        width: 0,
+        height: 0
+      }
     }
+  },
+  destroyed() {
+    window.removeEventListener('resize', this.handleResize)
   },
   async mounted() {
     /* eslint-disable */
+    window.addEventListener('resize', this.handleResize)
+    this.handleResize()
     await this.updateCount()
     if (!this.currentIndex) {
       let currentindex = 0
@@ -155,6 +184,53 @@ export default Vue.extend({
     }
   },
   methods: {
+    handleResize() {
+      this.window.width = window.innerWidth;
+      this.window.height = window.innerHeight;
+    },
+    /**
+     * scrollTo - Horizontal Scrolling
+     * @param {(HTMLElement ref)} element - Scroll Container
+     * @param {number} scrollPixels - pixel to scroll
+     * @param {number} duration -  Duration of scrolling animation in millisec
+     */
+    scrollTo(element, scrollPixels, duration) {
+      // Get the start timestamp
+      const startTime =
+        "now" in window.performance
+          ? performance.now()
+          : new Date().getTime();
+      const scroll = (timestamp) => {
+        //Calculate the timeelapsed
+        const timeElapsed = timestamp - startTime;
+        //Calculate progress 
+        const progress = Math.min(timeElapsed / duration, 1);
+        //Set the scrolleft
+        element.scrollLeft = scrollPos + scrollPixels * progress;
+        //Check if elapsed time is less then duration then call the requestAnimation, otherwise exit
+        if (timeElapsed < duration) {
+          //Request for animation
+          window.requestAnimationFrame(scroll);
+        } else {
+          return;
+        }
+      }
+      const scrollPos = element.scrollLeft;
+      // Condition to check if scrolling is required
+      if ( !( (scrollPos === 0 || scrollPixels > 0) && (element.clientWidth + scrollPos === element.scrollWidth || scrollPixels < 0))) 
+      {
+        //Call requestAnimationFrame on scroll function first time
+        window.requestAnimationFrame(scroll);
+      }
+    },
+    swipeLeft() {
+      const content = this.$refs.carouselContent;
+      this.scrollTo(content, -300, 500);
+    },
+    swipeRight() {
+      const content = this.$refs.carouselContent;
+      this.scrollTo(content, 300, 500);
+    },
     navigate(id) {
       // @ts-ignore
       if (process.client) {
@@ -242,6 +318,9 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
+.arrow-size-carousel {
+  font-size: 1.5rem;
+}
 .tile-img {
   object-fit: cover;
   width: 200px;
@@ -250,8 +329,19 @@ export default Vue.extend({
 .tile {
   text-align: center;
   max-width: 250px;
+  min-width: 150px;
 }
 .zoom:hover {
   transform: scale(1.05);
+}
+.scrolling-wrapper {
+  overflow-x: scroll;
+  overflow-y: visible;
+  white-space: nowrap;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 </style>

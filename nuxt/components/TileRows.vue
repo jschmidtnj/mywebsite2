@@ -6,7 +6,7 @@
           v-for="(postval, colindex) in shownPosts[rowindex]"
           :key="`post-${rowindex}-${colindex}`"
           sm
-          style="padding:0px;"
+          class="p-0"
         >
           <a v-if="postval" :href="`/${type}/${postval.id}`">
             <b-card class="tile rounded-0" no-body>

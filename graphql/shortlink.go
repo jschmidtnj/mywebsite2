@@ -115,6 +115,9 @@ func getShortLink(idstring string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if len(idstrings) == 0 {
+		return "", errors.New("no link found")
+	}
 	return idstrings[0], nil
 }
 

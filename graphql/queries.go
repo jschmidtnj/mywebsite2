@@ -274,7 +274,7 @@ func rootQuery() *graphql.Object {
 						return nil, err
 					}
 					cachepath := string(cachepathBytes)
-					if cache {
+					if cache && mode != "debug" {
 						cachedresStr, err := redisClient.Get(cachepath).Result()
 						if err != nil {
 							if err != redis.Nil {
@@ -441,7 +441,7 @@ func rootQuery() *graphql.Object {
 						return nil, err
 					}
 					cachepath := string(cachepathBytes)
-					if cache {
+					if cache && mode != "debug" {
 						cachedresStr, err := redisClient.Get(cachepath).Result()
 						if err != nil {
 							if err != redis.Nil {

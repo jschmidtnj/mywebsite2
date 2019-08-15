@@ -71,7 +71,7 @@ func countPosts(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 	cachepath := string(cachepathBytes)
-	if getcache != "false" {
+	if getcache != "false" && mode != "debug" {
 		cachedres, err := redisClient.Get(cachepath).Result()
 		if err != nil {
 			if err != redis.Nil {

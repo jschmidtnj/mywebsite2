@@ -333,8 +333,7 @@
                         >
                           <no-ssr>
                             <font-awesome-icon
-                              class="mr-2"
-                              style="max-width: 16px;"
+                              class="mr-2 arrow-size-edit"
                               icon="plus-circle"
                             /> </no-ssr
                           >Add
@@ -347,8 +346,7 @@
                         >
                           <no-ssr>
                             <font-awesome-icon
-                              class="mr-2"
-                              style="max-width: 16px;"
+                              class="mr-2 arrow-size-edit"
                               icon="times"
                             /> </no-ssr
                           >Remove
@@ -433,8 +431,7 @@
                         >
                           <no-ssr>
                             <font-awesome-icon
-                              class="mr-2"
-                              style="max-width: 16px;"
+                              class="mr-2 arrow-size-edit"
                               icon="plus-circle"
                             /> </no-ssr
                           >Add
@@ -447,8 +444,7 @@
                         >
                           <no-ssr>
                             <font-awesome-icon
-                              class="mr-2"
-                              style="max-width: 16px;"
+                              class="mr-2 arrow-size-edit"
                               icon="times"
                             /> </no-ssr
                           >Remove
@@ -466,8 +462,7 @@
                         >
                           <no-ssr>
                             <font-awesome-icon
-                              class="mr-2"
-                              style="max-width: 16px;"
+                              class="mr-2 arrow-size-edit"
                               icon="angle-double-right"
                             /> </no-ssr
                           >Submit
@@ -475,8 +470,7 @@
                         <b-btn variant="primary" type="reset" class="mr-4">
                           <no-ssr>
                             <font-awesome-icon
-                              class="mr-2"
-                              style="max-width: 16px;"
+                              class="mr-2 arrow-size-edit"
                               icon="times"
                             /> </no-ssr
                           >Clear
@@ -538,8 +532,7 @@
                   >
                     <no-ssr>
                       <font-awesome-icon
-                        class="mr-2"
-                        style="max-width: 16px;"
+                        class="mr-2 arrow-size-edit"
                         icon="angle-double-right"
                       /> </no-ssr
                     >Search
@@ -547,8 +540,7 @@
                   <b-btn variant="primary" type="reset" class="mr-4">
                     <no-ssr>
                       <font-awesome-icon
-                        class="mr-2"
-                        style="max-width: 16px;"
+                        class="mr-2 arrow-size-edit"
                         icon="times"
                       /> </no-ssr
                     >Clear
@@ -1654,6 +1646,9 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
+.arrow-size-edit {
+  font-size: 1rem;
+}
 .markdown {
   overflow: auto;
   max-height: 20rem;

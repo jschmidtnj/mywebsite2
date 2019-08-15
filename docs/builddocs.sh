@@ -15,7 +15,9 @@ mv apidocs .vuepress/public/api
 # build
 yarn generate
 yarn pwa
-sed -i 's/\/images\//\/mywebsite2\/images\//g' docs/Polyfills/manifest.json
+sed -i -e 's/\/images\//\/mywebsite2\/images\//g' docs/Polyfills/manifest.json
+
+rm -rf docs/Polyfills/manifest.json-e
 
 rm -rf .vuepress/dist/
 mv mywebsite2/ .vuepress/dist
