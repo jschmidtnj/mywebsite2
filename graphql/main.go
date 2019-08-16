@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"io/ioutil"
 
 	"cloud.google.com/go/storage"
 	"github.com/graphql-go/graphql"
@@ -231,7 +232,7 @@ func main() {
 	} else {
 		logger.Info("connected to redis cache: " + pong)
 	}
-	validHexcode, err = regexp.Compile("(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)")
+	validHexcode, err = regexp.Compile("(^#[0-9A-F]{6}$)|(^#[0-9A-F]{8}$)")
 	if err != nil {
 		logger.Fatal(err.Error())
 	}
@@ -258,9 +259,28 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/graphql", func(response http.ResponseWriter, request *http.Request) {
 		tokenKey = tokenKeyType("token")
+		var query = ""
+		queryString := request.URL.Query().Get("query")
+		if queryString != "" {
+			query = queryString
+		} else if request.Method == http.MethodPost || request.Method == http.MethodPut {
+			logger.Info("got put or post")
+			var querydata map[string]interface{}
+			err = nil
+			querybody, err := ioutil.ReadAll(request.Body)
+			if err == nil {
+				err = json.Unmarshal(querybody, &querydata)
+				if err == nil {
+					queryfromjson, ok := querydata["query"].(string)
+					if ok {
+						query = queryfromjson
+					}
+				}
+			}
+		}
 		result := graphql.Do(graphql.Params{
 			Schema:        schema,
-			RequestString: request.URL.Query().Get("query"),
+			RequestString: query,
 			Context:       context.WithValue(context.Background(), tokenKey, getAuthToken(request)),
 		})
 		response.Header().Set("content-type", "application/json")

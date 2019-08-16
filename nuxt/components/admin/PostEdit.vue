@@ -557,12 +557,12 @@
                 :current-page="currentpage"
                 :per-page="numperpage"
               >
-                <template slot="name" slot-scope="row">
-                  {{ row.value }}
-                </template>
-                <template slot="date" slot-scope="row">
-                  {{ formatDate(row.value, 'M/D/YYYY') }}
-                </template>
+                <template slot="name" slot-scope="row">{{
+                  row.value
+                }}</template>
+                <template slot="date" slot-scope="row">{{
+                  formatDate(row.value, 'M/D/YYYY')
+                }}</template>
                 <template slot="id" slot-scope="row">{{ row.value }}</template>
                 <template slot="actions" slot-scope="row">
                   <b-button size="sm" class="mr-1" @click="editPost(row.item)"
@@ -602,7 +602,12 @@ import uuid from 'uuid/v1'
 import axios from 'axios'
 import { Chrome } from 'vue-color'
 import LazyLoad from 'vanilla-lazyload'
-import { cloudStorageURLs, validTypes, options } from '~/assets/config'
+import {
+  cloudStorageURLs,
+  validTypes,
+  options,
+  defaultColor
+} from '~/assets/config'
 // @ts-ignore
 const seo = JSON.parse(process.env.seoconfig)
 const lazyLoadInstance = new LazyLoad({
@@ -682,7 +687,7 @@ export default Vue.extend({
         title: '',
         content: '',
         caption: '',
-        color: '#194d33',
+        color: Object.assign('', defaultColor),
         author: '',
         tags: [],
         categories: [],
@@ -813,15 +818,13 @@ export default Vue.extend({
     getImageTag(image) {
       return `<img data-src="${cloudStorageURLs.posts}/${
         this.type === 'blog' ? 'blogimages' : 'projectimages'
-      }/${encodeURI(image.name)}.${
-        image.id
-      }/original" src="${
+      }/${encodeURI(image.name)}.${image.id}/original" src="${
         cloudStorageURLs.posts
       }/${this.type === 'blog' ? 'blogimages' : 'projectimages'}/${
         image.name
-      }.${image.id}/blur" class="lazy img-fluid" alt="${image.name}" data-width="${
-        image.width
-      }" data-height="${image.height}">`
+      }.${image.id}/blur" class="lazy img-fluid" alt="${
+        image.name
+      }" data-width="${image.width}" data-height="${image.height}">`
     },
     getFileTag(file) {
       return `<a href="${cloudStorageURLs.posts}/${
@@ -1253,7 +1256,10 @@ export default Vue.extend({
             if (res.data) {
               if (res.data.data && res.data.data.posts) {
                 res.data.data.posts.map(
-                  post => (post.date = this.mongoidToDate(post.id))
+                  post => {
+                    post.date = this.mongoidToDate(post.id)
+                    post.title = decodeURIComponent(post.title)
+                  }
                 )
                 this.searchresults = res.data.data.posts
                 this.$toasted.global.success({
@@ -1298,7 +1304,7 @@ export default Vue.extend({
         title: '',
         content: '',
         caption: '',
-        color: '#194d33',
+        color: Object.assign('', defaultColor),
         author: '',
         heroimage: Object.assign({}, originalHero),
         tileimage: Object.assign({}, originalTile),
@@ -1478,52 +1484,42 @@ export default Vue.extend({
       }
 
       // send to database logic (do this first)
-      const color = this.post.color.hex ? this.post.color.hex : this.post.color.toUpperCase()
+      const color = this.post.color.hex8
+        ? this.post.color.hex8
+        : this.post.color.toUpperCase()
       if (this.mode === this.modetypes.add) {
         this.$axios
-          .post(
-            '/graphql',
-            {},
-            {
-              params: {
-                query: `mutation{addPost(type:"${encodeURIComponent(
-                  this.type
-                )}",title:"${encodeURIComponent(
-                  this.post.title
-                )}",content:"${encodeURIComponent(
-                  this.post.content
-                )}",color:"${encodeURIComponent(
-                  color
-                )}",caption:"${encodeURIComponent(
-                  this.post.caption
-                )}",author:"${encodeURIComponent(
-                  this.post.author
-                )}",heroimage:"${encodeURIComponent(
-                  this.post.heroimage.file
-                    ? `hero.${this.post.heroimage.id}`
-                    : ''
-                )}",tileimage:"${encodeURIComponent(
-                  this.post.tileimage.file
-                    ? `tile.${this.post.tileimage.id}`
-                    : ''
-                )}",images:${JSON.stringify(
-                  this.post.images.map(image =>
-                    encodeURIComponent(`${image.name}.${image.id}`)
-                  )
-                )},files:${JSON.stringify(
-                  this.post.files.map(file =>
-                    encodeURIComponent(`${file.name}.${file.id}`)
-                  )
-                )},tags:${JSON.stringify(
-                  this.post.tags.map(tag => encodeURIComponent(tag))
-                )},categories:${JSON.stringify(
-                  this.post.categories.map(category =>
-                    encodeURIComponent(category)
-                  )
-                )}){id}}`
-              }
-            }
-          )
+          .post('/graphql', {
+            query: `mutation{addPost(type:"${encodeURIComponent(
+              this.type
+            )}",title:"${encodeURIComponent(
+              this.post.title
+            )}",content:"${encodeURIComponent(
+              this.post.content
+            )}",color:"${encodeURIComponent(
+              color
+            )}",caption:"${encodeURIComponent(
+              this.post.caption
+            )}",author:"${encodeURIComponent(
+              this.post.author
+            )}",heroimage:"${encodeURIComponent(
+              this.post.heroimage.file ? `hero.${this.post.heroimage.id}` : ''
+            )}",tileimage:"${encodeURIComponent(
+              this.post.tileimage.file ? `tile.${this.post.tileimage.id}` : ''
+            )}",images:${JSON.stringify(
+              this.post.images.map(image =>
+                encodeURIComponent(`${image.name}.${image.id}`)
+              )
+            )},files:${JSON.stringify(
+              this.post.files.map(file =>
+                encodeURIComponent(`${file.name}.${file.id}`)
+              )
+            )},tags:${JSON.stringify(
+              this.post.tags.map(tag => encodeURIComponent(tag))
+            )},categories:${JSON.stringify(
+              this.post.categories.map(category => encodeURIComponent(category))
+            )}){id}}`
+          })
           .then(res => {
             console.log(
               `images ${JSON.stringify(
@@ -1564,51 +1560,39 @@ export default Vue.extend({
           })
       } else {
         this.$axios
-          .put(
-            '/graphql',
-            {},
-            {
-              params: {
-                query: `mutation{updatePost(type:"${encodeURIComponent(
-                  this.type
-                )}",id:"${encodeURIComponent(
-                  this.postid
-                )}",title:"${encodeURIComponent(
-                  this.post.title
-                )}",content:"${encodeURIComponent(
-                  this.post.content
-                )}",color:"${encodeURIComponent(
-                  color
-                )}",caption:"${encodeURIComponent(
-                  this.post.caption
-                )}",author:"${encodeURIComponent(
-                  this.post.author
-                )}",heroimage:"${encodeURIComponent(
-                  this.post.heroimage.file
-                    ? `hero.${this.post.heroimage.id}`
-                    : ''
-                )}",tileimage:"${encodeURIComponent(
-                  this.post.tileimage.file
-                    ? `tile.${this.post.tileimage.id}`
-                    : ''
-                )}",images:${JSON.stringify(
-                  this.post.images.map(image =>
-                    encodeURIComponent(`${image.name}.${image.id}`)
-                  )
-                )},files:${JSON.stringify(
-                  this.post.files.map(file =>
-                    encodeURIComponent(`${file.name}.${file.id}`)
-                  )
-                )},tags:${JSON.stringify(
-                  this.post.tags.map(tag => encodeURIComponent(tag))
-                )},categories:${JSON.stringify(
-                  this.post.categories.map(category =>
-                    encodeURIComponent(category)
-                  )
-                )}){id}}`
-              }
-            }
-          )
+          .put('/graphql', {
+            query: `mutation{updatePost(type:"${encodeURIComponent(
+              this.type
+            )}",id:"${encodeURIComponent(
+              this.postid
+            )}",title:"${encodeURIComponent(
+              this.post.title
+            )}",content:"${encodeURIComponent(
+              this.post.content
+            )}",color:"${encodeURIComponent(
+              color
+            )}",caption:"${encodeURIComponent(
+              this.post.caption
+            )}",author:"${encodeURIComponent(
+              this.post.author
+            )}",heroimage:"${encodeURIComponent(
+              this.post.heroimage.file ? `hero.${this.post.heroimage.id}` : ''
+            )}",tileimage:"${encodeURIComponent(
+              this.post.tileimage.file ? `tile.${this.post.tileimage.id}` : ''
+            )}",images:${JSON.stringify(
+              this.post.images.map(image =>
+                encodeURIComponent(`${image.name}.${image.id}`)
+              )
+            )},files:${JSON.stringify(
+              this.post.files.map(file =>
+                encodeURIComponent(`${file.name}.${file.id}`)
+              )
+            )},tags:${JSON.stringify(
+              this.post.tags.map(tag => encodeURIComponent(tag))
+            )},categories:${JSON.stringify(
+              this.post.categories.map(category => encodeURIComponent(category))
+            )}){id}}`
+          })
           .then(res => {
             if (res.status === 200) {
               if (res.data) {

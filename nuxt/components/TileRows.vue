@@ -9,7 +9,7 @@
           class="p-0"
         >
           <a v-if="postval" :href="`/${type}/${postval.id}`">
-            <b-card class="tile rounded-0" no-body>
+            <b-card class="tile rounded-0" text-variant="white" no-body>
               <b-card-body
                 class="tile-body zoom"
                 @mouseenter="
@@ -41,10 +41,8 @@
                   class="main-overlay"
                 >
                   <div class="text-overlay">
-                    <b-card-title class="white-color">{{
-                      postval.title
-                    }}</b-card-title>
-                    <b-card-sub-title class="white-color">{{
+                    <b-card-title>{{ postval.title }}</b-card-title>
+                    <b-card-sub-title sub-title-text-variant="white">{{
                       postval.caption
                     }}</b-card-sub-title>
                   </div>
@@ -212,9 +210,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-.white-color {
-  color: white;
-}
 .tile-img img {
   object-fit: cover;
   width: 100%;

@@ -116,6 +116,7 @@ export default Vue.extend({
             if (res.data) {
               if (res.data.data && res.data.data.post) {
                 const post = res.data.data.post
+                post.title = decodeURIComponent(post.title)
                 post.content = decodeURIComponent(post.content)
                 post.author = decodeURIComponent(post.author)
                 this.post = post

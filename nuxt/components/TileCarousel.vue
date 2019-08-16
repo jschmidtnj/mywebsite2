@@ -71,12 +71,9 @@
                   class="tile-img"
                 />
                 <b-container>
-                  <b-card-title>
-                    {{ postval.title }}
-                  </b-card-title>
-                  <b-card-sub-title>
+                  <b-card-title title-tag="h5">
                     {{ postval.caption }}
-                  </b-card-sub-title>
+                  </b-card-title>
                 </b-container>
               </b-card-body>
             </b-card>

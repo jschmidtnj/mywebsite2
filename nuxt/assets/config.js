@@ -29,3 +29,5 @@ export const options = {
   categoryOptions: ['technology', 'webdesign'],
   tagOptions: ['vue', 'nuxt']
 }
+
+export const defaultColor = '#194d332B'
