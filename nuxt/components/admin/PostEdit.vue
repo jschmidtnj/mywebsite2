@@ -140,6 +140,7 @@
                           v-model="post.categories"
                           :options="categoryOptions"
                           :multiple="true"
+                          :taggable="true"
                           aria-describedby="categoryfeedback"
                         ></v-select>
                       </no-ssr>
@@ -166,6 +167,7 @@
                           v-model="post.tags"
                           :options="tagOptions"
                           :multiple="true"
+                          :taggable="true"
                           aria-describedby="tagfeedback"
                         ></v-select>
                       </no-ssr>
@@ -274,6 +276,7 @@
                           type="text"
                           class="form-control"
                           placeholder="name"
+                          @input="post.images[index].uploaded = false"
                         />
                       </span>
                       <b-form-invalid-feedback
@@ -299,8 +302,8 @@
                           placeholder="Choose an image..."
                           drop-placeholder="Drop image here..."
                           @input="
-                            post.images[post.images.length - 1].uploaded = false
-                            updateImageSrc(post.images[post.images.length - 1])
+                            post.images[index].uploaded = false
+                            updateImageSrc(post.images[index])
                           "
                         />
                       </span>
@@ -563,7 +566,9 @@
                 <template slot="date" slot-scope="row">{{
                   formatDate(row.value, 'M/D/YYYY')
                 }}</template>
-                <template slot="id" slot-scope="row">{{ row.value }}</template>
+                <template slot="id" slot-scope="row">
+                  <a :href="`/${type}/${row.value}`">{{ row.value }}</a>
+                </template>
                 <template slot="actions" slot-scope="row">
                   <b-button size="sm" class="mr-1" @click="editPost(row.item)"
                     >Edit</b-button
@@ -734,14 +739,12 @@ export default Vue.extend({
       },
       tags: {
         $each: {
-          required,
-          minLength: minLength(3)
+          required
         }
       },
       categories: {
         $each: {
-          required,
-          minLength: minLength(3)
+          required
         }
       },
       images: {

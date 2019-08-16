@@ -320,8 +320,8 @@ export default Vue.extend({
 }
 .tile-img {
   object-fit: cover;
-  width: 200px;
-  height: 200px;
+  width: 150px !important;
+  height: 150px !important;
 }
 .tile {
   text-align: center;

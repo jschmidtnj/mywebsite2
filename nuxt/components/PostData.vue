@@ -29,7 +29,6 @@
           </b-row>
         </b-container>
         <b-container v-if="post">
-          <hr />
           <h1>{{ post.title }}</h1>
           <p>{{ post.author }}</p>
           <p v-if="post.id">
@@ -39,6 +38,7 @@
           <a :href="`${shortlinkurl}/${post.shortlink}`">{{
             `${shortlinkurl}/${post.shortlink}`
           }}</a>
+          <p class="orange-text">{{ post.categories.join(' | ') }}</p>
           <hr />
           <vue-markdown
             :source="post.content"
@@ -108,7 +108,7 @@ export default Vue.extend({
             )}",id:"${encodeURIComponent(this.id)}",cache:${(!(
               this.$store.state.auth.user &&
               this.$store.state.auth.user.type === 'admin'
-            )).toString()}){title content id author views shortlink heroimage categories tags}}`
+            )).toString()}){title caption content id author views shortlink heroimage categories tags}}`
           }
         })
         .then(res => {
@@ -243,6 +243,9 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
+.orange-text {
+  color: orange;
+}
 #post-data {
   display: flex;
   min-height: 90vh;
