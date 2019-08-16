@@ -7,7 +7,7 @@
             <b-col>
               <b-img-lazy
                 v-if="post.heroimage"
-                :loading="
+                :blank-src="
                   `${postCdn}/${
                     type === 'blog' ? 'blogimages' : 'projectimages'
                   }/${post.heroimage}/blur`
