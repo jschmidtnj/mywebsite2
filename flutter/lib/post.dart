@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:joshuaschmidt/loading.dart';
 import 'dart:convert';
 import 'config.dart';
 import 'dart:io';
@@ -97,7 +98,7 @@ class PostPage extends StatelessWidget {
             return Text("${snapshot.error}");
           }
           // By default, show a loading spinner.
-          return CircularProgressIndicator();
+          return Loading();
         },
       ),
     );

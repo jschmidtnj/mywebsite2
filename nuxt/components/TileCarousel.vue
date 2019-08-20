@@ -1,5 +1,5 @@
 <template>
-  <div id="tiles">
+  <div :id="`tile-carousel-${type}`">
     <div v-if="!loading" id="tile-data">
       <div v-if="count > perpage" id="navigation-buttons" class="mb-3">
         <button
@@ -254,8 +254,10 @@ export default Vue.extend({
         await this.addPosts(i % allPostsLen)
         for (let j = start; (j < allPostsIndexLen || (i === endpage - 1 && j < allPostsIndexLen * 2)) && newShownPosts.length < shownPostsLen; j++) {
           const newPost: any = this.allPosts[i % allPostsLen][j % allPostsIndexLen]
-          newPost.title = decodeURIComponent(newPost.title)
-          newPost.caption = decodeURIComponent(newPost.caption)
+          Object.keys(newPost).forEach(key => {
+            if (newPost[key] instanceof String)
+              newPost[key] = decodeURIComponent(newPost[key]);
+          })
           newShownPosts.push(newPost)
         }
       }

@@ -116,9 +116,10 @@ export default Vue.extend({
             if (res.data) {
               if (res.data.data && res.data.data.post) {
                 const post = res.data.data.post
-                post.title = decodeURIComponent(post.title)
-                post.content = decodeURIComponent(post.content)
-                post.author = decodeURIComponent(post.author)
+                Object.keys(post).forEach(key => {
+                  if (post[key] instanceof String)
+                    post[key] = decodeURIComponent(post[key]);
+                })
                 this.post = post
                 // update title for spa
                 document.title = this.post.title

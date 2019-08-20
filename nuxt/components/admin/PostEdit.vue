@@ -1160,12 +1160,10 @@ export default Vue.extend({
             if (res.data) {
               if (res.data.data && res.data.data.post) {
                 const thepost: any = res.data.data.post
-                thepost.content = decodeURIComponent(thepost.content)
-                thepost.author = decodeURIComponent(thepost.author)
-                thepost.title = decodeURIComponent(thepost.title)
-                thepost.color = decodeURIComponent(thepost.color)
-                thepost.caption = decodeURIComponent(thepost.caption)
-                thepost.type = decodeURIComponent(thepost.type)
+                Object.keys(thepost).forEach(key => {
+                  if (thepost[key] instanceof String)
+                    thepost[key] = decodeURIComponent(thepost[key]);
+                })
                 getimages(thepost)
               } else if (res.data.errors) {
                 this.$toasted.global.error({
@@ -1260,8 +1258,11 @@ export default Vue.extend({
               if (res.data.data && res.data.data.posts) {
                 res.data.data.posts.map(
                   post => {
+                    Object.keys(post).forEach(key => {
+                      if (post[key] instanceof String)
+                        post[key] = decodeURIComponent(post[key]);
+                    })
                     post.date = this.mongoidToDate(post.id)
-                    post.title = decodeURIComponent(post.title)
                   }
                 )
                 this.searchresults = res.data.data.posts

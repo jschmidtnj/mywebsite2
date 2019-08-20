@@ -6,7 +6,7 @@ class HomePage extends StatelessWidget {
     return Container(
       child: Center(
         child: Text(
-          'Joshua',
+          'Home',
           style: Theme.of(context).textTheme.display2,
         ),
       ),

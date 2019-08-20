@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'posts.dart';
 import 'post.dart';
-import 'homepage.dart';
 
 /* main flutter class entry point for app. */
 void main() => runApp(MyApp());
@@ -35,29 +34,37 @@ class NavState extends State<Nav> {
     });
   }
 
+  Future<bool> goBack() {
+    return new Future<bool>(() {
+      setState(() {
+        viewPost = false;
+      });
+      return false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget bodyWidget;
     switch (index) {
       case 0:
-        bodyWidget = HomePage();
-        break;
-      case 1:
         if (!viewPost) {
           bodyWidget = BlogsPage(switchToPostPage: switchToPostPage);
         } else {
-          bodyWidget = BlogPage(blogid: postid);
+          bodyWidget =
+              WillPopScope(onWillPop: goBack, child: BlogPage(blogid: postid));
         }
         break;
-      case 2:
+      case 1:
         if (!viewPost) {
           bodyWidget = ProjectsPage(switchToPostPage: switchToPostPage);
         } else {
-          bodyWidget = ProjectPage(projectid: postid);
+          bodyWidget = WillPopScope(
+              onWillPop: goBack, child: ProjectPage(projectid: postid));
         }
         break;
       default:
-        bodyWidget = HomePage();
+        bodyWidget = BlogsPage(switchToPostPage: switchToPostPage);
         break;
     }
     return Scaffold(
@@ -90,15 +97,11 @@ class BottomNavBar extends StatelessWidget {
       onTap: callback,
       items: <BottomNavigationBarItem>[
         BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          title: Text('Home'),
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.search),
+          icon: Icon(Icons.edit),
           title: Text('Blogs'),
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.search),
+          icon: Icon(Icons.edit_attributes),
           title: Text('Projects'),
         ),
       ],

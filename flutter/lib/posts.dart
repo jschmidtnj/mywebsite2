@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:joshuaschmidt/loading.dart';
 import 'dart:convert';
 import 'config.dart';
 import 'dart:io';
@@ -79,13 +81,14 @@ class PostsState extends State<PostsPage> {
     print('start query');
     String searchTermQueryString = "";
     if (searchTerm != null) {
-      searchTermQueryString = 'searchterm:"$searchTerm",';
+      searchTermQueryString =
+          'searchterm:"${Uri.encodeComponent(searchTerm)}",';
     }
     List<String> tags = new List<String>();
     List<String> categories = new List<String>();
     Map<String, String> queryParameters = {
       'query':
-          '{posts(type:"$postType",perpage:$theRowsPerPage,page:$thePageNum,${searchTermQueryString}sort:"${columns[sortColumnIndex]}",ascending:$sortAscending,tags:[${tags.join(',')}],categories:[${categories.join(',')}],cache:true){title views id author date}}',
+          '{posts(type:"${Uri.encodeComponent(postType)}",perpage:$theRowsPerPage,page:$thePageNum,${searchTermQueryString}sort:"${Uri.encodeComponent(columns[sortColumnIndex])}",ascending:$sortAscending,tags:[${Uri.encodeComponent(tags.join(','))}],categories:[${Uri.encodeComponent(categories.join(','))}],cache:true){title views id author date}}',
     };
     Uri uri = Uri.https(config['apiURL'], '/graphql', queryParameters);
     print('get response');
@@ -96,7 +99,16 @@ class PostsState extends State<PostsPage> {
       print(response.body);
       Map<String, dynamic> resdata = json.decode(response.body);
       if (resdata['data'] != null && resdata['data']['posts'] != null) {
-        return (resdata['data']['posts'] as List).cast<Map<String, dynamic>>();
+        List<Map<String, dynamic>> result =
+            (resdata['data']['posts'] as List).cast<Map<String, dynamic>>();
+        for (int i = 0; i < result.length; i++) {
+          result[i].forEach((key, value) {
+            if (value is String) {
+              result[i][key] = Uri.decodeComponent(value);
+            }
+          });
+        }
+        return result;
       } else {
         throw Exception('data and posts not found');
       }
@@ -154,6 +166,11 @@ class PostsState extends State<PostsPage> {
       'tags': tagsStr,
       'categories': categoriesStr
     };
+    queryParameters.forEach((key, value) {
+      if (value is String) {
+        queryParameters[key] = Uri.encodeComponent(value);
+      }
+    });
     Uri uri = Uri.https(config['apiURL'], '/countPosts', queryParameters);
     print('get response');
     final response = await http.get(uri, headers: {
@@ -201,6 +218,28 @@ class PostsState extends State<PostsPage> {
 
   void handleNext() {
     setPage(pageNum + 1);
+  }
+
+  void handleSubmit() {
+    if (formKey.currentState.validate()) {
+      formKey.currentState.save();
+      if (searchTerm != null && searchTerm.length > 0) {
+        print('handle the submit');
+        Scaffold.of(context)
+            .showSnackBar(SnackBar(content: Text('search for $searchTerm')));
+      }
+      setState(() {
+        loading = true;
+      });
+      _getPosts().then((res) {
+        setState(() {
+          posts = res;
+          loading = false;
+        });
+      }).catchError((err) {
+        print(err);
+      });
+    }
   }
 
   @override
@@ -280,8 +319,9 @@ class PostsState extends State<PostsPage> {
         ];
       }
     } else {
-      datatable = CircularProgressIndicator();
+      datatable = Loading();
     }
+    bool justgotenter = false;
     return Container(
       child: SingleChildScrollView(
         child: Center(
@@ -294,36 +334,35 @@ class PostsState extends State<PostsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    TextFormField(
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return 'enter search query';
+                    RawKeyboardListener(
+                      focusNode: FocusNode(),
+                      onKey: (event) {
+                        if (event.data.logicalKey.keyId ==
+                            LogicalKeyboardKey.enter.keyId) {
+                          justgotenter = !justgotenter;
+                          if (!justgotenter) {
+                            handleSubmit();
+                          }
                         }
-                        return null;
                       },
-                      onSaved: (String val) => searchTerm = val,
+                      child: TextFormField(
+                        onEditingComplete: () {
+                          handleSubmit();
+                        },
+                        onFieldSubmitted: (val) {
+                          searchTerm = val;
+                        },
+                        autovalidate: true,
+                        validator: (String val) {
+                          searchTerm = val;
+                          return null;
+                        },
+                      ),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
                       child: RaisedButton(
-                        onPressed: () {
-                          if (formKey.currentState.validate()) {
-                            formKey.currentState.save();
-                            Scaffold.of(context).showSnackBar(SnackBar(
-                                content: Text('search for $searchTerm')));
-                            setState(() {
-                              loading = true;
-                            });
-                            _getPosts().then((res) {
-                              setState(() {
-                                posts = res;
-                                loading = false;
-                              });
-                            }).catchError((err) {
-                              print(err);
-                            });
-                          }
-                        },
+                        onPressed: () => handleSubmit(),
                         child: Text('Submit'),
                       ),
                     ),

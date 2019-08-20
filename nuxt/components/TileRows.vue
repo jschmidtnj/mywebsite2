@@ -1,5 +1,5 @@
 <template>
-  <div id="tiles" class="mb-5">
+  <div :id="`tile-rows-${type}`" class="mb-5">
     <div v-if="!loading">
       <b-row v-for="(rowval, rowindex) in shownPosts" :key="`row-${rowindex}`">
         <b-col
@@ -141,9 +141,10 @@ export default Vue.extend({
       for (let i = 0; i < this.allPosts.length; i++) {
         for (let j = 0; j < this.allPosts[i].length; j++) {
           const newPost: any = this.allPosts[i][j]
-          newPost.title = decodeURIComponent(newPost.title)
-          newPost.caption = decodeURIComponent(newPost.caption)
-          newPost.color = decodeURIComponent(newPost.color)
+          Object.keys(newPost).forEach(key => {
+            if (newPost[key] instanceof String)
+              newPost[key] = decodeURIComponent(newPost[key]);
+          })
           if (newShownPosts[currentIndex].length === numPerRow) {
             newShownPosts.push([newPost])
             currentIndex++

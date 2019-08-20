@@ -293,7 +293,10 @@ export default Vue.extend({
               if (res.data.data && res.data.data.posts) {
                 const posts = res.data.data.posts
                 posts.forEach(post => {
-                  post.author = decodeURIComponent(post.author)
+                  Object.keys(post).forEach(key => {
+                    if (post[key] instanceof String)
+                      post[key] = decodeURIComponent(post[key])
+                  })
                 })
                 this.items = posts
               } else if (res.data.errors) {
