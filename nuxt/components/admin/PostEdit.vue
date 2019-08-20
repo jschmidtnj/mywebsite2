@@ -1161,7 +1161,7 @@ export default Vue.extend({
               if (res.data.data && res.data.data.post) {
                 const thepost: any = res.data.data.post
                 Object.keys(thepost).forEach(key => {
-                  if (thepost[key] instanceof String)
+                  if (typeof thepost[key] === 'string')
                     thepost[key] = decodeURIComponent(thepost[key]);
                 })
                 getimages(thepost)
@@ -1259,7 +1259,7 @@ export default Vue.extend({
                 res.data.data.posts.map(
                   post => {
                     Object.keys(post).forEach(key => {
-                      if (post[key] instanceof String)
+                      if (typeof post[key] === 'string')
                         post[key] = decodeURIComponent(post[key]);
                     })
                     post.date = this.mongoidToDate(post.id)

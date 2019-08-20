@@ -294,7 +294,7 @@ export default Vue.extend({
                 const posts = res.data.data.posts
                 posts.forEach(post => {
                   Object.keys(post).forEach(key => {
-                    if (post[key] instanceof String)
+                    if (typeof post[key] === 'string')
                       post[key] = decodeURIComponent(post[key])
                   })
                 })

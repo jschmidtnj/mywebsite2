@@ -142,7 +142,7 @@ export default Vue.extend({
         for (let j = 0; j < this.allPosts[i].length; j++) {
           const newPost: any = this.allPosts[i][j]
           Object.keys(newPost).forEach(key => {
-            if (newPost[key] instanceof String)
+            if (typeof newPost[key] === 'string')
               newPost[key] = decodeURIComponent(newPost[key]);
           })
           if (newShownPosts[currentIndex].length === numPerRow) {

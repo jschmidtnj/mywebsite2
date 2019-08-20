@@ -255,7 +255,7 @@ export default Vue.extend({
         for (let j = start; (j < allPostsIndexLen || (i === endpage - 1 && j < allPostsIndexLen * 2)) && newShownPosts.length < shownPostsLen; j++) {
           const newPost: any = this.allPosts[i % allPostsLen][j % allPostsIndexLen]
           Object.keys(newPost).forEach(key => {
-            if (newPost[key] instanceof String)
+            if (typeof newPost[key] === 'string')
               newPost[key] = decodeURIComponent(newPost[key]);
           })
           newShownPosts.push(newPost)
