@@ -206,7 +206,7 @@ module.exports = {
   sitemap: {
     hostname: seodata.url,
     path: '/sitemap-main.xml',
-    gzip: true,
+    gzip: false,
     exclude: ['/admin', '/admin/**', '/callback'],
     defaults: {
       changefreq: 'daily',

@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"compress/gzip"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -34,7 +33,7 @@ var sitemapIndexTemplate = `<?xml version="1.0" encoding="UTF-8"?>
 func getSitemapIndex() ([]byte, error) {
 	t := time.Now()
 	currentTime := t.Format(sitemapTimeFormat)
-	sitemap := fmt.Sprintf(sitemapIndexTemplate, websiteURL+"/sitemap-main.xml.gz", lastSitemapUpdate,
+	sitemap := fmt.Sprintf(sitemapIndexTemplate, websiteURL+"/sitemap-main.xml", lastSitemapUpdate,
 		apiURL+"/sitemap-blogs.xml.gz", currentTime, apiURL+"/sitemap-projects.xml.gz", currentTime)
 	return []byte(sitemap), nil
 }
@@ -160,7 +159,7 @@ func getSitemapBlogs() ([]byte, error) {
 		foundstuff = true
 	}
 	if !foundstuff {
-		return nil, errors.New("blog data not found")
+		sitemap.Add(stm.URL{{"loc", "/blogs"}})
 	}
 	return sitemap.XMLContent(), nil
 }
@@ -228,7 +227,7 @@ func getSitemapProjects() ([]byte, error) {
 	findOptions.SetProjection(bson.M{
 		"_id": 1,
 	})
-	cursor, err := blogCollection.Find(ctxMongo, bson.D{{}})
+	cursor, err := projectCollection.Find(ctxMongo, bson.D{{}})
 	defer cursor.Close(ctxMongo)
 	if err != nil {
 		return nil, err
@@ -246,7 +245,7 @@ func getSitemapProjects() ([]byte, error) {
 		foundstuff = true
 	}
 	if !foundstuff {
-		return nil, errors.New("project data not found")
+		sitemap.Add(stm.URL{{"loc", "/projects"}})
 	}
 	return sitemap.XMLContent(), nil
 }
