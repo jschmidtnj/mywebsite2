@@ -76,7 +76,7 @@ func writePostFile(response http.ResponseWriter, request *http.Request) {
 		handleError(errmessage, http.StatusBadRequest, response)
 		return
 	}
-	response.Header().Set("content-type", "application/json")
+	response.Header().Set("Content-Type", "application/json")
 	response.Write([]byte(`{"message":"file updated"}`))
 }
 
@@ -158,7 +158,7 @@ func writePostPicture(response http.ResponseWriter, request *http.Request) {
 		handleError(errmessage, http.StatusBadRequest, response)
 		return
 	}
-	response.Header().Set("content-type", "application/json")
+	response.Header().Set("Content-Type", "application/json")
 	response.Write([]byte(`{"message":"image written"}`))
 }
 
@@ -213,7 +213,7 @@ func deletePostPictures(response http.ResponseWriter, request *http.Request) {
 			return
 		}
 	}
-	response.Header().Set("content-type", "application/json")
+	response.Header().Set("Content-Type", "application/json")
 	response.Write([]byte(`{"message":"files deleted"}`))
 }
 
@@ -267,7 +267,7 @@ func deletePostFiles(response http.ResponseWriter, request *http.Request) {
 			return
 		}
 	}
-	response.Header().Set("content-type", "application/json")
+	response.Header().Set("Content-Type", "application/json")
 	response.Write([]byte(`{"message":"files deleted"}`))
 }
 

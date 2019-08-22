@@ -57,7 +57,7 @@ func countPosts(response http.ResponseWriter, request *http.Request) {
 	}
 	tags = removeEmptyStrings(tags)
 	getcache := request.URL.Query().Get("cache")
-	response.Header().Set("content-type", "application/json")
+	response.Header().Set("Content-Type", "application/json")
 	pathMap := map[string]string{
 		"path":       "count",
 		"type":       thetype,

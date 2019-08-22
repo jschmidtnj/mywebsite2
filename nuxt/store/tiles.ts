@@ -10,7 +10,7 @@ export const state = () => ({
   blogindex: null,
   projectindex: null,
   perpage: 8,
-  sortBy: 'title',
+  sortBy: 'date',
   sortDesc: true,
   tags: [],
   categories: []

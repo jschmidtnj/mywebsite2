@@ -34,6 +34,8 @@ var sendgridAPIKey string
 
 var websiteURL string
 
+var apiURL string
+
 var mongoClient *mongo.Client
 
 var ctxMongo context.Context
@@ -120,6 +122,10 @@ var serviceEmail string
 
 var jwtIssuer string
 
+var lastSitemapUpdate string
+
+var sitemapTimeFormat = "2006-01-02T15:04:05Z07:00"
+
 var mode string
 
 // var mediumClient *medium.Medium
@@ -133,7 +139,7 @@ var mode string
  * @apiGroup misc
  */
 func hello(response http.ResponseWriter, request *http.Request) {
-	response.Header().Set("content-type", "application/json")
+	response.Header().Set("Content-Type", "application/json")
 	response.Write([]byte(`{"message":"Hello!"}`))
 }
 
@@ -174,8 +180,14 @@ func main() {
 	sendgridAPIKey = os.Getenv("SENDGRIDAPIKEY")
 	serviceEmail = os.Getenv("SERVICEEMAIL")
 	jwtIssuer = os.Getenv("JWTISSUER")
+	lastSitemapUpdateTime, err := time.Parse(sitemapTimeFormat, os.Getenv("LASTSITEMAPUPDATE"))
+	if err != nil {
+		logger.Fatal(err.Error())
+	}
+	lastSitemapUpdate = lastSitemapUpdateTime.Format(sitemapTimeFormat)
 	mode = os.Getenv("MODE")
 	websiteURL = os.Getenv("WEBSITEURL")
+	apiURL = os.Getenv("APIURL")
 	ctxMongo, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	cancel()
 	mongouri := os.Getenv("MONGOURI")
@@ -283,7 +295,7 @@ func main() {
 			RequestString: query,
 			Context:       context.WithValue(context.Background(), tokenKey, getAuthToken(request)),
 		})
-		response.Header().Set("content-type", "application/json")
+		response.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(response).Encode(result)
 	})
 	mux.HandleFunc("/countPosts", countPosts)
@@ -303,6 +315,12 @@ func main() {
 	mux.HandleFunc("/deletePostFiles", deletePostFiles)
 	mux.HandleFunc("/shortlink", shortLinkRedirect)
 	mux.HandleFunc("/createShortLink", createShortLink)
+	mux.HandleFunc("/sitemap.xml", sitemapIndex)
+	mux.HandleFunc("/sitemap.xml.gz", sitemapIndexGZip)
+	mux.HandleFunc("/sitemap-blogs.xml", sitemapBlogs)
+	mux.HandleFunc("/sitemap-blogs.xml.gz", sitemapBlogsGZip)
+	mux.HandleFunc("/sitemap-projects.xml", sitemapProjects)
+	mux.HandleFunc("/sitemap-projects.xml.gz", sitemapProjectsGZip)
 	var allowedOrigins []string
 	if mode == "debug" {
 		allowedOrigins = []string{

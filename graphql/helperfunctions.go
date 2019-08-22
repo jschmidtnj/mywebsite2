@@ -11,7 +11,7 @@ var dateFormat = "Mon Jan _2 15:04:05 2006"
 
 func handleError(message string, statuscode int, response http.ResponseWriter) {
 	// logger.Error(message)
-	response.Header().Set("content-type", "application/json")
+	response.Header().Set("Content-Type", "application/json")
 	response.WriteHeader(statuscode)
 	response.Write([]byte(`{"message":"` + message + `"}`))
 }

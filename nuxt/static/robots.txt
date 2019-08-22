@@ -2,4 +2,4 @@ User-agent: *
 Disallow: /admin/*
 Disallow: /emailtemplates/*
 Disallow: /calliback/*
-Sitemap: https://joshuaschmidt.tech/sitemap.xml
+Sitemap: https://joshuaschmidt.tech/sitemap_index.xml

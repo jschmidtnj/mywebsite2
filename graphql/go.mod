@@ -28,6 +28,7 @@ require (
 	github.com/graphql-go/graphql v0.7.8
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/haya14busa/goplay v1.0.0 // indirect
+	github.com/ikeikeikeike/go-sitemap-generator/v2 v2.0.2 // indirect
 	github.com/joho/godotenv v1.3.0
 	github.com/josharian/impl v0.0.0-20190715203526-f0d59e96e372 // indirect
 	github.com/karrick/godirwalk v1.10.12 // indirect

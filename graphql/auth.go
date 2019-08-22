@@ -160,7 +160,7 @@ func register(response http.ResponseWriter, request *http.Request) {
 		zap.String("id", id),
 		zap.String("email", registerdata["email"].(string)),
 	)
-	response.Header().Set("content-type", "application/json")
+	response.Header().Set("Content-Type", "application/json")
 	response.Write([]byte(`{"message":"please check email for verification"}`))
 }
 
@@ -255,7 +255,7 @@ func loginEmailPassword(response http.ResponseWriter, request *http.Request) {
 		logger.Info("User login",
 			zap.String("id", id),
 		)
-		response.Header().Set("content-type", "application/json")
+		response.Header().Set("Content-Type", "application/json")
 		response.Write([]byte(`{ "token": "` + tokenString + `" }`))
 		foundstuff = true
 		break
@@ -282,7 +282,7 @@ func logoutEmailPassword(response http.ResponseWriter, request *http.Request) {
 		handleError(err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	response.Header().Set("content-type", "application/json")
+	response.Header().Set("Content-Type", "application/json")
 	response.Write([]byte(`{ "message": "successfully signed out" }`))
 }
 
@@ -382,7 +382,7 @@ func verifyEmail(response http.ResponseWriter, request *http.Request) {
 			zap.String("id", idstring),
 			zap.String("email", userData["email"].(string)),
 		)
-		response.Header().Set("content-type", "application/json")
+		response.Header().Set("Content-Type", "application/json")
 		response.Write([]byte(`{"message":"email successfully verified"}`))
 		foundstuff = true
 		break
@@ -506,7 +506,7 @@ func resetPassword(response http.ResponseWriter, request *http.Request) {
 			zap.String("id", idStr),
 			zap.String("email", userData["email"].(string)),
 		)
-		response.Header().Set("content-type", "application/json")
+		response.Header().Set("Content-Type", "application/json")
 		response.Write([]byte(`{"message":"password reset successfully"}`))
 		foundstuff = true
 		break

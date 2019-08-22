@@ -73,9 +73,6 @@ func sendEmailVerification(email string) (*rest.Response, error) {
 	}
 	`
 	body = fmt.Sprintf(body, email, serviceEmail)
-	if err != nil {
-		return nil, err
-	}
 	var bodyJSON map[string]interface{}
 	err = json.Unmarshal([]byte(body), &bodyJSON)
 	if err != nil {
@@ -216,7 +213,7 @@ func sendPasswordResetEmail(response http.ResponseWriter, request *http.Request)
 		handleError("invalid response code from email: "+strconv.Itoa(res1.StatusCode)+", body: "+res1.Body, http.StatusBadRequest, response)
 		return
 	}
-	response.Header().Set("content-type", "application/json")
+	response.Header().Set("Content-Type", "application/json")
 	response.Write([]byte(`{"message":"reset email sent"}`))
 }
 
@@ -315,6 +312,6 @@ func sendTestEmail(response http.ResponseWriter, request *http.Request) {
 		handleError("invalid response code from email: "+strconv.Itoa(res1.StatusCode)+", body: "+res1.Body, http.StatusBadRequest, response)
 		return
 	}
-	response.Header().Set("content-type", "application/json")
+	response.Header().Set("Content-Type", "application/json")
 	response.Write([]byte(`{"message":"email successfully sent"}`))
 }

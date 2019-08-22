@@ -1,0 +1,7 @@
+# redirects for netlify
+/sitemap.xml             https://api.joshuaschmidt.tech/sitemap.xml
+/sitemap.xml.gz          https://api.joshuaschmidt.tech/sitemap.xml.gz
+/sitemap-blogs.xml       https://api.joshuaschmidt.tech/sitemap-blogs.xml
+/sitemap-blogs.xml.gz    https://api.joshuaschmidt.tech/sitemap-blogs.xml.gz
+/sitemap-projects.xml    https://api.joshuaschmidt.tech/sitemap-projects.xml
+/sitemap-projects.xml.gz https://api.joshuaschmidt.tech/sitemap-projects.xml.gz

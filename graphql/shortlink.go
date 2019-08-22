@@ -75,7 +75,7 @@ func createShortLink(response http.ResponseWriter, request *http.Request) {
 		handleError("short link generate error: "+err.Error(), http.StatusUnauthorized, response)
 		return
 	}
-	response.Header().Set("content-type", "application/json")
+	response.Header().Set("Content-Type", "application/json")
 	response.Write([]byte(`{"id":"` + linkid + `"}`))
 }
 
