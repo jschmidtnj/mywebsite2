@@ -10,12 +10,12 @@
                 :blank-src="
                   `${postCdn}/${
                     type === 'blog' ? 'blogimages' : 'projectimages'
-                  }/${post.heroimage}/blur`
+                  }/${post.id}/${post.heroimage}/blur`
                 "
                 :src="
                   `${postCdn}/${
                     type === 'blog' ? 'blogimages' : 'projectimages'
-                  }/${post.heroimage}/original`
+                  }/${post.id}/${post.heroimage}/original`
                 "
                 alt="Hero"
                 class="hero-img m-0"
@@ -174,7 +174,7 @@ export default Vue.extend({
     if (this.post) {
       const image = `${cloudStorageURLs.posts}/${
                       this.type === 'blog' ? 'blogimages' : 'projectimages'
-                    }/${encodeURI(this.post.tileimage)}/original`
+                    }/${this.post.id}/${encodeURI(this.post.tileimage)}/original`
       meta.push({
         property: 'og:image',
         content: image

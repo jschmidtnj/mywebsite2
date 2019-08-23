@@ -95,6 +95,9 @@ func rootMutation() *graphql.Object {
 				Type:        PostType,
 				Description: "Create a Post Post",
 				Args: graphql.FieldConfigArgument{
+					"id": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
 					"type": &graphql.ArgumentConfig{
 						Type: graphql.String,
 					},
@@ -137,13 +140,21 @@ func rootMutation() *graphql.Object {
 					if err != nil {
 						return nil, err
 					}
-					if params.Args["title"] == nil || params.Args["content"] == nil ||
+					if params.Args["id"] == nil || params.Args["title"] == nil || params.Args["content"] == nil ||
 						params.Args["author"] == nil || params.Args["type"] == nil ||
 						params.Args["heroimage"] == nil || params.Args["images"] == nil ||
 						params.Args["files"] == nil || params.Args["caption"] == nil ||
 						params.Args["color"] == nil || params.Args["tags"] == nil ||
 						params.Args["categories"] == nil || params.Args["tileimage"] == nil {
 						return nil, errors.New("title or content or author or type or heroimage or images or files or caption or color or tags or categories or tileimage not provided")
+					}
+					idstring, ok := params.Args["id"].(string)
+					if !ok {
+						return nil, errors.New("cannot cast id to string")
+					}
+					id, err := primitive.ObjectIDFromHex(idstring)
+					if err != nil {
+						return nil, err
 					}
 					title, ok := params.Args["title"].(string)
 					if !ok {
@@ -231,8 +242,6 @@ func rootMutation() *graphql.Object {
 						postElasticIndex = projectElasticIndex
 						postElasticType = projectElasticType
 					}
-					id := primitive.NewObjectID()
-					idstring := id.Hex()
 					shortlink, err := generateShortLink(websiteURL + "/" + thetype + "/" + idstring)
 					if err != nil {
 						return nil, err
@@ -616,11 +625,11 @@ func rootMutation() *graphql.Object {
 						var heroobjblur *storage.ObjectHandle
 						var heroobjoriginal *storage.ObjectHandle
 						if thetype == "blog" {
-							heroobjblur = storageBucket.Object(blogImageIndex + "/" + heroimageid + "/blur")
-							heroobjoriginal = storageBucket.Object(blogImageIndex + "/" + heroimageid + "/original")
+							heroobjblur = storageBucket.Object(blogImageIndex + "/" + idstr + "/" + heroimageid + "/blur")
+							heroobjoriginal = storageBucket.Object(blogImageIndex + "/" + idstr + "/" + heroimageid + "/original")
 						} else {
-							heroobjblur = storageBucket.Object(projectImageIndex + "/" + heroimageid + "/blur")
-							heroobjoriginal = storageBucket.Object(projectImageIndex + "/" + heroimageid + "/original")
+							heroobjblur = storageBucket.Object(projectImageIndex + "/" + idstr + "/" + heroimageid + "/blur")
+							heroobjoriginal = storageBucket.Object(projectImageIndex + "/" + idstr + "/" + heroimageid + "/original")
 						}
 						if err := heroobjblur.Delete(ctxStorage); err != nil {
 							return nil, err
@@ -637,11 +646,11 @@ func rootMutation() *graphql.Object {
 						var tileobjblur *storage.ObjectHandle
 						var tileobjoriginal *storage.ObjectHandle
 						if thetype == "blog" {
-							tileobjblur = storageBucket.Object(blogImageIndex + "/" + tileimageid + "/blur")
-							tileobjoriginal = storageBucket.Object(blogImageIndex + "/" + tileimageid + "/original")
+							tileobjblur = storageBucket.Object(blogImageIndex + "/" + idstr + "/" + tileimageid + "/blur")
+							tileobjoriginal = storageBucket.Object(blogImageIndex + "/" + idstr + "/" + tileimageid + "/original")
 						} else {
-							tileobjblur = storageBucket.Object(projectImageIndex + "/" + tileimageid + "/blur")
-							tileobjoriginal = storageBucket.Object(projectImageIndex + "/" + tileimageid + "/original")
+							tileobjblur = storageBucket.Object(projectImageIndex + "/" + idstr + "/" + tileimageid + "/blur")
+							tileobjoriginal = storageBucket.Object(projectImageIndex + "/" + idstr + "/" + tileimageid + "/original")
 						}
 						if err := tileobjblur.Delete(ctxStorage); err != nil {
 							return nil, err
@@ -659,11 +668,11 @@ func rootMutation() *graphql.Object {
 						var imageobjblur *storage.ObjectHandle
 						var imageobjoriginal *storage.ObjectHandle
 						if thetype == "blog" {
-							imageobjblur = storageBucket.Object(blogImageIndex + "/" + imageid + "/blur")
-							imageobjoriginal = storageBucket.Object(blogImageIndex + "/" + imageid + "/original")
+							imageobjblur = storageBucket.Object(blogImageIndex + "/" + idstr + "/" + imageid + "/blur")
+							imageobjoriginal = storageBucket.Object(blogImageIndex + "/" + idstr + "/" + imageid + "/original")
 						} else {
-							imageobjblur = storageBucket.Object(projectImageIndex + "/" + imageid + "/blur")
-							imageobjoriginal = storageBucket.Object(projectImageIndex + "/" + imageid + "/original")
+							imageobjblur = storageBucket.Object(projectImageIndex + "/" + idstr + "/" + imageid + "/blur")
+							imageobjoriginal = storageBucket.Object(projectImageIndex + "/" + idstr + "/" + imageid + "/original")
 						}
 						if err := imageobjblur.Delete(ctxStorage); err != nil {
 							return nil, err
@@ -680,9 +689,9 @@ func rootMutation() *graphql.Object {
 						fileid := primativefileid.(string)
 						var fileobj *storage.ObjectHandle
 						if thetype == "blog" {
-							fileobj = storageBucket.Object(blogFileIndex + "/" + fileid)
+							fileobj = storageBucket.Object(blogFileIndex + "/" + idstr + "/" + fileid)
 						} else {
-							fileobj = storageBucket.Object(projectFileIndex + "/" + fileid)
+							fileobj = storageBucket.Object(projectFileIndex + "/" + idstr + "/" + fileid)
 						}
 						if err := fileobj.Delete(ctxStorage); err != nil {
 							return nil, err

@@ -45,6 +45,11 @@ func writePostFile(response http.ResponseWriter, request *http.Request) {
 		handleError("invalid type in query", http.StatusBadRequest, response)
 		return
 	}
+	postid := request.URL.Query().Get("postid")
+	if postid == "" {
+		handleError("error getting post id from query", http.StatusBadRequest, response)
+		return
+	}
 	fileid := request.URL.Query().Get("fileid")
 	if fileid == "" {
 		handleError("error getting file id from query", http.StatusBadRequest, response)
@@ -66,9 +71,9 @@ func writePostFile(response http.ResponseWriter, request *http.Request) {
 	defer filebuffer.Reset()
 	var fileobj *storage.ObjectHandle
 	if thetype == "blog" {
-		fileobj = storageBucket.Object(blogFileIndex + "/" + fileidDecoded)
+		fileobj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileidDecoded)
 	} else {
-		fileobj = storageBucket.Object(projectFileIndex + "/" + fileidDecoded)
+		fileobj = storageBucket.Object(projectFileIndex + "/" + postid + "/" + fileidDecoded)
 	}
 	filewriter := fileobj.NewWriter(ctxStorage)
 	errmessage := uploadFile(&filebuffer, filewriter)
@@ -97,6 +102,11 @@ func writePostPicture(response http.ResponseWriter, request *http.Request) {
 	}
 	if !validType(thetype) {
 		handleError("invalid type in query", http.StatusBadRequest, response)
+		return
+	}
+	postid := request.URL.Query().Get("postid")
+	if postid == "" {
+		handleError("error getting post id from query", http.StatusBadRequest, response)
 		return
 	}
 	imageid := request.URL.Query().Get("imageid")
@@ -140,11 +150,11 @@ func writePostPicture(response http.ResponseWriter, request *http.Request) {
 	var originalImageObj *storage.ObjectHandle
 	var blurredImageObj *storage.ObjectHandle
 	if thetype == "blog" {
-		originalImageObj = storageBucket.Object(blogImageIndex + "/" + imageidDecoded + "/original")
-		blurredImageObj = storageBucket.Object(blogImageIndex + "/" + imageidDecoded + "/blur")
+		originalImageObj = storageBucket.Object(blogImageIndex + "/" + postid + "/" + imageidDecoded + "/original")
+		blurredImageObj = storageBucket.Object(blogImageIndex + "/" + postid + "/" + imageidDecoded + "/blur")
 	} else {
-		originalImageObj = storageBucket.Object(projectImageIndex + "/" + imageidDecoded + "/original")
-		blurredImageObj = storageBucket.Object(projectImageIndex + "/" + imageidDecoded + "/blur")
+		originalImageObj = storageBucket.Object(projectImageIndex + "/" + postid + "/" + imageidDecoded + "/original")
+		blurredImageObj = storageBucket.Object(projectImageIndex + "/" + postid + "/" + imageidDecoded + "/blur")
 	}
 	originalImageWriter := originalImageObj.NewWriter(ctxStorage)
 	errmessage := uploadFile(originalImageBuffer, originalImageWriter)
@@ -192,23 +202,40 @@ func deletePostPictures(response http.ResponseWriter, request *http.Request) {
 		handleError("unable to cast type to string", http.StatusBadRequest, response)
 		return
 	}
+	postid, ok := picturedata["postid"].(string)
+	if !ok {
+		handleError("unable to post id to string", http.StatusBadRequest, response)
+		return
+	}
 	if !validType(thetype) {
 		handleError("invalid type in body", http.StatusBadRequest, response)
 		return
 	}
-	imageids, ok := picturedata["imageids"].([]string)
+	imageids, ok := picturedata["imageids"].([]interface{})
 	if !ok {
-		handleError("imageids cannot be cast to string array", http.StatusBadRequest, response)
+		handleError("imageids cannot be cast to interface array", http.StatusBadRequest, response)
 		return
 	}
-	for _, imageid := range imageids {
-		var imageobj *storage.ObjectHandle
-		if thetype == "blog" {
-			imageobj = storageBucket.Object(blogImageIndex + "/" + imageid)
-		} else {
-			imageobj = storageBucket.Object(projectImageIndex + "/" + imageid)
+	for _, imageidinterface := range imageids {
+		imageid, ok := imageidinterface.(string)
+		if !ok {
+			handleError("imageid cannot be cast to string", http.StatusBadRequest, response)
+			return
 		}
-		if err := imageobj.Delete(ctxStorage); err != nil {
+		var imageobjblur *storage.ObjectHandle
+		var imageobjoriginal *storage.ObjectHandle
+		if thetype == "blog" {
+			imageobjblur = storageBucket.Object(blogImageIndex + "/" + postid + "/" + imageid + "/blur")
+			imageobjoriginal = storageBucket.Object(blogImageIndex + "/" + postid + "/" + imageid + "/original")
+		} else {
+			imageobjblur = storageBucket.Object(projectImageIndex + "/" + postid + "/" + imageid + "/blur")
+			imageobjoriginal = storageBucket.Object(projectImageIndex + "/" + postid + "/" + imageid + "/original")
+		}
+		if err := imageobjblur.Delete(ctxStorage); err != nil {
+			handleError("error deleting image: "+err.Error(), http.StatusBadRequest, response)
+			return
+		}
+		if err := imageobjoriginal.Delete(ctxStorage); err != nil {
 			handleError("error deleting image: "+err.Error(), http.StatusBadRequest, response)
 			return
 		}
@@ -241,6 +268,11 @@ func deletePostFiles(response http.ResponseWriter, request *http.Request) {
 		handleError("no fileids or postid or type provided", http.StatusBadRequest, response)
 		return
 	}
+	postid, ok := filedata["postid"].(string)
+	if !ok {
+		handleError("unable to cast post id to string", http.StatusBadRequest, response)
+		return
+	}
 	thetype, ok := filedata["type"].(string)
 	if !ok {
 		handleError("unable to cast type to string", http.StatusBadRequest, response)
@@ -258,9 +290,9 @@ func deletePostFiles(response http.ResponseWriter, request *http.Request) {
 	for _, fileid := range fileids {
 		var fileobj *storage.ObjectHandle
 		if thetype == "blog" {
-			fileobj = storageBucket.Object(blogFileIndex + "/" + fileid)
+			fileobj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileid)
 		} else {
-			fileobj = storageBucket.Object(projectFileIndex + "/" + fileid)
+			fileobj = storageBucket.Object(projectFileIndex + "/" + postid + "/" + fileid)
 		}
 		if err := fileobj.Delete(ctxStorage); err != nil {
 			handleError("error deleting file: "+err.Error(), http.StatusBadRequest, response)
@@ -290,11 +322,16 @@ func getPostPicture(response http.ResponseWriter, request *http.Request) {
 		handleError("no picture id", http.StatusBadRequest, response)
 		return
 	}
+	postid := request.URL.Query().Get("postid")
+	if postid == "" {
+		handleError("no post id", http.StatusBadRequest, response)
+		return
+	}
 	var imageobj *storage.ObjectHandle
 	if thetype == "blog" {
-		imageobj = storageBucket.Object(blogImageIndex + "/" + imageid)
+		imageobj = storageBucket.Object(blogImageIndex + "/" + postid + "/" + imageid)
 	} else {
-		imageobj = storageBucket.Object(projectImageIndex + "/" + imageid)
+		imageobj = storageBucket.Object(projectImageIndex + "/" + postid + "/" + imageid)
 	}
 	imagereader, err := imageobj.NewReader(ctxStorage)
 	if err != nil {
@@ -326,6 +363,11 @@ func getPostFile(response http.ResponseWriter, request *http.Request) {
 		handleError("invalid type in query", http.StatusBadRequest, response)
 		return
 	}
+	postid := request.URL.Query().Get("postid")
+	if postid == "" {
+		handleError("error getting post id from query", http.StatusBadRequest, response)
+		return
+	}
 	fileid := request.URL.Query().Get("fileid")
 	if fileid == "" {
 		handleError("no file id", http.StatusBadRequest, response)
@@ -333,9 +375,9 @@ func getPostFile(response http.ResponseWriter, request *http.Request) {
 	}
 	var fileobj *storage.ObjectHandle
 	if thetype == "blog" {
-		fileobj = storageBucket.Object(blogImageIndex + "/" + fileid)
+		fileobj = storageBucket.Object(blogImageIndex + "/" + postid + "/" + fileid)
 	} else {
-		fileobj = storageBucket.Object(projectImageIndex + "/" + fileid)
+		fileobj = storageBucket.Object(projectImageIndex + "/" + postid + "/" + fileid)
 	}
 	filereader, err := fileobj.NewReader(ctxStorage)
 	if err != nil {
