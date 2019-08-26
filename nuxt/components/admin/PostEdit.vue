@@ -194,7 +194,7 @@
                     <span>
                       <b-form-file
                         v-model="post.heroimage.file"
-                        accept="image/*"
+                        accept="image/jpeg, image/png"
                         :state="!$v.post.heroimage.$invalid"
                         class="mb-2 form-control"
                         aria-describedby="heroimagefeedback"
@@ -225,7 +225,7 @@
                     <span>
                       <b-form-file
                         v-model="post.tileimage.file"
-                        accept="image/*"
+                        accept="image/jpeg, image/png"
                         :state="!$v.post.tileimage.$invalid"
                         class="mb-2 form-control"
                         aria-describedby="tileimagefeedback"
@@ -296,7 +296,7 @@
                       <span>
                         <b-form-file
                           v-model="post.images[index].file"
-                          accept="image/*"
+                          accept="image/jpeg, image/png"
                           :state="!imagevalue.file.$invalid"
                           class="mb-2 form-control"
                           placeholder="Choose an image..."
@@ -357,6 +357,113 @@
                       </b-col>
                     </b-row>
                   </b-container>
+                  <h4 class="mt-4">Gifs</h4>
+                  <div
+                    v-for="(gifvalue, index) in $v.post.gifs.$each.$iter"
+                    :key="`gif-${index}`"
+                  >
+                    <b-img
+                      v-if="post.gifs[index].file && post.gifs[index].src"
+                      class="sampleimage"
+                      :src="post.gifs[index].src"
+                    ></b-img>
+                    <br />
+                    <code
+                      v-if="
+                        (post.gifs[index].file || post.gifs[index].uploaded) &&
+                          post.gifs[index].name &&
+                          post.gifs[index].width &&
+                          post.gifs[index].height &&
+                          post.gifs[index].id
+                      "
+                      >{{ getGifTag(post.gifs[index]) }}</code
+                    >
+                    <b-form-group class="mb-2">
+                      <label class="form-required">Gif Name</label>
+                      <span>
+                        <b-form-input
+                          v-model="post.gifs[index].name"
+                          :state="!gifvalue.name.$invalid"
+                          type="text"
+                          class="form-control"
+                          placeholder="name"
+                          @input="post.gifs[index].uploaded = false"
+                        />
+                      </span>
+                      <b-form-invalid-feedback :state="!gifvalue.name.$invalid">
+                        <div v-if="!gifvalue.name.required">
+                          gif name is required
+                        </div>
+                        <div v-else-if="!gifvalue.name.minLength">
+                          gif name must have at least
+                          {{ gifvalue.name.$params.minLength.min }} characters
+                        </div>
+                      </b-form-invalid-feedback>
+                    </b-form-group>
+                    <b-form-group>
+                      <label class="form-required">Gif</label>
+                      <span>
+                        <b-form-file
+                          v-model="post.gifs[index].file"
+                          accept="image/gif"
+                          :state="!gifvalue.$invalid"
+                          class="mb-2 form-control"
+                          placeholder="Choose a gif..."
+                          drop-placeholder="Drop gif here..."
+                          @input="
+                            post.gifs[index].uploaded = false
+                            updateImageSrc(post.gifs[index])
+                          "
+                        />
+                      </span>
+                      <b-form-invalid-feedback :state="!gifvalue.file.$invalid">
+                        <div v-if="!gifvalue.file.required">
+                          gif is required
+                        </div>
+                      </b-form-invalid-feedback>
+                    </b-form-group>
+                  </div>
+                  <b-container class="mt-4">
+                    <b-row>
+                      <b-col>
+                        <b-btn
+                          variant="primary"
+                          class="mr-2"
+                          @click="
+                            post.gifs.push({
+                              name: '',
+                              file: null,
+                              uploaded: false,
+                              id: createId(),
+                              src: null,
+                              width: null,
+                              height: null
+                            })
+                          "
+                        >
+                          <no-ssr>
+                            <font-awesome-icon
+                              class="mr-2 arrow-size-edit"
+                              icon="plus-circle"
+                            /> </no-ssr
+                          >Add
+                        </b-btn>
+                        <b-btn
+                          variant="primary"
+                          class="mr-2"
+                          :disabled="post.gifs.length === 0"
+                          @click="removeGif"
+                        >
+                          <no-ssr>
+                            <font-awesome-icon
+                              class="mr-2 arrow-size-edit"
+                              icon="times"
+                            /> </no-ssr
+                          >Remove
+                        </b-btn>
+                      </b-col>
+                    </b-row>
+                  </b-container>
                   <h4 class="mt-4">Files</h4>
                   <div
                     v-for="(filevalue, index) in $v.post.files.$each.$iter"
@@ -364,7 +471,8 @@
                   >
                     <code
                       v-if="
-                        post.files[index].file &&
+                        (post.files[index].file ||
+                          post.files[index].uploaded) &&
                           post.images[index].name &&
                           post.images[index].id
                       "
@@ -399,7 +507,7 @@
                         <b-form-file
                           v-model="post.files[index].file"
                           accept="*"
-                          :state="!filevalue.file.$invalid"
+                          :state="!filevalue.$invalid"
                           class="mb-2 form-control"
                           placeholder="Choose a file..."
                           drop-placeholder="Drop file here..."
@@ -411,7 +519,7 @@
                       <b-form-invalid-feedback
                         :state="!filevalue.file.$invalid"
                       >
-                        <div v-if="!filevalue.file.required">
+                        <div v-if="!filevalue.file.$required">
                           file is required
                         </div>
                       </b-form-invalid-feedback>
@@ -599,7 +707,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import { validationMixin } from 'vuelidate'
-import { required, minLength } from 'vuelidate/lib/validators'
+import { required, minLength, requiredIf } from 'vuelidate/lib/validators'
 import VueMarkdown from 'vue-markdown'
 import Prism from 'prismjs'
 import { format } from 'date-fns'
@@ -700,6 +808,7 @@ export default Vue.extend({
         heroimage: Object.assign({}, originalHero),
         tileimage: Object.assign({}, originalTile),
         images: [],
+        gifs: [],
         files: []
       }
     }
@@ -759,6 +868,17 @@ export default Vue.extend({
           }
         }
       },
+      gifs: {
+        $each: {
+          name: {
+            required,
+            minLength: minLength(3)
+          },
+          file: {
+            required: requiredIf((_, vm) => vm && !vm.uploaded)
+          }
+        }
+      },
       files: {
         $each: {
           name: {
@@ -766,7 +886,7 @@ export default Vue.extend({
             minLength: minLength(3)
           },
           file: {
-            required
+            required: requiredIf((_, vm) => vm && !vm.uploaded)
           }
         }
       }
@@ -822,18 +942,24 @@ export default Vue.extend({
     getImageTag(image) {
       return `<img data-src="${cloudStorageURLs.posts}/${
         this.type === 'blog' ? 'blogimages' : 'projectimages'
-      }/${this.postid}/${encodeURIComponent(image.name)}.${image.id}/original" src="${
+      }/${this.postid}/${image.id}/original" src="${
         cloudStorageURLs.posts
       }/${this.type === 'blog' ? 'blogimages' : 'projectimages'}/${this.postid}/${
-        image.name
-      }.${image.id}/blur" class="lazy img-fluid" alt="${
+        image.id}/blur" class="lazy img-fluid" alt="${
         image.name
       }" data-width="${image.width}" data-height="${image.height}">`
+    },
+    getGifTag(gif) {
+      return `<img src="${cloudStorageURLs.posts}/${
+        this.type === 'blog' ? 'bloggifs' : 'projectgifs'
+      }/${this.postid}/${gif.id}" alt="${
+        gif.name
+      }" class="img-fluid" data-width="${gif.width}" data-height="${gif.height}">`
     },
     getFileTag(file) {
       return `<a href="${cloudStorageURLs.posts}/${
         this.type === 'blog' ? 'blogfiles' : 'projectfiles'
-      }/${this.postid}/${encodeURIComponent(file.name)}.${file.id}"></a>`
+      }/${this.postid}/${file.id}"></a>`
     },
     updateImageSrc(image) {
       console.log('start image src')
@@ -854,6 +980,51 @@ export default Vue.extend({
       reader.readAsDataURL(image.file)
       console.log('done')
     },
+    removeGif() {
+      const removedGif = this.post.gifs[this.post.gifs.length - 1]
+      const finished = () => {
+        this.post.gifs.pop()
+        this.$toasted.global.success({
+          message: `removed gif ${removedGif.id}`
+        })
+      }
+      if (this.mode === this.modetypes.add || !removedGif.uploaded) {
+        finished()
+      } else if (removedGif.name && removedGif.id && this.mode === this.modetypes.edit) {
+        this.$axios
+          .delete('/deletePostGifs', {
+            data: {
+              fileids: [
+                removedGif.id
+              ],
+              postid: this.postid,
+              type: this.type
+            }
+          })
+          .then(res => {
+            if (res.status == 200) {
+              finished()
+            } else {
+              this.$toasted.global.error({
+                message: `got status code of ${res.status} on file delete`
+              })
+            }
+          })
+          .catch(err => {
+            let message = `got error on gif delete: ${err}`
+            if (err.response && err.response.data) {
+              message = err.response.data.message
+            }
+            this.$toasted.global.error({
+              message: message
+            })
+          })
+      } else {
+        this.$toasted.global.error({
+          message: 'no name or id found, or mode type not edit'
+        })
+      }
+    },
     removeFile() {
       const removedFile = this.post.files[this.post.files.length - 1]
       const finished = () => {
@@ -869,7 +1040,7 @@ export default Vue.extend({
           .delete('/deletePostFiles', {
             data: {
               fileids: [
-                `${encodeURIComponent(removedFile.name)}.${removedFile.id}`
+                removedFile.id
               ],
               postid: this.postid,
               type: this.type
@@ -914,7 +1085,7 @@ export default Vue.extend({
           .delete('/deletePostPictures', {
             data: {
               imageids: [
-                `${encodeURIComponent(removedImage.name)}.${removedImage.id}`
+                removedImage.id
               ],
               postid: this.postid,
               type: this.type
@@ -950,7 +1121,6 @@ export default Vue.extend({
       // get images
       const getimages = thepost => {
         let getimagecount = 0
-        let getfilecount = 0
         let gothero = false
         let gottile = false
         let cont = true
@@ -962,16 +1132,12 @@ export default Vue.extend({
             message: `edit ${this.type} with id ${this.postid}`
           })
         }
-        const getNameId = id => {
-          // split at last period
-          return id.split(/\.(?=[^\.]+$)/)
-        }
-        if (thepost.heroimage.length > 0) {
+        if (thepost.heroimage !== null) {
           axios
             .get(
               `${cloudStorageURLs.posts}/${
                 this.type === 'blog' ? 'blogimages' : 'projectimages'
-              }/${this.postid}/${thepost.heroimage}/original`,
+              }/${this.postid}/${thepost.heroimage.id}/original`,
               {
                 responseType: 'blob'
               }
@@ -980,23 +1146,20 @@ export default Vue.extend({
               if (!cont) return
               if (res.status == 200) {
                 if (res.data) {
-                  const nameid = getNameId(thepost.heroimage)
                   thepost.heroimage = {
-                    name: 'hero',
+                    name: thepost.heroimage.name,
                     file: res.data,
                     uploaded: true,
-                    id: nameid[1],
+                    id: thepost.heroimage.id,
                     src: null,
-                    width: null,
-                    height: null
+                    width: thepost.heroimage.width,
+                    height: thepost.heroimage.height
                   }
                   this.updateImageSrc(thepost.heroimage)
                   gothero = true
                   if (
                     thepost.images.length === getimagecount &&
-                    thepost.files.length === getfilecount &&
-                    gottile &&
-                    !finished
+                    gottile && !finished
                   ) {
                     finished = true
                     finishedGets()
@@ -1016,7 +1179,7 @@ export default Vue.extend({
             })
             .catch(err => {
               this.$toasted.global.error({
-                message: `got error on image get: ${err}`
+                message: `got error on hero image get: ${err}`
               })
               cont = false
             })
@@ -1026,20 +1189,18 @@ export default Vue.extend({
           gothero = true
           if (
             thepost.images.length === getimagecount &&
-            thepost.files.length === getfilecount &&
-            gottile &&
-            !finished
+            gottile && !finished
           ) {
             finished = true
             finishedGets()
           }
         }
-        if (thepost.tileimage.length > 0) {
+        if (thepost.tileimage !== null) {
           axios
             .get(
               `${cloudStorageURLs.posts}/${
                 this.type === 'blog' ? 'blogimages' : 'projectimages'
-              }/${this.postid}/${thepost.tileimage}/original`,
+              }/${this.postid}/${thepost.tileimage.id}/original`,
               {
                 responseType: 'blob'
               }
@@ -1048,23 +1209,20 @@ export default Vue.extend({
               if (!cont) return
               if (res.status == 200) {
                 if (res.data) {
-                  const nameid = getNameId(thepost.tileimage)
                   thepost.tileimage = {
-                    name: 'tile',
+                    name: thepost.tileimage.name,
                     file: res.data,
                     uploaded: true,
-                    id: nameid[1],
+                    id: thepost.tileimage.id,
                     src: null,
-                    width: null,
-                    height: null
+                    width: thepost.tileimage.width,
+                    height: thepost.tileimage.height
                   }
                   this.updateImageSrc(thepost.tileimage)
                   gottile = true
                   if (
                     thepost.images.length === getimagecount &&
-                    thepost.files.length === getfilecount &&
-                    gothero &&
-                    !finished
+                    gothero && !finished
                   ) {
                     finished = true
                     finishedGets()
@@ -1084,7 +1242,7 @@ export default Vue.extend({
             })
             .catch(err => {
               this.$toasted.global.error({
-                message: `got error on image get: ${err}`
+                message: `got error on tile image get: ${err}`
               })
               cont = false
             })
@@ -1094,9 +1252,7 @@ export default Vue.extend({
           gottile = true
           if (
             thepost.images.length === getimagecount &&
-            thepost.files.length === getfilecount &&
-            gothero &&
-            !finished
+            gothero && !finished
           ) {
             finished = true
             finishedGets()
@@ -1109,7 +1265,7 @@ export default Vue.extend({
               .get(
                 `${cloudStorageURLs.posts}/${
                   this.type === 'blog' ? 'blogimages' : 'projectimages'
-                }/${this.postid}/${thepost.images[i]}/original`,
+                }/${this.postid}/${thepost.images[i].id}/original`,
                 {
                   responseType: 'blob'
                 }
@@ -1118,24 +1274,20 @@ export default Vue.extend({
                 if (!cont) return
                 if (res.status == 200) {
                   if (res.data) {
-                    const nameid = getNameId(thepost.images[getimagecount])
                     thepost.images[getimagecount] = {
-                      id: nameid[1],
-                      name: nameid[0],
+                      id: thepost.images[getimagecount].id,
+                      name: thepost.images[getimagecount].name,
                       uploaded: true,
                       file: res.data,
                       src: null,
-                      width: null,
-                      height: null
+                      width: thepost.images[getimagecount].width,
+                      height: thepost.images[getimagecount].height
                     }
                     this.updateImageSrc(thepost.images[getimagecount])
                     getimagecount++
                     if (
                       thepost.images.length === getimagecount &&
-                      thepost.files.length === getfilecount &&
-                      gothero &&
-                      gottile &&
-                      !finished
+                      gothero && gottile && !finished
                     ) {
                       finished = true
                       finishedGets()
@@ -1162,10 +1314,7 @@ export default Vue.extend({
           }
         } else {
           if (
-            thepost.files.length === getfilecount &&
-            gothero &&
-            gottile &&
-            !finished
+            gothero && gottile && !finished
           ) {
             finished = true
             finishedGets()
@@ -1173,66 +1322,34 @@ export default Vue.extend({
         }
         if (thepost.files.length > 0) {
           for (let i = 0; i < thepost.files.length; i++) {
-            if (!cont) break
-            axios
-              .get(
-                `${cloudStorageURLs.posts}/${
-                  this.type === 'blog' ? 'blogfiles' : 'projectfiles'
-                }/${this.postid}/${thepost.files[i]}`,
-                {
-                  responseType: 'blob'
-                }
-              )
-              .then(res => {
-                if (!cont) return
-                if (res.status == 200) {
-                  if (res.data) {
-                    const nameid = getNameId(thepost.files[getfilecount])
-                    thepost.files[getfilecount] = {
-                      id: nameid[1],
-                      name: nameid[0],
-                      uploaded: true,
-                      file: res.data
-                    }
-                    getfilecount++
-                    if (
-                      thepost.files.length === getfilecount &&
-                      thepost.images.length === getimagecount &&
-                      gothero &&
-                      gottile
-                    ) {
-                      finishedGets()
-                    }
-                  } else {
-                    this.$toasted.global.error({
-                      message: 'could not get file data'
-                    })
-                    cont = false
-                  }
-                } else {
-                  this.$toasted.global.error({
-                    message: `got status code of ${res.status} on file download`
-                  })
-                  cont = false
-                }
-              })
-              .catch(err => {
-                this.$toasted.global.error({
-                  message: `got error on file get: ${err}`
-                })
-                cont = false
-              })
+            thepost.files[i] = {
+              id: thepost.files[i].id,
+              name: thepost.files[i].name,
+              uploaded: true,
+              file: null
+            }
           }
-        } else {
-          if (
-            thepost.images.length === getimagecount &&
-            gothero &&
-            gottile &&
-            !finished
-          ) {
-            finished = true
-            finishedGets()
+        }
+        if (thepost.gifs.length > 0) {
+          for (let i = 0; i < thepost.gifs.length; i++) {
+            thepost.gifs[i] = {
+              id: thepost.gifs[i].id,
+              name: thepost.gifs[i].name,
+              uploaded: true,
+              file: null,
+              width: thepost.gifs[i].width,
+              height: thepost.gifs[i].height
+            }
           }
+        }
+        if (
+          thepost.images.length === getimagecount &&
+          gothero &&
+          gottile &&
+          !finished
+        ) {
+          finished = true
+          finishedGets()
         }
       }
       // get post data first
@@ -1243,7 +1360,7 @@ export default Vue.extend({
               this.type
             )}",id:"${encodeURIComponent(
               this.postid
-            )}",cache:false){title content id author views images heroimage tileimage caption comments files categories tags color}}`
+            )}",cache:false){title content id author views images{name id width height} gifs{name id width height} heroimage{name id width height} tileimage{name id width height} caption comments files{name id} categories tags color}}`
           }
         })
         .then(res => {
@@ -1251,6 +1368,7 @@ export default Vue.extend({
             if (res.data) {
               if (res.data.data && res.data.data.post) {
                 const thepost: any = res.data.data.post
+                console.log(res.data.data)
                 Object.keys(thepost).forEach(key => {
                   if (typeof thepost[key] === 'string')
                     thepost[key] = decodeURIComponent(thepost[key]);
@@ -1404,6 +1522,7 @@ export default Vue.extend({
         heroimage: Object.assign({}, originalHero),
         tileimage: Object.assign({}, originalTile),
         images: [],
+        gifs: [],
         files: [],
         tags: [],
         categories: []
@@ -1422,11 +1541,13 @@ export default Vue.extend({
         let cont = true
         let uploadcount = 0
         let imageuploads = this.post.images.filter(image => !image.uploaded)
+        let gifuploads = this.post.gifs.filter(gif => !gif.uploaded)
         let fileuploads = this.post.files.filter(file => !file.uploaded)
         let totaluploads =
           (!this.post.heroimage.uploaded && this.post.heroimage.file ? 1 : 0) +
           (!this.post.tileimage.uploaded && this.post.tileimage.file ? 1 : 0) +
           imageuploads.length +
+          gifuploads.length +
           fileuploads.length
         let finished = false
         const successMessage = () => {
@@ -1468,6 +1589,43 @@ export default Vue.extend({
             .catch(err => {
               this.$toasted.global.error({
                 message: `got error on image upload: ${err}`
+              })
+              cont = false
+            })
+        }
+        const uploadGif = (gif, gifid) => {
+          if (!cont) return
+          const formData = new FormData()
+          formData.append('file', gif)
+          this.$axios
+            .put('/writePostGif', formData, {
+              params: {
+                type: this.type,
+                fileid: gifid,
+                postid: this.postid
+              },
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              }
+            })
+            .then(res => {
+              if (!cont) return
+              if (res.status == 200) {
+                uploadcount++
+                if (totaluploads === uploadcount && !finished) {
+                  finished = true
+                  successMessage()
+                }
+              } else {
+                this.$toasted.global.error({
+                  message: `got status code of ${res.status} on gif upload`
+                })
+                cont = false
+              }
+            })
+            .catch(err => {
+              this.$toasted.global.error({
+                message: `got error on gif upload: ${err}`
               })
               cont = false
             })
@@ -1520,7 +1678,7 @@ export default Vue.extend({
           )
           uploadImage(
             this.post.heroimage.file,
-            `hero.${this.post.heroimage.id}`
+            this.post.heroimage.id
           )
         }
         let uploadingtile = false
@@ -1535,7 +1693,7 @@ export default Vue.extend({
           )
           uploadImage(
             this.post.tileimage.file,
-            `tile.${this.post.tileimage.id}`
+            this.post.tileimage.id
           )
         }
         if (imageuploads.length > 0) {
@@ -1549,7 +1707,22 @@ export default Vue.extend({
             )
             uploadImage(
               imageuploads[i].file,
-              `${encodeURIComponent(imageuploads[i].name)}.${imageuploads[i].id}`
+              imageuploads[i].id
+            )
+          }
+        }
+        if (gifuploads.length > 0) {
+          for (let i = 0; i < gifuploads.length; i++) {
+            gifuploads[i].file = new File(
+              [gifuploads[i].file],
+              gifuploads[i].name,
+              {
+                type: gifuploads[i].file.type
+              }
+            )
+            uploadGif(
+              gifuploads[i].file,
+              gifuploads[i].id
             )
           }
         }
@@ -1564,13 +1737,14 @@ export default Vue.extend({
             )
             uploadFile(
               fileuploads[i].file,
-              `${encodeURIComponent(fileuploads[i].name)}.${fileuploads[i].id}`
+              fileuploads[i].id
             )
           }
         }
         if (
           !uploadinghero &&
           imageuploads.length === 0 &&
+          gifuploads.length === 0 &&
           fileuploads.length === 0 &&
           !finished
         ) {
@@ -1600,19 +1774,23 @@ export default Vue.extend({
               this.post.caption
             )}",author:"${encodeURIComponent(
               this.post.author
-            )}",heroimage:"${encodeURIComponent(
-              this.post.heroimage.file ? `hero.${this.post.heroimage.id}` : ''
-            )}",tileimage:"${encodeURIComponent(
-              this.post.tileimage.file ? `tile.${this.post.tileimage.id}` : ''
-            )}",images:${JSON.stringify(
+            )}",heroimage:{${
+              this.post.heroimage.file ? `id:"${encodeURIComponent(this.post.heroimage.id)}",name:"hero",height:${this.post.heroimage.height},width:${this.post.heroimage.width}` : ''
+            }},tileimage:{${
+              this.post.tileimage.file ? `id:"${encodeURIComponent(this.post.tileimage.id)}",name:"tile",height:${this.post.tileimage.height},width:${this.post.tileimage.width}` : ''
+            }},images:[${
               this.post.images.map(image =>
-                encodeURIComponent(`${image.name}.${image.id}`)
+                `{id:"${encodeURIComponent(image.id)}",name:"${encodeURIComponent(image.name)}",height:${image.height},width:${image.width}}`
               )
-            )},files:${JSON.stringify(
+            }],gifs:[${
+              this.post.gifs.map(gif =>
+                `{id:"${encodeURIComponent(gif.id)}",name:"${encodeURIComponent(gif.name)}",height:${gif.height},width:${gif.width}}`
+              )
+            }],files:[${
               this.post.files.map(file =>
-                encodeURIComponent(`${file.name}.${file.id}`)
+                `{id:"${encodeURIComponent(file.id)}",name:"${encodeURIComponent(file.name)}"`
               )
-            )},tags:${JSON.stringify(
+            }],tags:${JSON.stringify(
               this.post.tags.map(tag => encodeURIComponent(tag))
             )},categories:${JSON.stringify(
               this.post.categories.map(category => encodeURIComponent(category))
@@ -1622,7 +1800,7 @@ export default Vue.extend({
             console.log(
               `images ${JSON.stringify(
                 this.post.images.map(image =>
-                  encodeURIComponent(`${image.name}.${image.id}`)
+                  image.id
                 )
               )}`
             )
@@ -1673,19 +1851,23 @@ export default Vue.extend({
               this.post.caption
             )}",author:"${encodeURIComponent(
               this.post.author
-            )}",heroimage:"${encodeURIComponent(
-              this.post.heroimage.file ? `hero.${this.post.heroimage.id}` : ''
-            )}",tileimage:"${encodeURIComponent(
-              this.post.tileimage.file ? `tile.${this.post.tileimage.id}` : ''
-            )}",images:${JSON.stringify(
+            )}",heroimage:{${
+              this.post.heroimage.file ? `id:"${encodeURIComponent(this.post.heroimage.id)}",name:"hero",height:${this.post.heroimage.height},width:${this.post.heroimage.width}` : ''
+            }},tileimage:{${
+              this.post.tileimage.file ? `id:"${encodeURIComponent(this.post.tileimage.id)}",name:"tile",height:${this.post.tileimage.height},width:${this.post.tileimage.width}` : ''
+            }},images:[${
               this.post.images.map(image =>
-                encodeURIComponent(`${image.name}.${image.id}`)
+                `{id:"${encodeURIComponent(image.id)}",name:"${encodeURIComponent(image.name)}",height:${image.height},width:${image.width}}`
               )
-            )},files:${JSON.stringify(
+            }],gifs:[${
+              this.post.gifs.map(gif =>
+                `{id:"${encodeURIComponent(gif.id)}",name:"${encodeURIComponent(gif.name)}",height:${gif.height},width:${gif.width}}`
+              )
+            }],files:[${
               this.post.files.map(file =>
-                encodeURIComponent(`${file.name}.${file.id}`)
+                `{id:"${encodeURIComponent(file.id)}",name:"${encodeURIComponent(file.name)}"`
               )
-            )},tags:${JSON.stringify(
+            }],tags:${JSON.stringify(
               this.post.tags.map(tag => encodeURIComponent(tag))
             )},categories:${JSON.stringify(
               this.post.categories.map(category => encodeURIComponent(category))

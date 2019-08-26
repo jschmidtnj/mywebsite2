@@ -51,6 +51,74 @@ var jsonType = graphql.NewScalar(
 	},
 )
 
+// ImageType graphql image object
+var ImageType *graphql.Object = graphql.NewObject(graphql.ObjectConfig{
+	Name: "Image",
+	Fields: graphql.Fields{
+		"id": &graphql.Field{
+			Type: graphql.String,
+		},
+		"name": &graphql.Field{
+			Type: graphql.String,
+		},
+		"width": &graphql.Field{
+			Type: graphql.Int,
+		},
+		"height": &graphql.Field{
+			Type: graphql.Int,
+		},
+	},
+})
+
+// ImageInputType - type of graphql input
+var ImageInputType = graphql.NewInputObject(
+	graphql.InputObjectConfig{
+		Name: "ImageInput",
+		Fields: graphql.InputObjectConfigFieldMap{
+			"id": &graphql.InputObjectFieldConfig{
+				Type: graphql.String,
+			},
+			"name": &graphql.InputObjectFieldConfig{
+				Type: graphql.String,
+			},
+			"height": &graphql.InputObjectFieldConfig{
+				Type: graphql.Int,
+			},
+			"width": &graphql.InputObjectFieldConfig{
+				Type: graphql.Int,
+			},
+		},
+	},
+)
+
+// FileInputType - type of graphql input
+var FileInputType = graphql.NewInputObject(
+	graphql.InputObjectConfig{
+		Name: "FileInput",
+		Fields: graphql.InputObjectConfigFieldMap{
+			"id": &graphql.InputObjectFieldConfig{
+				Type: graphql.String,
+			},
+			"name": &graphql.InputObjectFieldConfig{
+				Type: graphql.String,
+			},
+		},
+	},
+)
+
+// FileType graphql file object
+var FileType *graphql.Object = graphql.NewObject(graphql.ObjectConfig{
+	Name: "File",
+	Fields: graphql.Fields{
+		"id": &graphql.Field{
+			Type: graphql.String,
+		},
+		"name": &graphql.Field{
+			Type: graphql.String,
+		},
+	},
+})
+
 // PostType graphql post type is a post object
 var PostType *graphql.Object = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Post",
@@ -86,16 +154,19 @@ var PostType *graphql.Object = graphql.NewObject(graphql.ObjectConfig{
 			Type: graphql.String,
 		},
 		"heroimage": &graphql.Field{
-			Type: graphql.String,
+			Type: ImageType,
 		},
 		"tileimage": &graphql.Field{
-			Type: graphql.String,
+			Type: ImageType,
 		},
 		"images": &graphql.Field{
-			Type: graphql.NewList(graphql.String),
+			Type: graphql.NewList(ImageType),
+		},
+		"gifs": &graphql.Field{
+			Type: graphql.NewList(ImageType),
 		},
 		"files": &graphql.Field{
-			Type: graphql.NewList(graphql.String),
+			Type: graphql.NewList(FileType),
 		},
 		"comments": &graphql.Field{
 			Type: jsonType,

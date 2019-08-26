@@ -136,7 +136,7 @@ export const actions = {
               },cache:${(!(
                 rootState.auth.user &&
                 rootState.auth.user.type === 'admin'
-              )).toString()}){tileimage id title caption color}}`
+              )).toString()}){tileimage{id} id title caption color}}`
           }
         })
         .then(res => {

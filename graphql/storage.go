@@ -27,7 +27,7 @@ func uploadFile(fileBuffer *bytes.Buffer, filewriter *storage.Writer) string {
 	return ""
 }
 
-func writePostFile(response http.ResponseWriter, request *http.Request) {
+func writePostObject(response http.ResponseWriter, request *http.Request, blogindex string, projectindex string) {
 	if request.Method != http.MethodPut {
 		handleError("upload file http method not PUT", http.StatusBadRequest, response)
 		return
@@ -71,9 +71,9 @@ func writePostFile(response http.ResponseWriter, request *http.Request) {
 	defer filebuffer.Reset()
 	var fileobj *storage.ObjectHandle
 	if thetype == "blog" {
-		fileobj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileidDecoded)
+		fileobj = storageBucket.Object(blogindex + "/" + postid + "/" + fileidDecoded)
 	} else {
-		fileobj = storageBucket.Object(projectFileIndex + "/" + postid + "/" + fileidDecoded)
+		fileobj = storageBucket.Object(projectindex + "/" + postid + "/" + fileidDecoded)
 	}
 	filewriter := fileobj.NewWriter(ctxStorage)
 	errmessage := uploadFile(&filebuffer, filewriter)
@@ -83,6 +83,14 @@ func writePostFile(response http.ResponseWriter, request *http.Request) {
 	}
 	response.Header().Set("Content-Type", "application/json")
 	response.Write([]byte(`{"message":"file updated"}`))
+}
+
+func writePostFile(response http.ResponseWriter, request *http.Request) {
+	writePostObject(response, request, blogFileIndex, projectFileIndex)
+}
+
+func writePostGif(response http.ResponseWriter, request *http.Request) {
+	writePostObject(response, request, blogGifIndex, projectGifIndex)
 }
 
 func writePostPicture(response http.ResponseWriter, request *http.Request) {
@@ -244,7 +252,7 @@ func deletePostPictures(response http.ResponseWriter, request *http.Request) {
 	response.Write([]byte(`{"message":"files deleted"}`))
 }
 
-func deletePostFiles(response http.ResponseWriter, request *http.Request) {
+func deletePostObjects(response http.ResponseWriter, request *http.Request, blogindex string, projectindex string) {
 	if request.Method != http.MethodDelete {
 		handleError("delete post files http method not Delete", http.StatusBadRequest, response)
 		return
@@ -290,9 +298,9 @@ func deletePostFiles(response http.ResponseWriter, request *http.Request) {
 	for _, fileid := range fileids {
 		var fileobj *storage.ObjectHandle
 		if thetype == "blog" {
-			fileobj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileid)
+			fileobj = storageBucket.Object(blogindex + "/" + postid + "/" + fileid)
 		} else {
-			fileobj = storageBucket.Object(projectFileIndex + "/" + postid + "/" + fileid)
+			fileobj = storageBucket.Object(projectindex + "/" + postid + "/" + fileid)
 		}
 		if err := fileobj.Delete(ctxStorage); err != nil {
 			handleError("error deleting file: "+err.Error(), http.StatusBadRequest, response)
@@ -301,6 +309,14 @@ func deletePostFiles(response http.ResponseWriter, request *http.Request) {
 	}
 	response.Header().Set("Content-Type", "application/json")
 	response.Write([]byte(`{"message":"files deleted"}`))
+}
+
+func deletePostFiles(response http.ResponseWriter, request *http.Request) {
+	deletePostObjects(response, request, blogFileIndex, projectFileIndex)
+}
+
+func deletePostGifs(response http.ResponseWriter, request *http.Request) {
+	deletePostObjects(response, request, blogGifIndex, projectGifIndex)
 }
 
 func getPostPicture(response http.ResponseWriter, request *http.Request) {
@@ -329,9 +345,9 @@ func getPostPicture(response http.ResponseWriter, request *http.Request) {
 	}
 	var imageobj *storage.ObjectHandle
 	if thetype == "blog" {
-		imageobj = storageBucket.Object(blogImageIndex + "/" + postid + "/" + imageid)
+		imageobj = storageBucket.Object(blogImageIndex + "/" + postid + "/" + imageid + "/original")
 	} else {
-		imageobj = storageBucket.Object(projectImageIndex + "/" + postid + "/" + imageid)
+		imageobj = storageBucket.Object(projectImageIndex + "/" + postid + "/" + imageid + "/original")
 	}
 	imagereader, err := imageobj.NewReader(ctxStorage)
 	if err != nil {
@@ -349,7 +365,7 @@ func getPostPicture(response http.ResponseWriter, request *http.Request) {
 	response.Write(imagebuffer.Bytes())
 }
 
-func getPostFile(response http.ResponseWriter, request *http.Request) {
+func getPostObjects(response http.ResponseWriter, request *http.Request, blogindex string, projectindex string) {
 	if request.Method != http.MethodGet {
 		handleError("get post file http method not GET", http.StatusBadRequest, response)
 		return
@@ -375,9 +391,9 @@ func getPostFile(response http.ResponseWriter, request *http.Request) {
 	}
 	var fileobj *storage.ObjectHandle
 	if thetype == "blog" {
-		fileobj = storageBucket.Object(blogImageIndex + "/" + postid + "/" + fileid)
+		fileobj = storageBucket.Object(blogindex + "/" + postid + "/" + fileid)
 	} else {
-		fileobj = storageBucket.Object(projectImageIndex + "/" + postid + "/" + fileid)
+		fileobj = storageBucket.Object(projectindex + "/" + postid + "/" + fileid)
 	}
 	filereader, err := fileobj.NewReader(ctxStorage)
 	if err != nil {
@@ -393,4 +409,12 @@ func getPostFile(response http.ResponseWriter, request *http.Request) {
 	contentType := filereader.Attrs.ContentType
 	response.Header().Set("Content-Type", contentType)
 	response.Write(filebuffer.Bytes())
+}
+
+func getPostFile(response http.ResponseWriter, request *http.Request) {
+	getPostObjects(response, request, blogFileIndex, projectFileIndex)
+}
+
+func getPostGif(response http.ResponseWriter, request *http.Request) {
+	getPostObjects(response, request, blogGifIndex, projectGifIndex)
 }

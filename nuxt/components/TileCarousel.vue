@@ -60,12 +60,12 @@
                   :src="
                     `${imgUrl}/${
                       type === 'blog' ? 'blogimages' : 'projectimages'
-                    }/${postval.id}/${encodeURI(postval.tileimage)}/original`
+                    }/${postval.id}/${postval.tileimage.id}/original`
                   "
                   :blank-src="
                     `${imgUrl}/${
                       type === 'blog' ? 'blogimages' : 'projectimages'
-                    }/${postval.id}/${encodeURI(postval.tileimage)}/blur`
+                    }/${postval.id}/${postval.tileimage.id}/blur`
                   "
                   :alt="postval.title"
                   class="tile-img"

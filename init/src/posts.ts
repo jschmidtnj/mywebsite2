@@ -36,19 +36,22 @@ const postmappings = {
       format: 'epoch_millis'
     },
     heroimage: {
-      type: 'text'
+      type: 'nested'
     },
     tileimage: {
-      type: 'text'
+      type: 'nested'
     },
     images: {
-      type: 'text'
+      type: 'nested'
+    },
+    gifs: {
+      type: 'nested'
     },
     files: {
-      type: 'text'
+      type: 'nested'
     },
     comments: {
-      type: "nested"
+      type: 'nested'
     }
   }
 }

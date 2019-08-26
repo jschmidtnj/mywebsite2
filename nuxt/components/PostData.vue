@@ -10,14 +10,14 @@
                 :blank-src="
                   `${postCdn}/${
                     type === 'blog' ? 'blogimages' : 'projectimages'
-                  }/${post.id}/${post.heroimage}/blur`
+                  }/${post.id}/${post.heroimage.id}/blur`
                 "
                 :src="
                   `${postCdn}/${
                     type === 'blog' ? 'blogimages' : 'projectimages'
-                  }/${post.id}/${post.heroimage}/original`
+                  }/${post.id}/${post.heroimage.id}/original`
                 "
-                alt="Hero"
+                :alt="post.heroimage.name"
                 class="hero-img m-0"
               ></b-img-lazy>
               <div class="main-overlay">
@@ -108,7 +108,7 @@ export default Vue.extend({
             )}",id:"${encodeURIComponent(this.id)}",cache:${(!(
               this.$store.state.auth.user &&
               this.$store.state.auth.user.type === 'admin'
-            )).toString()}){title caption content id author views shortlink heroimage categories tags}}`
+            )).toString()}){title caption content id author views shortlink heroimage{name id} categories tags}}`
           }
         })
         .then(res => {

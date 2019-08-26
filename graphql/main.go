@@ -85,6 +85,10 @@ var blogImageIndex = "blogimages"
 
 var projectImageIndex = "projectimages"
 
+var blogGifIndex = "bloggifs"
+
+var projectGifIndex = "projectgifs"
+
 var blogFileIndex = "blogfiles"
 
 var projectFileIndex = "projectfiles"
@@ -310,6 +314,9 @@ func main() {
 	mux.HandleFunc("/getPostPicture", getPostPicture)
 	mux.HandleFunc("/writePostPicture", writePostPicture)
 	mux.HandleFunc("/deletePostPictures", deletePostPictures)
+	mux.HandleFunc("/getPostGif", getPostGif)
+	mux.HandleFunc("/writePostGif", writePostGif)
+	mux.HandleFunc("/deletePostGifs", deletePostGifs)
 	mux.HandleFunc("/getPostFile", getPostFile)
 	mux.HandleFunc("/writePostFile", writePostFile)
 	mux.HandleFunc("/deletePostFiles", deletePostFiles)
