@@ -148,6 +148,44 @@ func checkImageObjUpdate(imageobj map[string]interface{}) error {
 	return nil
 }
 
+func checkVideoObjCreate(videoobj map[string]interface{}) error {
+	if videoobj["id"] == nil || videoobj["name"] == nil ||
+		videoobj["width"] == nil || videoobj["height"] == nil ||
+		videoobj["type"] == nil {
+		return errors.New("no video id or name or width or height or type given")
+	}
+	return checkVideoObjUpdate(videoobj)
+}
+
+func checkVideoObjUpdate(videoobj map[string]interface{}) error {
+	if videoobj["id"] != nil {
+		if _, ok := videoobj["id"].(string); !ok {
+			return errors.New("problem casting id to string")
+		}
+	}
+	if videoobj["name"] != nil {
+		if _, ok := videoobj["name"].(string); !ok {
+			return errors.New("problem casting name to string")
+		}
+	}
+	if videoobj["width"] != nil {
+		if _, ok := videoobj["width"].(int); !ok {
+			return errors.New("problem casting width to int")
+		}
+	}
+	if videoobj["height"] != nil {
+		if _, ok := videoobj["height"].(int); !ok {
+			return errors.New("problem casting height to int")
+		}
+	}
+	if videoobj["type"] != nil {
+		if _, ok := videoobj["type"].(string); !ok {
+			return errors.New("problem casting type to string")
+		}
+	}
+	return nil
+}
+
 func rootMutation() *graphql.Object {
 	return graphql.NewObject(graphql.ObjectConfig{
 		Name: "Mutation",
@@ -195,6 +233,9 @@ func rootMutation() *graphql.Object {
 					"gifs": &graphql.ArgumentConfig{
 						Type: graphql.NewList(ImageInputType),
 					},
+					"videos": &graphql.ArgumentConfig{
+						Type: graphql.NewList(VideoInputType),
+					},
 					"files": &graphql.ArgumentConfig{
 						Type: graphql.NewList(FileInputType),
 					},
@@ -207,7 +248,8 @@ func rootMutation() *graphql.Object {
 					if params.Args["id"] == nil || params.Args["title"] == nil || params.Args["content"] == nil ||
 						params.Args["author"] == nil || params.Args["type"] == nil ||
 						params.Args["heroimage"] == nil || params.Args["images"] == nil ||
-						params.Args["gifs"] == nil || params.Args["files"] == nil || params.Args["caption"] == nil ||
+						params.Args["gifs"] == nil || params.Args["videos"] == nil ||
+						params.Args["files"] == nil || params.Args["caption"] == nil ||
 						params.Args["color"] == nil || params.Args["tags"] == nil ||
 						params.Args["categories"] == nil || params.Args["tileimage"] == nil {
 						return nil, errors.New("title or content or author or type or heroimage or images or files or caption or color or tags or categories or tileimage not provided")
@@ -310,6 +352,19 @@ func rootMutation() *graphql.Object {
 							return nil, err
 						}
 					}
+					videosinterface, ok := params.Args["videos"].([]interface{})
+					if !ok {
+						return nil, errors.New("problem casting videos to interface array")
+					}
+					videos, err := interfaceListToMapList(videosinterface)
+					if err != nil {
+						return nil, err
+					}
+					for _, video := range videos {
+						if err := checkVideoObjCreate(video); err != nil {
+							return nil, err
+						}
+					}
 					filesinterface, ok := params.Args["files"].([]interface{})
 					if !ok {
 						return nil, errors.New("problem casting files to interface array")
@@ -353,6 +408,7 @@ func rootMutation() *graphql.Object {
 						"tileimage":  tileimage,
 						"images":     images,
 						"gifs":       gifs,
+						"videos":     videos,
 						"files":      files,
 						"comments":   []string{},
 						"shortlink":  shortlink,
@@ -433,6 +489,9 @@ func rootMutation() *graphql.Object {
 					},
 					"gifs": &graphql.ArgumentConfig{
 						Type: graphql.NewList(ImageInputType),
+					},
+					"videos": &graphql.ArgumentConfig{
+						Type: graphql.NewList(VideoInputType),
 					},
 					"files": &graphql.ArgumentConfig{
 						Type: graphql.NewList(FileInputType),
@@ -574,6 +633,22 @@ func rootMutation() *graphql.Object {
 							}
 						}
 						updateData["gifs"] = gifs
+					}
+					if params.Args["videos"] != nil {
+						videosinterface, ok := params.Args["videos"].([]interface{})
+						if !ok {
+							return nil, errors.New("problem casting videos to interface array")
+						}
+						videos, err := interfaceListToMapList(videosinterface)
+						if err != nil {
+							return nil, err
+						}
+						for _, video := range videos {
+							if err := checkVideoObjUpdate(video); err != nil {
+								return nil, err
+							}
+						}
+						updateData["videos"] = videos
 					}
 					if params.Args["files"] != nil {
 						filesinterface, ok := params.Args["files"].([]interface{})
@@ -853,6 +928,30 @@ func rootMutation() *graphql.Object {
 							gifobj = storageBucket.Object(projectGifIndex + "/" + idstr + "/" + gifid)
 						}
 						if err := gifobj.Delete(ctxStorage); err != nil {
+							return nil, err
+						}
+					}
+					primativevideos, ok := postData["videos"].(primitive.A)
+					if !ok {
+						return nil, errors.New("cannot convert videos to primitive array")
+					}
+					for _, primativevideo := range primativevideos {
+						videodatadoc, ok := primativevideo.(primitive.D)
+						if !ok {
+							return nil, errors.New("cannot convert video to primitive doc")
+						}
+						videodata := videodatadoc.Map()
+						videoid, ok := videodata["id"].(string)
+						if !ok {
+							return nil, errors.New("cannot convert video id to string")
+						}
+						var videoobj *storage.ObjectHandle
+						if thetype == "blog" {
+							videoobj = storageBucket.Object(blogVideoIndex + "/" + idstr + "/" + videoid)
+						} else {
+							videoobj = storageBucket.Object(projectVideoIndex + "/" + idstr + "/" + videoid)
+						}
+						if err := videoobj.Delete(ctxStorage); err != nil {
 							return nil, err
 						}
 					}

@@ -514,6 +514,18 @@ func rootQuery() *graphql.Object {
 							gifArray[i] = primativeGif.Map()
 						}
 						postData["gifs"] = gifArray
+						videoArray, ok := postData["videos"].(primitive.A)
+						if !ok {
+							return nil, errors.New("cannot cast videos to array")
+						}
+						for i, video := range videoArray {
+							primativeVideo, ok := video.(primitive.D)
+							if !ok {
+								return nil, errors.New("cannot cast video to primitive D")
+							}
+							videoArray[i] = primativeVideo.Map()
+						}
+						postData["videos"] = videoArray
 						fileArray, ok := postData["files"].(primitive.A)
 						if !ok {
 							return nil, errors.New("cannot cast files to array")

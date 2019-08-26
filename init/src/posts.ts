@@ -47,6 +47,9 @@ const postmappings = {
     gifs: {
       type: 'nested'
     },
+    videos: {
+      type: 'nested'
+    },
     files: {
       type: 'nested'
     },

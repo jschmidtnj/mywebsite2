@@ -464,6 +464,136 @@
                       </b-col>
                     </b-row>
                   </b-container>
+                  <h4 class="mt-4">Videos</h4>
+                  <div
+                    v-for="(videovalue, index) in $v.post.videos.$each.$iter"
+                    :key="`video-${index}`"
+                  >
+                    <b-embed
+                      v-if="
+                        post.videos[index].file &&
+                          post.videos[index].src &&
+                          post.videos[index].id
+                      "
+                      controls
+                      :aspect="
+                        post.videos[index].height && post.videos[index].width
+                          ? `${post.videos[index].width}by${post.videos[index].height}`
+                          : null
+                      "
+                      class="sampleimage"
+                      allowfullscreen
+                    >
+                      <source
+                        :ref="`video-source-${post.videos[index].id}`"
+                        :src="post.videos[index].src"
+                        :type="post.videos[index].type"
+                      />
+                    </b-embed>
+                    <br />
+                    <code
+                      v-if="
+                        (post.videos[index].file ||
+                          post.videos[index].uploaded) &&
+                          post.videos[index].name &&
+                          post.videos[index].width &&
+                          post.videos[index].height &&
+                          post.videos[index].id &&
+                          post.videos[index].type
+                      "
+                      >{{ getVideoTag(post.videos[index]) }}</code
+                    >
+                    <b-form-group class="mb-2">
+                      <label class="form-required">Video Name</label>
+                      <span>
+                        <b-form-input
+                          v-model="post.videos[index].name"
+                          :state="!videovalue.name.$invalid"
+                          type="text"
+                          class="form-control"
+                          placeholder="name"
+                          @input="post.videos[index].uploaded = false"
+                        />
+                      </span>
+                      <b-form-invalid-feedback
+                        :state="!videovalue.name.$invalid"
+                      >
+                        <div v-if="!videovalue.name.required">
+                          video name is required
+                        </div>
+                        <div v-else-if="!videovalue.name.minLength">
+                          video name must have at least
+                          {{ videovalue.name.$params.minLength.min }} characters
+                        </div>
+                      </b-form-invalid-feedback>
+                    </b-form-group>
+                    <b-form-group>
+                      <label class="form-required">Video</label>
+                      <span>
+                        <b-form-file
+                          v-model="post.videos[index].file"
+                          accept="video/*"
+                          :state="!videovalue.$invalid"
+                          class="mb-2 form-control"
+                          placeholder="Choose a video..."
+                          drop-placeholder="Drop video here..."
+                          @input="
+                            post.videos[index].uploaded = false
+                            updateVideoSrc(post.videos[index])
+                          "
+                        />
+                      </span>
+                      <b-form-invalid-feedback
+                        :state="!videovalue.file.$invalid"
+                      >
+                        <div v-if="!videovalue.file.required">
+                          video is required
+                        </div>
+                      </b-form-invalid-feedback>
+                    </b-form-group>
+                  </div>
+                  <b-container class="mt-4">
+                    <b-row>
+                      <b-col>
+                        <b-btn
+                          variant="primary"
+                          class="mr-2"
+                          @click="
+                            post.videos.push({
+                              name: '',
+                              file: null,
+                              uploaded: false,
+                              id: createId(),
+                              src: null,
+                              width: null,
+                              height: null,
+                              type: null
+                            })
+                          "
+                        >
+                          <no-ssr>
+                            <font-awesome-icon
+                              class="mr-2 arrow-size-edit"
+                              icon="plus-circle"
+                            /> </no-ssr
+                          >Add
+                        </b-btn>
+                        <b-btn
+                          variant="primary"
+                          class="mr-2"
+                          :disabled="post.videos.length === 0"
+                          @click="removeVideo"
+                        >
+                          <no-ssr>
+                            <font-awesome-icon
+                              class="mr-2 arrow-size-edit"
+                              icon="times"
+                            /> </no-ssr
+                          >Remove
+                        </b-btn>
+                      </b-col>
+                    </b-row>
+                  </b-container>
                   <h4 class="mt-4">Files</h4>
                   <div
                     v-for="(filevalue, index) in $v.post.files.$each.$iter"
@@ -720,7 +850,8 @@ import {
   cloudStorageURLs,
   validTypes,
   options,
-  defaultColor
+  defaultColor,
+  staticstorageindexes
 } from '~/assets/config'
 // @ts-ignore
 const seo = JSON.parse(process.env.seoconfig)
@@ -809,6 +940,7 @@ export default Vue.extend({
         tileimage: Object.assign({}, originalTile),
         images: [],
         gifs: [],
+        videos: [],
         files: []
       }
     }
@@ -869,6 +1001,17 @@ export default Vue.extend({
         }
       },
       gifs: {
+        $each: {
+          name: {
+            required,
+            minLength: minLength(3)
+          },
+          file: {
+            required: requiredIf((_, vm) => vm && !vm.uploaded)
+          }
+        }
+      },
+      videos: {
         $each: {
           name: {
             required,
@@ -941,20 +1084,29 @@ export default Vue.extend({
     },
     getImageTag(image) {
       return `<img data-src="${cloudStorageURLs.posts}/${
-        this.type === 'blog' ? 'blogimages' : 'projectimages'
+        this.type === 'blog' ? staticstorageindexes.blogimages : staticstorageindexes.projectimages
       }/${this.postid}/${image.id}/original" src="${
         cloudStorageURLs.posts
-      }/${this.type === 'blog' ? 'blogimages' : 'projectimages'}/${this.postid}/${
+      }/${this.type === 'blog' ? staticstorageindexes.blogimages : staticstorageindexes.projectimages}/${this.postid}/${
         image.id}/blur" class="lazy img-fluid" alt="${
         image.name
       }" data-width="${image.width}" data-height="${image.height}">`
     },
     getGifTag(gif) {
       return `<img src="${cloudStorageURLs.posts}/${
-        this.type === 'blog' ? 'bloggifs' : 'projectgifs'
+        this.type === 'blog' ? staticstorageindexes.bloggifs : staticstorageindexes.projectgifs
       }/${this.postid}/${gif.id}" alt="${
         gif.name
       }" class="img-fluid" data-width="${gif.width}" data-height="${gif.height}">`
+    },
+    getVideoTag(video) {
+      return `<video class="img-responsive" data-width="${video.width}" data-height="${
+        video.height
+      }"><source src="${cloudStorageURLs.posts}/${
+        this.type === 'blog' ? staticstorageindexes.blogvideos : staticstorageindexes.projectvideos
+      }/${this.postid}/${video.id}" alt="${
+        video.name
+      }" type="${video.type}" /><div fallback><p>${video.name}</p></div>`
     },
     getFileTag(file) {
       return `<a href="${cloudStorageURLs.posts}/${
@@ -978,6 +1130,27 @@ export default Vue.extend({
         img.src = image.src
       }
       reader.readAsDataURL(image.file)
+      console.log('done')
+    },
+    updateVideoSrc(video) {
+      if (!video.file) return
+      const reader = new FileReader()
+      reader.onload = e => {
+        // @ts-ignore
+        video.src = e.target.result
+        this.$nextTick(() => {
+          const videotag = this.$refs[`video-source-${video.id}`]
+          console.log(videotag)
+          // @ts-ignore
+          video.height = videotag.videoHeight
+          // @ts-ignore
+          video.width = videotag.videoWidth
+          // @ts-ignore
+          video.type = videotag.type
+          console.log('done2')
+        })
+      }
+      reader.readAsDataURL(video.file)
       console.log('done')
     },
     removeGif() {
@@ -1006,12 +1179,57 @@ export default Vue.extend({
               finished()
             } else {
               this.$toasted.global.error({
-                message: `got status code of ${res.status} on file delete`
+                message: `got status code of ${res.status} on gif delete`
               })
             }
           })
           .catch(err => {
             let message = `got error on gif delete: ${err}`
+            if (err.response && err.response.data) {
+              message = err.response.data.message
+            }
+            this.$toasted.global.error({
+              message: message
+            })
+          })
+      } else {
+        this.$toasted.global.error({
+          message: 'no name or id found, or mode type not edit'
+        })
+      }
+    },
+    removeVideo() {
+      const removedVideo = this.post.videos[this.post.videos.length - 1]
+      const finished = () => {
+        this.post.videos.pop()
+        this.$toasted.global.success({
+          message: `removed video ${removedVideo.id}`
+        })
+      }
+      if (this.mode === this.modetypes.add || !removedVideo.uploaded) {
+        finished()
+      } else if (removedVideo.name && removedVideo.id && this.mode === this.modetypes.edit) {
+        this.$axios
+          .delete('/deletePostVideos', {
+            data: {
+              fileids: [
+                removedVideo.id
+              ],
+              postid: this.postid,
+              type: this.type
+            }
+          })
+          .then(res => {
+            if (res.status == 200) {
+              finished()
+            } else {
+              this.$toasted.global.error({
+                message: `got status code of ${res.status} on video delete`
+              })
+            }
+          })
+          .catch(err => {
+            let message = `got error on video delete: ${err}`
             if (err.response && err.response.data) {
               message = err.response.data.message
             }
@@ -1136,7 +1354,7 @@ export default Vue.extend({
           axios
             .get(
               `${cloudStorageURLs.posts}/${
-                this.type === 'blog' ? 'blogimages' : 'projectimages'
+                this.type === 'blog' ? staticstorageindexes.blogimages : staticstorageindexes.projectimages
               }/${this.postid}/${thepost.heroimage.id}/original`,
               {
                 responseType: 'blob'
@@ -1199,7 +1417,7 @@ export default Vue.extend({
           axios
             .get(
               `${cloudStorageURLs.posts}/${
-                this.type === 'blog' ? 'blogimages' : 'projectimages'
+                this.type === 'blog' ? staticstorageindexes.blogimages : staticstorageindexes.projectimages
               }/${this.postid}/${thepost.tileimage.id}/original`,
               {
                 responseType: 'blob'
@@ -1264,7 +1482,7 @@ export default Vue.extend({
             axios
               .get(
                 `${cloudStorageURLs.posts}/${
-                  this.type === 'blog' ? 'blogimages' : 'projectimages'
+                  this.type === 'blog' ? staticstorageindexes.blogimages : staticstorageindexes.projectimages
                 }/${this.postid}/${thepost.images[i].id}/original`,
                 {
                   responseType: 'blob'
@@ -1320,16 +1538,6 @@ export default Vue.extend({
             finishedGets()
           }
         }
-        if (thepost.files.length > 0) {
-          for (let i = 0; i < thepost.files.length; i++) {
-            thepost.files[i] = {
-              id: thepost.files[i].id,
-              name: thepost.files[i].name,
-              uploaded: true,
-              file: null
-            }
-          }
-        }
         if (thepost.gifs.length > 0) {
           for (let i = 0; i < thepost.gifs.length; i++) {
             thepost.gifs[i] = {
@@ -1339,6 +1547,29 @@ export default Vue.extend({
               file: null,
               width: thepost.gifs[i].width,
               height: thepost.gifs[i].height
+            }
+          }
+        }
+        if (thepost.videos.length > 0) {
+          for (let i = 0; i < thepost.videos.length; i++) {
+            thepost.videos[i] = {
+              id: thepost.videos[i].id,
+              name: thepost.videos[i].name,
+              uploaded: true,
+              file: null,
+              width: thepost.videos[i].width,
+              height: thepost.videos[i].height,
+              type: thepost.videos[i].type
+            }
+          }
+        }
+        if (thepost.files.length > 0) {
+          for (let i = 0; i < thepost.files.length; i++) {
+            thepost.files[i] = {
+              id: thepost.files[i].id,
+              name: thepost.files[i].name,
+              uploaded: true,
+              file: null
             }
           }
         }
@@ -1360,7 +1591,7 @@ export default Vue.extend({
               this.type
             )}",id:"${encodeURIComponent(
               this.postid
-            )}",cache:false){title content id author views images{name id width height} gifs{name id width height} heroimage{name id width height} tileimage{name id width height} caption comments files{name id} categories tags color}}`
+            )}",cache:false){title content id author views images{name id width height} gifs{name id width height} videos{name id width height type} heroimage{name id width height} tileimage{name id width height} caption comments files{name id} categories tags color}}`
           }
         })
         .then(res => {
@@ -1523,6 +1754,7 @@ export default Vue.extend({
         tileimage: Object.assign({}, originalTile),
         images: [],
         gifs: [],
+        videos: [],
         files: [],
         tags: [],
         categories: []
@@ -1542,12 +1774,14 @@ export default Vue.extend({
         let uploadcount = 0
         let imageuploads = this.post.images.filter(image => !image.uploaded)
         let gifuploads = this.post.gifs.filter(gif => !gif.uploaded)
+        let videouploads = this.post.videos.filter(video => !video.uploaded)
         let fileuploads = this.post.files.filter(file => !file.uploaded)
         let totaluploads =
           (!this.post.heroimage.uploaded && this.post.heroimage.file ? 1 : 0) +
           (!this.post.tileimage.uploaded && this.post.tileimage.file ? 1 : 0) +
           imageuploads.length +
           gifuploads.length +
+          videouploads.length +
           fileuploads.length
         let finished = false
         const successMessage = () => {
@@ -1626,6 +1860,43 @@ export default Vue.extend({
             .catch(err => {
               this.$toasted.global.error({
                 message: `got error on gif upload: ${err}`
+              })
+              cont = false
+            })
+        }
+        const uploadVideo = (video, videoid) => {
+          if (!cont) return
+          const formData = new FormData()
+          formData.append('file', video)
+          this.$axios
+            .put('/writePostVideo', formData, {
+              params: {
+                type: this.type,
+                fileid: videoid,
+                postid: this.postid
+              },
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              }
+            })
+            .then(res => {
+              if (!cont) return
+              if (res.status == 200) {
+                uploadcount++
+                if (totaluploads === uploadcount && !finished) {
+                  finished = true
+                  successMessage()
+                }
+              } else {
+                this.$toasted.global.error({
+                  message: `got status code of ${res.status} on video upload`
+                })
+                cont = false
+              }
+            })
+            .catch(err => {
+              this.$toasted.global.error({
+                message: `got error on video upload: ${err}`
               })
               cont = false
             })
@@ -1726,6 +1997,21 @@ export default Vue.extend({
             )
           }
         }
+        if (videouploads.length > 0) {
+          for (let i = 0; i < videouploads.length; i++) {
+            videouploads[i].file = new File(
+              [videouploads[i].file],
+              videouploads[i].name,
+              {
+                type: videouploads[i].file.type
+              }
+            )
+            uploadVideo(
+              videouploads[i].file,
+              videouploads[i].id
+            )
+          }
+        }
         if (fileuploads.length > 0) {
           for (let i = 0; i < fileuploads.length; i++) {
             fileuploads[i].file = new File(
@@ -1745,6 +2031,7 @@ export default Vue.extend({
           !uploadinghero &&
           imageuploads.length === 0 &&
           gifuploads.length === 0 &&
+          videouploads.length === 0 &&
           fileuploads.length === 0 &&
           !finished
         ) {
@@ -1785,6 +2072,10 @@ export default Vue.extend({
             }],gifs:[${
               this.post.gifs.map(gif =>
                 `{id:"${encodeURIComponent(gif.id)}",name:"${encodeURIComponent(gif.name)}",height:${gif.height},width:${gif.width}}`
+              )
+            }],videos:[${
+              this.post.videos.map(video =>
+                `{id:"${encodeURIComponent(video.id)}",name:"${encodeURIComponent(video.name)}",height:${video.height},width:${video.width},type:"${video.type}"}`
               )
             }],files:[${
               this.post.files.map(file =>
@@ -1862,6 +2153,10 @@ export default Vue.extend({
             }],gifs:[${
               this.post.gifs.map(gif =>
                 `{id:"${encodeURIComponent(gif.id)}",name:"${encodeURIComponent(gif.name)}",height:${gif.height},width:${gif.width}}`
+              )
+            }],videos:[${
+              this.post.videos.map(video =>
+                `{id:"${encodeURIComponent(video.id)}",name:"${encodeURIComponent(video.name)}",height:${video.height},width:${video.width},type:"${video.type}"}`
               )
             }],files:[${
               this.post.files.map(file =>

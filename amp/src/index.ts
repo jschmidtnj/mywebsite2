@@ -75,7 +75,7 @@ const handlePostRequest = (req, res, type) => {
             $('#content').html(postcontenthtml)
             $('img.lazy').each((i, item) => {
               item.tagName = 'amp-img'
-              const blursrc = (' ' + item.attribs["src"]).slice(1)
+              const blursrc = (' ' + item.attribs.src).slice(1)
               const originalsrc = (' ' + item.attribs["data-src"]).slice(1)
               const width = (' ' + item.attribs['data-width']).slice(1)
               const height = (' ' + item.attribs['data-height']).slice(1)
@@ -88,6 +88,33 @@ const handlePostRequest = (req, res, type) => {
                 layout: 'responsive'
               }
               $(this).html(`<amp-img placeholder src="${blursrc}" layout="fill"></amp-img>`)
+            })
+            $('img.gif').each((i, item) => {
+              item.tagName = 'amp-anim'
+              const originalsrc = (' ' + item.attribs.src).slice(1)
+              const width = (' ' + item.attribs['data-width']).slice(1)
+              const height = (' ' + item.attribs['data-height']).slice(1)
+              const alt = (' ' + item.attribs.alt).slice(1)
+              item.attribs = {
+                src: originalsrc,
+                width: width,
+                height: height,
+                alt: alt,
+                layout: 'responsive'
+              }
+            })
+            $('video').each((i, item) => {
+              item.tagName = 'amp-anim'
+              const originalsrc = (' ' + item.attribs.src).slice(1)
+              const width = (' ' + item.attribs['data-width']).slice(1)
+              const height = (' ' + item.attribs['data-height']).slice(1)
+              item.attribs = {
+                src: originalsrc,
+                width: width,
+                height: height,
+                layout: 'responsive',
+                controls: ''
+              }
             })
             $('#views').text(postdata.views)
             $('#date').text(date)

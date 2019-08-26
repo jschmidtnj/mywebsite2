@@ -93,6 +93,10 @@ func writePostGif(response http.ResponseWriter, request *http.Request) {
 	writePostObject(response, request, blogGifIndex, projectGifIndex)
 }
 
+func writePostVideo(response http.ResponseWriter, request *http.Request) {
+	writePostObject(response, request, blogVideoIndex, projectVideoIndex)
+}
+
 func writePostPicture(response http.ResponseWriter, request *http.Request) {
 
 	if request.Method != http.MethodPut {
@@ -319,6 +323,10 @@ func deletePostGifs(response http.ResponseWriter, request *http.Request) {
 	deletePostObjects(response, request, blogGifIndex, projectGifIndex)
 }
 
+func deletePostVideos(response http.ResponseWriter, request *http.Request) {
+	deletePostObjects(response, request, blogVideoIndex, projectVideoIndex)
+}
+
 func getPostPicture(response http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodGet {
 		handleError("get post picture http method not GET", http.StatusBadRequest, response)
@@ -417,4 +425,8 @@ func getPostFile(response http.ResponseWriter, request *http.Request) {
 
 func getPostGif(response http.ResponseWriter, request *http.Request) {
 	getPostObjects(response, request, blogGifIndex, projectGifIndex)
+}
+
+func getPostVideo(response http.ResponseWriter, request *http.Request) {
+	getPostObjects(response, request, blogVideoIndex, projectVideoIndex)
 }

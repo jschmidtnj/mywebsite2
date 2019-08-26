@@ -31,3 +31,14 @@ export const options = {
 }
 
 export const defaultColor = '#194d332B'
+
+export const staticstorageindexes = {
+  blogimages: 'blogimages',
+  projectimages: 'projectimages',
+  bloggifs: 'bloggifs',
+  projectgifs: 'projectgifs',
+  blogvideos: 'blogvideos',
+  projectvideos: 'projectvideos',
+  blogfiles: 'blogfiles',
+  projectfiles: 'projectfiles'
+}

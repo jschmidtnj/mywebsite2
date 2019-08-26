@@ -91,6 +91,52 @@ var ImageInputType = graphql.NewInputObject(
 	},
 )
 
+// VideoType graphql image object
+var VideoType *graphql.Object = graphql.NewObject(graphql.ObjectConfig{
+	Name: "Video",
+	Fields: graphql.Fields{
+		"id": &graphql.Field{
+			Type: graphql.String,
+		},
+		"name": &graphql.Field{
+			Type: graphql.String,
+		},
+		"width": &graphql.Field{
+			Type: graphql.Int,
+		},
+		"height": &graphql.Field{
+			Type: graphql.Int,
+		},
+		"type": &graphql.Field{
+			Type: graphql.String,
+		},
+	},
+})
+
+// VideoInputType - type of graphql input
+var VideoInputType = graphql.NewInputObject(
+	graphql.InputObjectConfig{
+		Name: "VideoInput",
+		Fields: graphql.InputObjectConfigFieldMap{
+			"id": &graphql.InputObjectFieldConfig{
+				Type: graphql.String,
+			},
+			"name": &graphql.InputObjectFieldConfig{
+				Type: graphql.String,
+			},
+			"height": &graphql.InputObjectFieldConfig{
+				Type: graphql.Int,
+			},
+			"width": &graphql.InputObjectFieldConfig{
+				Type: graphql.Int,
+			},
+			"type": &graphql.InputObjectFieldConfig{
+				Type: graphql.String,
+			},
+		},
+	},
+)
+
 // FileInputType - type of graphql input
 var FileInputType = graphql.NewInputObject(
 	graphql.InputObjectConfig{
@@ -164,6 +210,9 @@ var PostType *graphql.Object = graphql.NewObject(graphql.ObjectConfig{
 		},
 		"gifs": &graphql.Field{
 			Type: graphql.NewList(ImageType),
+		},
+		"videos": &graphql.Field{
+			Type: graphql.NewList(VideoType),
 		},
 		"files": &graphql.Field{
 			Type: graphql.NewList(FileType),
