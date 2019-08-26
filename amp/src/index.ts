@@ -108,6 +108,7 @@ const handlePostRequest = (req, res, type) => {
               const originalsrc = (' ' + item.attribs.src).slice(1)
               const width = (' ' + item.attribs['data-width']).slice(1)
               const height = (' ' + item.attribs['data-height']).slice(1)
+              const alt = (' ' + item.attribs.alt).slice(1)
               item.attribs = {
                 src: originalsrc,
                 width: width,
@@ -115,6 +116,7 @@ const handlePostRequest = (req, res, type) => {
                 layout: 'responsive',
                 controls: ''
               }
+              $(this).append(`<div fallback><p>${alt}</p></div>`)
             })
             $('#views').text(postdata.views)
             $('#date').text(date)

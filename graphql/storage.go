@@ -294,12 +294,17 @@ func deletePostObjects(response http.ResponseWriter, request *http.Request, blog
 		handleError("invalid type in body", http.StatusBadRequest, response)
 		return
 	}
-	fileids, ok := filedata["fileids"].([]string)
+	fileids, ok := filedata["fileids"].([]interface{})
 	if !ok {
-		handleError("fileids cannot be cast to string array", http.StatusBadRequest, response)
+		handleError("fileids cannot be cast to interface array", http.StatusBadRequest, response)
 		return
 	}
-	for _, fileid := range fileids {
+	for _, fileidinterface := range fileids {
+		fileid, ok := fileidinterface.(string)
+		if !ok {
+			handleError("fileid cannot be cast to string", http.StatusBadRequest, response)
+			return
+		}
 		var fileobj *storage.ObjectHandle
 		if thetype == "blog" {
 			fileobj = storageBucket.Object(blogindex + "/" + postid + "/" + fileid)

@@ -406,7 +406,7 @@
                         <b-form-file
                           v-model="post.gifs[index].file"
                           accept="image/gif"
-                          :state="!gifvalue.$invalid"
+                          :state="!gifvalue.file.$invalid"
                           class="mb-2 form-control"
                           placeholder="Choose a gif..."
                           drop-placeholder="Drop gif here..."
@@ -417,7 +417,7 @@
                         />
                       </span>
                       <b-form-invalid-feedback :state="!gifvalue.file.$invalid">
-                        <div v-if="!gifvalue.file.required">
+                        <div v-if="!gifvalue.file.gotFile">
                           gif is required
                         </div>
                       </b-form-invalid-feedback>
@@ -469,27 +469,20 @@
                     v-for="(videovalue, index) in $v.post.videos.$each.$iter"
                     :key="`video-${index}`"
                   >
-                    <b-embed
+                    <video
                       v-if="
                         post.videos[index].file &&
                           post.videos[index].src &&
                           post.videos[index].id
                       "
+                      :ref="`video-source-${post.videos[index].id}`"
                       controls
-                      :aspect="
-                        post.videos[index].height && post.videos[index].width
-                          ? `${post.videos[index].width}by${post.videos[index].height}`
-                          : null
-                      "
+                      autoplay
                       class="sampleimage"
+                      :type="post.videos[index].type"
                       allowfullscreen
-                    >
-                      <source
-                        :ref="`video-source-${post.videos[index].id}`"
-                        :src="post.videos[index].src"
-                        :type="post.videos[index].type"
-                      />
-                    </b-embed>
+                      :src="post.videos[index].src"
+                    ></video>
                     <br />
                     <code
                       v-if="
@@ -533,7 +526,7 @@
                         <b-form-file
                           v-model="post.videos[index].file"
                           accept="video/*"
-                          :state="!videovalue.$invalid"
+                          :state="!videovalue.file.$invalid"
                           class="mb-2 form-control"
                           placeholder="Choose a video..."
                           drop-placeholder="Drop video here..."
@@ -546,7 +539,7 @@
                       <b-form-invalid-feedback
                         :state="!videovalue.file.$invalid"
                       >
-                        <div v-if="!videovalue.file.required">
+                        <div v-if="!videovalue.file.gotFile">
                           video is required
                         </div>
                       </b-form-invalid-feedback>
@@ -637,7 +630,7 @@
                         <b-form-file
                           v-model="post.files[index].file"
                           accept="*"
-                          :state="!filevalue.$invalid"
+                          :state="!filevalue.file.$invalid"
                           class="mb-2 form-control"
                           placeholder="Choose a file..."
                           drop-placeholder="Drop file here..."
@@ -649,7 +642,7 @@
                       <b-form-invalid-feedback
                         :state="!filevalue.file.$invalid"
                       >
-                        <div v-if="!filevalue.file.$required">
+                        <div v-if="!filevalue.file.gotFile">
                           file is required
                         </div>
                       </b-form-invalid-feedback>
@@ -837,7 +830,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import { validationMixin } from 'vuelidate'
-import { required, minLength, requiredIf } from 'vuelidate/lib/validators'
+import { required, minLength } from 'vuelidate/lib/validators'
 import VueMarkdown from 'vue-markdown'
 import Prism from 'prismjs'
 import { format } from 'date-fns'
@@ -853,6 +846,7 @@ import {
   defaultColor,
   staticstorageindexes
 } from '~/assets/config'
+const gotFile = (_, vm) => vm.uploaded || vm.src !== null
 // @ts-ignore
 const seo = JSON.parse(process.env.seoconfig)
 const lazyLoadInstance = new LazyLoad({
@@ -1007,7 +1001,7 @@ export default Vue.extend({
             minLength: minLength(3)
           },
           file: {
-            required: requiredIf((_, vm) => vm && !vm.uploaded)
+            gotFile
           }
         }
       },
@@ -1018,7 +1012,7 @@ export default Vue.extend({
             minLength: minLength(3)
           },
           file: {
-            required: requiredIf((_, vm) => vm && !vm.uploaded)
+            gotFile
           }
         }
       },
@@ -1029,7 +1023,7 @@ export default Vue.extend({
             minLength: minLength(3)
           },
           file: {
-            required: requiredIf((_, vm) => vm && !vm.uploaded)
+            gotFile
           }
         }
       }
@@ -1100,13 +1094,11 @@ export default Vue.extend({
       }" class="img-fluid" data-width="${gif.width}" data-height="${gif.height}">`
     },
     getVideoTag(video) {
-      return `<video class="img-responsive" data-width="${video.width}" data-height="${
+      return `<video class="img-fluid" data-width="${video.width}" data-height="${
         video.height
-      }"><source src="${cloudStorageURLs.posts}/${
+      }" alt="${video.name}" controls allowfullscreen><source src="${cloudStorageURLs.posts}/${
         this.type === 'blog' ? staticstorageindexes.blogvideos : staticstorageindexes.projectvideos
-      }/${this.postid}/${video.id}" alt="${
-        video.name
-      }" type="${video.type}" /><div fallback><p>${video.name}</p></div>`
+      }/${this.postid}/${video.id}" type="${video.type}" /></video>`
     },
     getFileTag(file) {
       return `<a href="${cloudStorageURLs.posts}/${
@@ -1134,20 +1126,25 @@ export default Vue.extend({
     },
     updateVideoSrc(video) {
       if (!video.file) return
+      // @ts-ignore
+      video.type = video.file.type
       const reader = new FileReader()
       reader.onload = e => {
         // @ts-ignore
         video.src = e.target.result
         this.$nextTick(() => {
-          const videotag = this.$refs[`video-source-${video.id}`]
+          const videotag = this.$refs[`video-source-${video.id}`][0]
           console.log(videotag)
-          // @ts-ignore
-          video.height = videotag.videoHeight
-          // @ts-ignore
-          video.width = videotag.videoWidth
-          // @ts-ignore
-          video.type = videotag.type
-          console.log('done2')
+          videotag.load()
+          videotag.oncanplay = () => {
+            // @ts-ignore
+            video.height = videotag.videoHeight
+            // @ts-ignore
+            video.width = videotag.videoWidth
+            console.log(videotag)
+            console.log(video.file)
+            console.log('done2')
+          }
         })
       }
       reader.readAsDataURL(video.file)
