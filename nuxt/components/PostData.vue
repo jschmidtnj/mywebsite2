@@ -12,14 +12,14 @@
                     type === 'blog'
                       ? staticstorageindexes.blogfiles
                       : staticstorageindexes.projectfiles
-                  }/${post.id}/${post.heroimage.id}/blur`
+                  }/${post.id}/${post.heroimage.id + paths.blur}`
                 "
                 :src="
                   `${postCdn}/${
                     type === 'blog'
                       ? staticstorageindexes.blogfiles
                       : staticstorageindexes.projectfiles
-                  }/${post.id}/${post.heroimage.id}/original`
+                  }/${post.id}/${post.heroimage.id + paths.original}`
                 "
                 :alt="post.heroimage.name"
                 class="hero-img m-0"
@@ -70,7 +70,8 @@ import TileCarousel from '~/components/TileCarousel.vue'
 import {
   validTypes,
   cloudStorageURLs,
-  staticstorageindexes
+  staticstorageindexes,
+  paths
 } from '~/assets/config'
 const lazyLoadInstance = new LazyLoad({
   elements_selector: '.lazy'
@@ -102,7 +103,8 @@ export default Vue.extend({
       post: null,
       shortlinkurl: shortlinkurl,
       postCdn: cloudStorageURLs.posts,
-      staticstorageindexes: staticstorageindexes
+      staticstorageindexes: staticstorageindexes,
+      paths: paths
     }
   },
   /* eslint-disable */
@@ -117,7 +119,7 @@ export default Vue.extend({
             )}",id:"${encodeURIComponent(this.id)}",cache:${(!(
               this.$store.state.auth.user &&
               this.$store.state.auth.user.type === 'admin'
-            )).toString()}){title caption content id author views shortlink heroimage{name id} categories tags}}`
+            )).toString()}){title caption content id author views shortlink heroimage{name id} tileimage{id} categories tags}}`
           }
         })
         .then(res => {
@@ -183,7 +185,7 @@ export default Vue.extend({
     if (this.post) {
       const image = `${cloudStorageURLs.posts}/${
                       this.type === 'blog' ? this.staticstorageindexes.blogfiles : this.staticstorageindexes.projectfiles
-                    }/${this.post.id}/${encodeURI(this.post.tileimage)}/original`
+                    }/${this.post.id}/${this.post.tileimage.id + this.paths.original}`
       meta.push({
         property: 'og:image',
         content: image

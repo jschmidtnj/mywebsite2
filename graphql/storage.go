@@ -205,11 +205,11 @@ func writeGif(file io.Reader, filetype string, posttype string, fileidDecoded st
 	var originalImageObj *storage.ObjectHandle
 	var blurredImageObj *storage.ObjectHandle
 	if posttype == blogType {
-		originalGifObj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileidDecoded + "/original")
+		originalGifObj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileidDecoded + originalPath)
 		originalImageObj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileidDecoded + placeholderPath + originalPath)
 		blurredImageObj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileidDecoded + placeholderPath + blurPath)
 	} else {
-		originalGifObj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileidDecoded + "/original")
+		originalGifObj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileidDecoded + originalPath)
 		originalImageObj = storageBucket.Object(projectFileIndex + "/" + postid + "/" + fileidDecoded + placeholderPath + originalPath)
 		blurredImageObj = storageBucket.Object(projectFileIndex + "/" + postid + "/" + fileidDecoded + placeholderPath + blurPath)
 	}

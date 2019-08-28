@@ -34,7 +34,14 @@ export const defaultColor = '#194d332B'
 
 export const staticstorageindexes = {
   blogfiles: 'blogfiles',
-  projectfiles: 'projectfiles'
+  projectfiles: 'projectfiles',
+  placeholder: 'placeholder'
+}
+
+export const paths = {
+  placeholder: '/placeholder',
+  original: '/original',
+  blur: '/blur'
 }
 
 export const validimages = [

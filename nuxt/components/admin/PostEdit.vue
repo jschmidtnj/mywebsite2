@@ -574,7 +574,8 @@ import {
   defaultColor,
   staticstorageindexes,
   validimages,
-  validfiles
+  validfiles,
+  paths
 } from '~/assets/config'
 const gotFile = (_, vm) => vm.uploaded || vm.src !== null
 // @ts-ignore
@@ -633,6 +634,7 @@ export default Vue.extend({
       tagOptions: options.tagOptions,
       validimages: validimages,
       validfiles: validfiles,
+      paths: paths,
       fields: [
         {
           key: 'title',
@@ -782,19 +784,25 @@ export default Vue.extend({
     getImageTag(image) {
       return `<img data-src="${cloudStorageURLs.posts}/${
         this.type === 'blog' ? staticstorageindexes.blogfiles : staticstorageindexes.projectfiles
-      }/${this.postid}/${image.id}/original" src="${
+      }/${this.postid}/${image.id + this.paths.original}" src="${
         cloudStorageURLs.posts
       }/${this.type === 'blog' ? staticstorageindexes.blogfiles : staticstorageindexes.projectfiles}/${this.postid}/${
-        image.id}/blur" class="lazy img-fluid" alt="${
+        image.id + this.paths.blur}" class="lazy img-fluid" alt="${
         image.name
       }" data-width="${image.width}" data-height="${image.height}">`
     },
     getGifTag(gif) {
-      return `<img src="${cloudStorageURLs.posts}/${
+      return `<img data-src="${cloudStorageURLs.posts}/${
         this.type === 'blog' ? staticstorageindexes.blogfiles : staticstorageindexes.projectfiles
-      }/${this.postid}/${gif.id}/original" alt="${
+      }/${this.postid}/${gif.id + this.paths.original}" placeholder-original="${
+        cloudStorageURLs.posts
+      }/${this.type === 'blog' ? staticstorageindexes.blogfiles : staticstorageindexes.projectfiles}/${this.postid}/${
+        gif.id + this.paths.placeholder + this.paths.original}" src="${
+        cloudStorageURLs.posts
+      }/${this.type === 'blog' ? staticstorageindexes.blogfiles : staticstorageindexes.projectfiles}/${this.postid}/${
+        gif.id + this.paths.placeholder + this.paths.blur}" class="lazy img-fluid gif" alt="${
         gif.name
-      }" class="img-fluid" data-width="${gif.width}" data-height="${gif.height}">`
+      }" data-width="${gif.width}" data-height="${gif.height}">`
     },
     getVideoTag(video) {
       return `<video class="img-fluid" data-width="${video.width}" data-height="${
@@ -924,7 +932,7 @@ export default Vue.extend({
             .get(
               `${cloudStorageURLs.posts}/${
                 this.type === 'blog' ? staticstorageindexes.blogfiles : staticstorageindexes.projectfiles
-              }/${this.postid}/${thepost.heroimage.id}/original`,
+              }/${this.postid}/${thepost.heroimage.id + this.paths.original}`,
               {
                 responseType: 'blob'
               }
@@ -981,7 +989,7 @@ export default Vue.extend({
             .get(
               `${cloudStorageURLs.posts}/${
                 this.type === 'blog' ? staticstorageindexes.blogfiles : staticstorageindexes.projectfiles
-              }/${this.postid}/${thepost.tileimage.id}/original`,
+              }/${this.postid}/${thepost.tileimage.id + this.paths.original}`,
               {
                 responseType: 'blob'
               }
@@ -1039,7 +1047,7 @@ export default Vue.extend({
             .get(
               `${cloudStorageURLs.posts}/${
                 this.type === 'blog' ? staticstorageindexes.blogfiles : staticstorageindexes.projectfiles
-              }/${this.postid}/${filedata.id}/original`,
+              }/${this.postid}/${filedata.id + this.paths.original}`,
               {
                 responseType: 'blob'
               }

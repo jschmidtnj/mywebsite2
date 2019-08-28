@@ -6,10 +6,12 @@ const apiurl = process.env.APIURL
 const mainurl = process.env.MAINURL
 const recaptchasitekey = process.env.RECAPTCHASITEKEY
 
+const name = 'Joshua Short'
+
 module.exports = {
   mode: 'spa',
 
-  globalName: 'Joshua Short',
+  globalName: name,
 
   env: {
     seoconfig: process.env.SEOCONFIG,
@@ -30,13 +32,13 @@ module.exports = {
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { hid: 'description', name: 'description', content: pkg.description },
       // OpenGraph Data
-      { property: 'og:title', content: 'Find Vericts' },
-      { property: 'og:site_name', content: 'Find Vericts' },
+      { property: 'og:title', content: name },
+      { property: 'og:site_name', content: name },
       // The list of types is available here: http://ogp.me/#types
       { property: 'og:type', content: 'website' },
       {
         property: 'og:image',
-        content: `${seodata.url}/opengraph.png`
+        content: `${seodata.url}/icon.png`
       },
       { property: 'og:description', content: pkg.description },
       // Twitter card
@@ -45,7 +47,7 @@ module.exports = {
         name: 'twitter:site',
         content: seodata.url
       },
-      { name: 'twitter:title', content: 'Find Vericts' },
+      { name: 'twitter:title', content: name },
       {
         name: 'twitter:description',
         content: pkg.description

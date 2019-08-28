@@ -27,14 +27,14 @@
                       type === 'blog'
                         ? staticstorageindexes.blogfiles
                         : staticstorageindexes.projectfiles
-                    }/${postval.id}/${postval.tileimage.id}/original`
+                    }/${postval.id}/${postval.tileimage.id + paths.original}`
                   "
                   :blank-src="
                     `${imgUrl}/${
                       type === 'blog'
                         ? staticstorageindexes.blogfiles
                         : staticstorageindexes.projectfiles
-                    }/${postval.id}/${postval.tileimage.id}/blur`
+                    }/${postval.id}/${postval.tileimage.id + paths.blur}`
                   "
                   :alt="postval.title"
                   class="tile-img rounded-0"
@@ -70,7 +70,8 @@ import Loading from '~/components/ComponentLoading.vue'
 import {
   validTypes,
   cloudStorageURLs,
-  staticstorageindexes
+  staticstorageindexes,
+  paths
 } from '~/assets/config'
 const defaultOpacity = 20 // %
 const numPerRow = 2
@@ -96,7 +97,8 @@ export default Vue.extend({
       shownPosts: [],
       loading: true,
       selected: [],
-      staticstorageindexes: staticstorageindexes
+      staticstorageindexes: staticstorageindexes,
+      paths: paths
     }
   },
   async mounted() {

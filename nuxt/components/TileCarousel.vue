@@ -62,14 +62,14 @@
                       type === 'blog'
                         ? staticstorageindexes.blogfiles
                         : staticstorageindexes.projectfiles
-                    }/${postval.id}/${postval.tileimage.id}/original`
+                    }/${postval.id}/${postval.tileimage.id + paths.original}`
                   "
                   :blank-src="
                     `${imgUrl}/${
                       type === 'blog'
                         ? staticstorageindexes.blogfiles
                         : staticstorageindexes.projectfiles
-                    }/${postval.id}/${postval.tileimage.id}/blur`
+                    }/${postval.id}/${postval.tileimage.id + paths.blur}`
                   "
                   :alt="postval.title"
                   class="tile-img"
@@ -116,7 +116,8 @@ import Loading from '~/components/ComponentLoading.vue'
 import {
   validTypes,
   cloudStorageURLs,
-  staticstorageindexes
+  staticstorageindexes,
+  paths
 } from '~/assets/config'
 export default Vue.extend({
   name: 'TileCarousel',
@@ -141,7 +142,8 @@ export default Vue.extend({
         width: 0,
         height: 0
       },
-      staticstorageindexes: staticstorageindexes
+      staticstorageindexes: staticstorageindexes,
+      paths: paths
     }
   },
   destroyed() {
