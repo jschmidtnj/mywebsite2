@@ -24,12 +24,16 @@
                 <b-card-img-lazy
                   :src="
                     `${imgUrl}/${
-                      type === 'blog' ? 'blogimages' : 'projectimages'
+                      type === 'blog'
+                        ? staticstorageindexes.blogfiles
+                        : staticstorageindexes.projectfiles
                     }/${postval.id}/${postval.tileimage.id}/original`
                   "
                   :blank-src="
                     `${imgUrl}/${
-                      type === 'blog' ? 'blogimages' : 'projectimages'
+                      type === 'blog'
+                        ? staticstorageindexes.blogfiles
+                        : staticstorageindexes.projectfiles
                     }/${postval.id}/${postval.tileimage.id}/blur`
                   "
                   :alt="postval.title"
@@ -63,7 +67,11 @@
 <script lang="ts">
 import Vue from 'vue'
 import Loading from '~/components/ComponentLoading.vue'
-import { validTypes, cloudStorageURLs } from '~/assets/config'
+import {
+  validTypes,
+  cloudStorageURLs,
+  staticstorageindexes
+} from '~/assets/config'
 const defaultOpacity = 20 // %
 const numPerRow = 2
 const defaultOpacityHex = Math.round((defaultOpacity / 100.0) * 255)
@@ -87,7 +95,8 @@ export default Vue.extend({
       imgUrl: cloudStorageURLs.posts,
       shownPosts: [],
       loading: true,
-      selected: []
+      selected: [],
+      staticstorageindexes: staticstorageindexes
     }
   },
   async mounted() {

@@ -9,12 +9,16 @@
                 v-if="post.heroimage"
                 :blank-src="
                   `${postCdn}/${
-                    type === 'blog' ? 'blogimages' : 'projectimages'
+                    type === 'blog'
+                      ? staticstorageindexes.blogfiles
+                      : staticstorageindexes.projectfiles
                   }/${post.id}/${post.heroimage.id}/blur`
                 "
                 :src="
                   `${postCdn}/${
-                    type === 'blog' ? 'blogimages' : 'projectimages'
+                    type === 'blog'
+                      ? staticstorageindexes.blogfiles
+                      : staticstorageindexes.projectfiles
                   }/${post.id}/${post.heroimage.id}/original`
                 "
                 :alt="post.heroimage.name"
@@ -63,7 +67,11 @@ import Prism from 'prismjs'
 import LazyLoad from 'vanilla-lazyload'
 import Loading from '~/components/PageLoading.vue'
 import TileCarousel from '~/components/TileCarousel.vue'
-import { validTypes, cloudStorageURLs } from '~/assets/config'
+import {
+  validTypes,
+  cloudStorageURLs,
+  staticstorageindexes
+} from '~/assets/config'
 const lazyLoadInstance = new LazyLoad({
   elements_selector: '.lazy'
 })
@@ -93,7 +101,8 @@ export default Vue.extend({
       id: null,
       post: null,
       shortlinkurl: shortlinkurl,
-      postCdn: cloudStorageURLs.posts
+      postCdn: cloudStorageURLs.posts,
+      staticstorageindexes: staticstorageindexes
     }
   },
   /* eslint-disable */
@@ -173,7 +182,7 @@ export default Vue.extend({
     const script: any = []
     if (this.post) {
       const image = `${cloudStorageURLs.posts}/${
-                      this.type === 'blog' ? 'blogimages' : 'projectimages'
+                      this.type === 'blog' ? this.staticstorageindexes.blogfiles : this.staticstorageindexes.projectfiles
                     }/${this.post.id}/${encodeURI(this.post.tileimage)}/original`
       meta.push({
         property: 'og:image',

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"io/ioutil"
+	"regexp"
 
 	"cloud.google.com/go/storage"
 	"github.com/graphql-go/graphql"
@@ -13,7 +14,6 @@ import (
 	// medium "github.com/medium/medium-sdk-go"
 	"net/http"
 	"os"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -70,9 +70,13 @@ var projectElasticIndex = "projects"
 
 var projectElasticType = "project"
 
+var blogType = "blog"
+
+var projectType = "project"
+
 var validTypes = []string{
-	"blog",
-	"project",
+	blogType,
+	projectType,
 }
 
 var ctxStorage context.Context
@@ -81,21 +85,42 @@ var storageClient *storage.Client
 
 var storageBucket *storage.BucketHandle
 
-var blogImageIndex = "blogimages"
-
-var projectImageIndex = "projectimages"
-
-var blogGifIndex = "bloggifs"
-
-var projectGifIndex = "projectgifs"
-
-var blogVideoIndex = "blogvideos"
-
-var projectVideoIndex = "projectvideos"
-
 var blogFileIndex = "blogfiles"
 
 var projectFileIndex = "projectfiles"
+
+var placeholderPath = "/placeholder"
+
+var originalPath = "/original"
+
+var blurPath = "/blur"
+
+var haveblur = []string{
+	"image/jpeg",
+	"image/png",
+	"image/gif",
+}
+
+var validContentTypes = []string{
+	"image/jpeg",
+	"image/png",
+	"image/svg+xml",
+	"image/gif",
+	"video/mpeg",
+	"video/webm",
+	"video/mp4",
+	"video/x-msvideo",
+	"application/pdf",
+	"text/plain",
+	"application/zip",
+	"text/csv",
+	"application/json",
+	"application/ld+json",
+	"application/vnd.ms-powerpoint",
+	"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+	"application/msword",
+	"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+}
 
 var progressiveImageSize = 30
 
@@ -315,15 +340,6 @@ func main() {
 	mux.HandleFunc("/sendResetEmail", sendPasswordResetEmail)
 	mux.HandleFunc("/reset", resetPassword)
 	mux.HandleFunc("/hello", hello)
-	mux.HandleFunc("/getPostPicture", getPostPicture)
-	mux.HandleFunc("/writePostPicture", writePostPicture)
-	mux.HandleFunc("/deletePostPictures", deletePostPictures)
-	mux.HandleFunc("/getPostGif", getPostGif)
-	mux.HandleFunc("/writePostGif", writePostGif)
-	mux.HandleFunc("/deletePostGifs", deletePostGifs)
-	mux.HandleFunc("/getPostVideo", getPostVideo)
-	mux.HandleFunc("/writePostVideo", writePostVideo)
-	mux.HandleFunc("/deletePostVideos", deletePostVideos)
 	mux.HandleFunc("/getPostFile", getPostFile)
 	mux.HandleFunc("/writePostFile", writePostFile)
 	mux.HandleFunc("/deletePostFiles", deletePostFiles)

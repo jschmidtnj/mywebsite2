@@ -59,12 +59,16 @@
                 <b-card-img-lazy
                   :src="
                     `${imgUrl}/${
-                      type === 'blog' ? 'blogimages' : 'projectimages'
+                      type === 'blog'
+                        ? staticstorageindexes.blogfiles
+                        : staticstorageindexes.projectfiles
                     }/${postval.id}/${postval.tileimage.id}/original`
                   "
                   :blank-src="
                     `${imgUrl}/${
-                      type === 'blog' ? 'blogimages' : 'projectimages'
+                      type === 'blog'
+                        ? staticstorageindexes.blogfiles
+                        : staticstorageindexes.projectfiles
                     }/${postval.id}/${postval.tileimage.id}/blur`
                   "
                   :alt="postval.title"
@@ -109,7 +113,11 @@
 <script lang="ts">
 import Vue from 'vue'
 import Loading from '~/components/ComponentLoading.vue'
-import { validTypes, cloudStorageURLs } from '~/assets/config'
+import {
+  validTypes,
+  cloudStorageURLs,
+  staticstorageindexes
+} from '~/assets/config'
 export default Vue.extend({
   name: 'TileCarousel',
   components: {
@@ -132,7 +140,8 @@ export default Vue.extend({
       window: {
         width: 0,
         height: 0
-      }
+      },
+      staticstorageindexes: staticstorageindexes
     }
   },
   destroyed() {

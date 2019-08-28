@@ -41,15 +41,6 @@ const postmappings = {
     tileimage: {
       type: 'nested'
     },
-    images: {
-      type: 'nested'
-    },
-    gifs: {
-      type: 'nested'
-    },
-    videos: {
-      type: 'nested'
-    },
     files: {
       type: 'nested'
     },

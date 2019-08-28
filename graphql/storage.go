@@ -3,8 +3,12 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"image"
+	"image/draw"
+	"image/gif"
 	"image/jpeg"
+	"image/png"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -14,6 +18,15 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/disintegration/imaging"
 )
+
+func validateContentType(thetype string) error {
+	for _, validtype := range validContentTypes {
+		if validtype == thetype {
+			return nil
+		}
+	}
+	return errors.New("invalid content type provided")
+}
 
 func uploadFile(fileBuffer *bytes.Buffer, filewriter *storage.Writer) string {
 	byteswritten, err := fileBuffer.WriteTo(filewriter)
@@ -27,7 +40,205 @@ func uploadFile(fileBuffer *bytes.Buffer, filewriter *storage.Writer) string {
 	return ""
 }
 
-func writePostObject(response http.ResponseWriter, request *http.Request, blogindex string, projectindex string) {
+func writeGenericFile(file io.Reader, filetype string, posttype string, fileidDecoded string, postid string) error {
+	var filebuffer bytes.Buffer
+	io.Copy(&filebuffer, file)
+	defer filebuffer.Reset()
+	var fileobj *storage.ObjectHandle
+	if posttype == blogType {
+		fileobj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileidDecoded + originalPath)
+	} else {
+		fileobj = storageBucket.Object(projectFileIndex + "/" + postid + "/" + fileidDecoded + originalPath)
+	}
+	filewriter := fileobj.NewWriter(ctxStorage)
+	filewriter.ContentType = filetype
+	filewriter.Metadata = map[string]string{}
+	errmessage := uploadFile(&filebuffer, filewriter)
+	if len(errmessage) > 0 {
+		return errors.New(errmessage)
+	}
+	return nil
+}
+
+func writeJpeg(file io.Reader, filetype string, posttype string, fileidDecoded string, postid string) error {
+	originalImage, _, err := image.Decode(file)
+	if err != nil {
+		return err
+	}
+	originalImageBuffer := new(bytes.Buffer)
+	defer originalImageBuffer.Reset()
+	jpegOptionsOriginal := jpeg.Options{Quality: 90}
+	err = jpeg.Encode(originalImageBuffer, originalImage, &jpegOptionsOriginal)
+	if err != nil {
+		return err
+	}
+	blurredImage := imaging.Blur(originalImage, progressiveImageBlurAmount)
+	blurredImageBuffer := new(bytes.Buffer)
+	defer blurredImageBuffer.Reset()
+	jpegOptionsBlurred := jpeg.Options{Quality: 60}
+	err = jpeg.Encode(blurredImageBuffer, blurredImage, &jpegOptionsBlurred)
+	if err != nil {
+		return err
+	}
+	var originalImageObj *storage.ObjectHandle
+	var blurredImageObj *storage.ObjectHandle
+	if posttype == blogType {
+		originalImageObj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileidDecoded + originalPath)
+		blurredImageObj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileidDecoded + blurPath)
+	} else {
+		originalImageObj = storageBucket.Object(projectFileIndex + "/" + postid + "/" + fileidDecoded + originalPath)
+		blurredImageObj = storageBucket.Object(projectFileIndex + "/" + postid + "/" + fileidDecoded + blurPath)
+	}
+	originalImageWriter := originalImageObj.NewWriter(ctxStorage)
+	originalImageWriter.ContentType = filetype
+	originalImageWriter.Metadata = map[string]string{}
+	errmessage := uploadFile(originalImageBuffer, originalImageWriter)
+	if len(errmessage) > 0 {
+		return errors.New(errmessage)
+	}
+	blurredImageWriter := blurredImageObj.NewWriter(ctxStorage)
+	blurredImageWriter.ContentType = filetype
+	blurredImageWriter.Metadata = map[string]string{}
+	errmessage = uploadFile(blurredImageBuffer, blurredImageWriter)
+	if len(errmessage) > 0 {
+		return errors.New(errmessage)
+	}
+	return nil
+}
+
+func writePng(file io.Reader, filetype string, posttype string, fileidDecoded string, postid string) error {
+	originalImage, _, err := image.Decode(file)
+	if err != nil {
+		return err
+	}
+	originalImageBuffer := new(bytes.Buffer)
+	defer originalImageBuffer.Reset()
+	err = png.Encode(originalImageBuffer, originalImage)
+	if err != nil {
+		return err
+	}
+	blurredImage := imaging.Blur(originalImage, progressiveImageBlurAmount)
+	blurredImageBuffer := new(bytes.Buffer)
+	defer blurredImageBuffer.Reset()
+	err = png.Encode(blurredImageBuffer, blurredImage)
+	if err != nil {
+		return err
+	}
+	var originalImageObj *storage.ObjectHandle
+	var blurredImageObj *storage.ObjectHandle
+	if posttype == blogType {
+		originalImageObj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileidDecoded + originalPath)
+		blurredImageObj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileidDecoded + blurPath)
+	} else {
+		originalImageObj = storageBucket.Object(projectFileIndex + "/" + postid + "/" + fileidDecoded + originalPath)
+		blurredImageObj = storageBucket.Object(projectFileIndex + "/" + postid + "/" + fileidDecoded + blurPath)
+	}
+	originalImageWriter := originalImageObj.NewWriter(ctxStorage)
+	originalImageWriter.ContentType = filetype
+	originalImageWriter.Metadata = map[string]string{}
+	errmessage := uploadFile(originalImageBuffer, originalImageWriter)
+	if len(errmessage) > 0 {
+		return errors.New(errmessage)
+	}
+	blurredImageWriter := blurredImageObj.NewWriter(ctxStorage)
+	blurredImageWriter.ContentType = filetype
+	blurredImageWriter.Metadata = map[string]string{}
+	errmessage = uploadFile(blurredImageBuffer, blurredImageWriter)
+	if len(errmessage) > 0 {
+		return errors.New(errmessage)
+	}
+	return nil
+}
+
+func getGifDimensions(gif *gif.GIF) (x, y int) {
+	var lowestX int
+	var lowestY int
+	var highestX int
+	var highestY int
+	for _, img := range gif.Image {
+		if img.Rect.Min.X < lowestX {
+			lowestX = img.Rect.Min.X
+		}
+		if img.Rect.Min.Y < lowestY {
+			lowestY = img.Rect.Min.Y
+		}
+		if img.Rect.Max.X > highestX {
+			highestX = img.Rect.Max.X
+		}
+		if img.Rect.Max.Y > highestY {
+			highestY = img.Rect.Max.Y
+		}
+	}
+	return highestX - lowestX, highestY - lowestY
+}
+
+func writeGif(file io.Reader, filetype string, posttype string, fileidDecoded string, postid string) error {
+	originalGif, err := gif.DecodeAll(file)
+	if err != nil {
+		return err
+	}
+	originalGifBuffer := new(bytes.Buffer)
+	defer originalGifBuffer.Reset()
+	err = gif.EncodeAll(originalGifBuffer, originalGif)
+	if err != nil {
+		return err
+	}
+	imgWidth, imgHeight := getGifDimensions(originalGif)
+	originalImage := image.NewRGBA(image.Rect(0, 0, imgWidth, imgHeight))
+	draw.Draw(originalImage, originalImage.Bounds(), originalGif.Image[0], image.ZP, draw.Src)
+	originalImageBuffer := new(bytes.Buffer)
+	defer originalImageBuffer.Reset()
+	jpegOptionsOriginal := jpeg.Options{Quality: 90}
+	err = jpeg.Encode(originalImageBuffer, originalImage, &jpegOptionsOriginal)
+	if err != nil {
+		return err
+	}
+	blurredImage := imaging.Blur(originalImage, progressiveImageBlurAmount)
+	blurredImageBuffer := new(bytes.Buffer)
+	defer blurredImageBuffer.Reset()
+	jpegOptionsBlurred := jpeg.Options{Quality: 60}
+	err = jpeg.Encode(blurredImageBuffer, blurredImage, &jpegOptionsBlurred)
+	if err != nil {
+		return err
+	}
+	var originalGifObj *storage.ObjectHandle
+	var originalImageObj *storage.ObjectHandle
+	var blurredImageObj *storage.ObjectHandle
+	if posttype == blogType {
+		originalGifObj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileidDecoded + "/original")
+		originalImageObj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileidDecoded + placeholderPath + originalPath)
+		blurredImageObj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileidDecoded + placeholderPath + blurPath)
+	} else {
+		originalGifObj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileidDecoded + "/original")
+		originalImageObj = storageBucket.Object(projectFileIndex + "/" + postid + "/" + fileidDecoded + placeholderPath + originalPath)
+		blurredImageObj = storageBucket.Object(projectFileIndex + "/" + postid + "/" + fileidDecoded + placeholderPath + blurPath)
+	}
+	originalGifWriter := originalGifObj.NewWriter(ctxStorage)
+	originalGifWriter.ContentType = filetype
+	originalGifWriter.Metadata = map[string]string{}
+	errmessage := uploadFile(originalGifBuffer, originalGifWriter)
+	if len(errmessage) > 0 {
+		return errors.New(errmessage)
+	}
+	var placeholderFileType = "image/jpeg"
+	originalImageWriter := originalImageObj.NewWriter(ctxStorage)
+	originalImageWriter.ContentType = placeholderFileType
+	originalImageWriter.Metadata = map[string]string{}
+	errmessage = uploadFile(originalImageBuffer, originalImageWriter)
+	if len(errmessage) > 0 {
+		return errors.New(errmessage)
+	}
+	blurredImageWriter := blurredImageObj.NewWriter(ctxStorage)
+	blurredImageWriter.ContentType = placeholderFileType
+	blurredImageWriter.Metadata = map[string]string{}
+	errmessage = uploadFile(blurredImageBuffer, blurredImageWriter)
+	if len(errmessage) > 0 {
+		return errors.New(errmessage)
+	}
+	return nil
+}
+
+func writePostFile(response http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodPut {
 		handleError("upload file http method not PUT", http.StatusBadRequest, response)
 		return
@@ -36,13 +247,22 @@ func writePostObject(response http.ResponseWriter, request *http.Request, blogin
 		handleError("auth error: "+err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	thetype := request.URL.Query().Get("type")
-	if thetype == "" {
-		handleError("error getting type from query", http.StatusBadRequest, response)
+	filetype := request.URL.Query().Get("filetype")
+	if filetype == "" {
+		handleError("error getting filetype from query", http.StatusBadRequest, response)
 		return
 	}
-	if !validType(thetype) {
-		handleError("invalid type in query", http.StatusBadRequest, response)
+	if err := validateContentType(filetype); err != nil {
+		handleError(err.Error(), http.StatusBadRequest, response)
+		return
+	}
+	posttype := request.URL.Query().Get("posttype")
+	if posttype == "" {
+		handleError("error getting posttype from query", http.StatusBadRequest, response)
+		return
+	}
+	if !validType(posttype) {
+		handleError("invalid posttype in query", http.StatusBadRequest, response)
 		return
 	}
 	postid := request.URL.Query().Get("postid")
@@ -60,203 +280,43 @@ func writePostObject(response http.ResponseWriter, request *http.Request, blogin
 		handleError(err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	var filebuffer bytes.Buffer
 	file, _, err := request.FormFile("file")
 	if err != nil {
 		handleError(err.Error(), http.StatusBadRequest, response)
 		return
 	}
 	defer file.Close()
-	io.Copy(&filebuffer, file)
-	defer filebuffer.Reset()
-	var fileobj *storage.ObjectHandle
-	if thetype == "blog" {
-		fileobj = storageBucket.Object(blogindex + "/" + postid + "/" + fileidDecoded)
-	} else {
-		fileobj = storageBucket.Object(projectindex + "/" + postid + "/" + fileidDecoded)
-	}
-	filewriter := fileobj.NewWriter(ctxStorage)
-	errmessage := uploadFile(&filebuffer, filewriter)
-	if len(errmessage) > 0 {
-		handleError(errmessage, http.StatusBadRequest, response)
-		return
+	switch filetype {
+	case "image/jpeg":
+		if err = writeJpeg(file, filetype, posttype, fileidDecoded, postid); err != nil {
+			handleError(err.Error(), http.StatusBadRequest, response)
+			return
+		}
+		break
+	case "image/png":
+		if err = writePng(file, filetype, posttype, fileidDecoded, postid); err != nil {
+			handleError(err.Error(), http.StatusBadRequest, response)
+			return
+		}
+		break
+	case "image/gif":
+		if err = writeGif(file, filetype, posttype, fileidDecoded, postid); err != nil {
+			handleError(err.Error(), http.StatusBadRequest, response)
+			return
+		}
+		break
+	default:
+		if err = writeGenericFile(file, filetype, posttype, fileidDecoded, postid); err != nil {
+			handleError(err.Error(), http.StatusBadRequest, response)
+			return
+		}
+		break
 	}
 	response.Header().Set("Content-Type", "application/json")
 	response.Write([]byte(`{"message":"file updated"}`))
 }
 
-func writePostFile(response http.ResponseWriter, request *http.Request) {
-	writePostObject(response, request, blogFileIndex, projectFileIndex)
-}
-
-func writePostGif(response http.ResponseWriter, request *http.Request) {
-	writePostObject(response, request, blogGifIndex, projectGifIndex)
-}
-
-func writePostVideo(response http.ResponseWriter, request *http.Request) {
-	writePostObject(response, request, blogVideoIndex, projectVideoIndex)
-}
-
-func writePostPicture(response http.ResponseWriter, request *http.Request) {
-
-	if request.Method != http.MethodPut {
-		handleError("post picture http method not PUT", http.StatusBadRequest, response)
-		return
-	}
-	if _, err := validateAdmin(getAuthToken(request)); err != nil {
-		handleError("auth error: "+err.Error(), http.StatusBadRequest, response)
-		return
-	}
-	thetype := request.URL.Query().Get("type")
-	if thetype == "" {
-		handleError("error getting type from query", http.StatusBadRequest, response)
-		return
-	}
-	if !validType(thetype) {
-		handleError("invalid type in query", http.StatusBadRequest, response)
-		return
-	}
-	postid := request.URL.Query().Get("postid")
-	if postid == "" {
-		handleError("error getting post id from query", http.StatusBadRequest, response)
-		return
-	}
-	imageid := request.URL.Query().Get("imageid")
-	if imageid == "" {
-		handleError("error getting image id from query", http.StatusBadRequest, response)
-		return
-	}
-	imageidDecoded, err := url.QueryUnescape(imageid)
-	if err != nil {
-		handleError(err.Error(), http.StatusBadRequest, response)
-		return
-	}
-	file, _, err := request.FormFile("file")
-	if err != nil {
-		handleError(err.Error(), http.StatusBadRequest, response)
-		return
-	}
-	defer file.Close()
-	originalImage, _, err := image.Decode(file)
-	if err != nil {
-		handleError(err.Error(), http.StatusBadRequest, response)
-		return
-	}
-	originalImageBuffer := new(bytes.Buffer)
-	defer originalImageBuffer.Reset()
-	jpegOptionsOriginal := jpeg.Options{Quality: 90}
-	err = jpeg.Encode(originalImageBuffer, originalImage, &jpegOptionsOriginal)
-	if err != nil {
-		handleError(err.Error(), http.StatusBadRequest, response)
-		return
-	}
-	blurredImage := imaging.Blur(originalImage, progressiveImageBlurAmount)
-	blurredImageBuffer := new(bytes.Buffer)
-	defer blurredImageBuffer.Reset()
-	jpegOptionsBlurred := jpeg.Options{Quality: 60}
-	err = jpeg.Encode(blurredImageBuffer, blurredImage, &jpegOptionsBlurred)
-	if err != nil {
-		handleError(err.Error(), http.StatusBadRequest, response)
-		return
-	}
-	var originalImageObj *storage.ObjectHandle
-	var blurredImageObj *storage.ObjectHandle
-	if thetype == "blog" {
-		originalImageObj = storageBucket.Object(blogImageIndex + "/" + postid + "/" + imageidDecoded + "/original")
-		blurredImageObj = storageBucket.Object(blogImageIndex + "/" + postid + "/" + imageidDecoded + "/blur")
-	} else {
-		originalImageObj = storageBucket.Object(projectImageIndex + "/" + postid + "/" + imageidDecoded + "/original")
-		blurredImageObj = storageBucket.Object(projectImageIndex + "/" + postid + "/" + imageidDecoded + "/blur")
-	}
-	originalImageWriter := originalImageObj.NewWriter(ctxStorage)
-	errmessage := uploadFile(originalImageBuffer, originalImageWriter)
-	if len(errmessage) > 0 {
-		handleError(errmessage, http.StatusBadRequest, response)
-		return
-	}
-	blurredImageWriter := blurredImageObj.NewWriter(ctxStorage)
-	errmessage = uploadFile(blurredImageBuffer, blurredImageWriter)
-	if len(errmessage) > 0 {
-		handleError(errmessage, http.StatusBadRequest, response)
-		return
-	}
-	response.Header().Set("Content-Type", "application/json")
-	response.Write([]byte(`{"message":"image written"}`))
-}
-
-func deletePostPictures(response http.ResponseWriter, request *http.Request) {
-
-	if request.Method != http.MethodDelete {
-		handleError("delete post picture http method not Delete", http.StatusBadRequest, response)
-		return
-	}
-	if _, err := validateAdmin(getAuthToken(request)); err != nil {
-		handleError("auth error: "+err.Error(), http.StatusBadRequest, response)
-		return
-	}
-	var picturedata map[string]interface{}
-	body, err := ioutil.ReadAll(request.Body)
-	if err != nil {
-		handleError("error getting request body: "+err.Error(), http.StatusBadRequest, response)
-		return
-	}
-	err = json.Unmarshal(body, &picturedata)
-	if err != nil {
-		handleError("error parsing request body: "+err.Error(), http.StatusBadRequest, response)
-		return
-	}
-	if !(picturedata["imageids"] != nil && picturedata["postid"] != nil && picturedata["type"] != nil) {
-		handleError("no imageids or postid or type provided", http.StatusBadRequest, response)
-		return
-	}
-	thetype, ok := picturedata["type"].(string)
-	if !ok {
-		handleError("unable to cast type to string", http.StatusBadRequest, response)
-		return
-	}
-	postid, ok := picturedata["postid"].(string)
-	if !ok {
-		handleError("unable to post id to string", http.StatusBadRequest, response)
-		return
-	}
-	if !validType(thetype) {
-		handleError("invalid type in body", http.StatusBadRequest, response)
-		return
-	}
-	imageids, ok := picturedata["imageids"].([]interface{})
-	if !ok {
-		handleError("imageids cannot be cast to interface array", http.StatusBadRequest, response)
-		return
-	}
-	for _, imageidinterface := range imageids {
-		imageid, ok := imageidinterface.(string)
-		if !ok {
-			handleError("imageid cannot be cast to string", http.StatusBadRequest, response)
-			return
-		}
-		var imageobjblur *storage.ObjectHandle
-		var imageobjoriginal *storage.ObjectHandle
-		if thetype == "blog" {
-			imageobjblur = storageBucket.Object(blogImageIndex + "/" + postid + "/" + imageid + "/blur")
-			imageobjoriginal = storageBucket.Object(blogImageIndex + "/" + postid + "/" + imageid + "/original")
-		} else {
-			imageobjblur = storageBucket.Object(projectImageIndex + "/" + postid + "/" + imageid + "/blur")
-			imageobjoriginal = storageBucket.Object(projectImageIndex + "/" + postid + "/" + imageid + "/original")
-		}
-		if err := imageobjblur.Delete(ctxStorage); err != nil {
-			handleError("error deleting image: "+err.Error(), http.StatusBadRequest, response)
-			return
-		}
-		if err := imageobjoriginal.Delete(ctxStorage); err != nil {
-			handleError("error deleting image: "+err.Error(), http.StatusBadRequest, response)
-			return
-		}
-	}
-	response.Header().Set("Content-Type", "application/json")
-	response.Write([]byte(`{"message":"files deleted"}`))
-}
-
-func deletePostObjects(response http.ResponseWriter, request *http.Request, blogindex string, projectindex string) {
+func deletePostFiles(response http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodDelete {
 		handleError("delete post files http method not Delete", http.StatusBadRequest, response)
 		return
@@ -276,7 +336,7 @@ func deletePostObjects(response http.ResponseWriter, request *http.Request, blog
 		handleError("error parsing request body: "+err.Error(), http.StatusBadRequest, response)
 		return
 	}
-	if !(filedata["fileids"] != nil && filedata["postid"] != nil && filedata["type"] != nil) {
+	if !(filedata["fileids"] != nil && filedata["postid"] != nil && filedata["posttype"] != nil) {
 		handleError("no fileids or postid or type provided", http.StatusBadRequest, response)
 		return
 	}
@@ -285,111 +345,77 @@ func deletePostObjects(response http.ResponseWriter, request *http.Request, blog
 		handleError("unable to cast post id to string", http.StatusBadRequest, response)
 		return
 	}
-	thetype, ok := filedata["type"].(string)
+	posttype, ok := filedata["posttype"].(string)
 	if !ok {
-		handleError("unable to cast type to string", http.StatusBadRequest, response)
+		handleError("unable to cast posttype to string", http.StatusBadRequest, response)
 		return
 	}
-	if !validType(thetype) {
-		handleError("invalid type in body", http.StatusBadRequest, response)
+	if !validType(posttype) {
+		handleError("invalid posttype in body", http.StatusBadRequest, response)
 		return
 	}
 	fileids, ok := filedata["fileids"].([]interface{})
 	if !ok {
-		handleError("fileids cannot be cast to interface array", http.StatusBadRequest, response)
+		handleError("file ids cannot be cast to interface array", http.StatusBadRequest, response)
 		return
 	}
 	for _, fileidinterface := range fileids {
 		fileid, ok := fileidinterface.(string)
 		if !ok {
-			handleError("fileid cannot be cast to string", http.StatusBadRequest, response)
+			handleError("file id cannot be cast to string", http.StatusBadRequest, response)
 			return
 		}
 		var fileobj *storage.ObjectHandle
-		if thetype == "blog" {
-			fileobj = storageBucket.Object(blogindex + "/" + postid + "/" + fileid)
+		if posttype == blogType {
+			fileobj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileid + originalPath)
 		} else {
-			fileobj = storageBucket.Object(projectindex + "/" + postid + "/" + fileid)
+			fileobj = storageBucket.Object(projectFileIndex + "/" + postid + "/" + fileid + originalPath)
+		}
+		fileobjattributes, err := fileobj.Attrs(ctxStorage)
+		if err != nil {
+			handleError(err.Error(), http.StatusBadRequest, response)
+			return
+		}
+		var filetype = fileobjattributes.ContentType
+		var hasblur = false
+		for _, blurtype := range haveblur {
+			if blurtype == filetype {
+				hasblur = true
+				break
+			}
 		}
 		if err := fileobj.Delete(ctxStorage); err != nil {
-			handleError("error deleting file: "+err.Error(), http.StatusBadRequest, response)
+			handleError("error deleting original file: "+err.Error(), http.StatusBadRequest, response)
 			return
+		}
+		if hasblur {
+			if posttype == blogType {
+				fileobj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileid + blurPath)
+			} else {
+				fileobj = storageBucket.Object(projectFileIndex + "/" + postid + "/" + fileid + blurPath)
+			}
+			if err := fileobj.Delete(ctxStorage); err != nil {
+				handleError("error deleting blur file: "+err.Error(), http.StatusBadRequest, response)
+				return
+			}
 		}
 	}
 	response.Header().Set("Content-Type", "application/json")
 	response.Write([]byte(`{"message":"files deleted"}`))
 }
 
-func deletePostFiles(response http.ResponseWriter, request *http.Request) {
-	deletePostObjects(response, request, blogFileIndex, projectFileIndex)
-}
-
-func deletePostGifs(response http.ResponseWriter, request *http.Request) {
-	deletePostObjects(response, request, blogGifIndex, projectGifIndex)
-}
-
-func deletePostVideos(response http.ResponseWriter, request *http.Request) {
-	deletePostObjects(response, request, blogVideoIndex, projectVideoIndex)
-}
-
-func getPostPicture(response http.ResponseWriter, request *http.Request) {
-	if request.Method != http.MethodGet {
-		handleError("get post picture http method not GET", http.StatusBadRequest, response)
-		return
-	}
-	thetype := request.URL.Query().Get("type")
-	if thetype == "" {
-		handleError("error getting type from query", http.StatusBadRequest, response)
-		return
-	}
-	if !validType(thetype) {
-		handleError("invalid type in query", http.StatusBadRequest, response)
-		return
-	}
-	imageid := request.URL.Query().Get("imageid")
-	if imageid == "" {
-		handleError("no picture id", http.StatusBadRequest, response)
-		return
-	}
-	postid := request.URL.Query().Get("postid")
-	if postid == "" {
-		handleError("no post id", http.StatusBadRequest, response)
-		return
-	}
-	var imageobj *storage.ObjectHandle
-	if thetype == "blog" {
-		imageobj = storageBucket.Object(blogImageIndex + "/" + postid + "/" + imageid + "/original")
-	} else {
-		imageobj = storageBucket.Object(projectImageIndex + "/" + postid + "/" + imageid + "/original")
-	}
-	imagereader, err := imageobj.NewReader(ctxStorage)
-	if err != nil {
-		handleError("error reading image: "+err.Error(), http.StatusBadRequest, response)
-		return
-	}
-	defer imagereader.Close()
-	imagebuffer := new(bytes.Buffer)
-	if bytesread, err := imagebuffer.ReadFrom(imagereader); err != nil {
-		handleError("error reading to buffer: num bytes: "+strconv.FormatInt(bytesread, 10)+", "+err.Error(), http.StatusBadRequest, response)
-		return
-	}
-	contentType := imagereader.Attrs.ContentType
-	response.Header().Set("Content-Type", contentType)
-	response.Write(imagebuffer.Bytes())
-}
-
-func getPostObjects(response http.ResponseWriter, request *http.Request, blogindex string, projectindex string) {
+func getPostFile(response http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodGet {
 		handleError("get post file http method not GET", http.StatusBadRequest, response)
 		return
 	}
-	thetype := request.URL.Query().Get("type")
-	if thetype == "" {
-		handleError("error getting type from query", http.StatusBadRequest, response)
+	posttype := request.URL.Query().Get("posttype")
+	if posttype == "" {
+		handleError("error getting posttype from query", http.StatusBadRequest, response)
 		return
 	}
-	if !validType(thetype) {
-		handleError("invalid type in query", http.StatusBadRequest, response)
+	if !validType(posttype) {
+		handleError("invalid posttype in query", http.StatusBadRequest, response)
 		return
 	}
 	postid := request.URL.Query().Get("postid")
@@ -403,10 +429,10 @@ func getPostObjects(response http.ResponseWriter, request *http.Request, blogind
 		return
 	}
 	var fileobj *storage.ObjectHandle
-	if thetype == "blog" {
-		fileobj = storageBucket.Object(blogindex + "/" + postid + "/" + fileid)
+	if posttype == blogType {
+		fileobj = storageBucket.Object(blogFileIndex + "/" + postid + "/" + fileid + originalPath)
 	} else {
-		fileobj = storageBucket.Object(projectindex + "/" + postid + "/" + fileid)
+		fileobj = storageBucket.Object(projectFileIndex + "/" + postid + "/" + fileid + originalPath)
 	}
 	filereader, err := fileobj.NewReader(ctxStorage)
 	if err != nil {
@@ -422,16 +448,4 @@ func getPostObjects(response http.ResponseWriter, request *http.Request, blogind
 	contentType := filereader.Attrs.ContentType
 	response.Header().Set("Content-Type", contentType)
 	response.Write(filebuffer.Bytes())
-}
-
-func getPostFile(response http.ResponseWriter, request *http.Request) {
-	getPostObjects(response, request, blogFileIndex, projectFileIndex)
-}
-
-func getPostGif(response http.ResponseWriter, request *http.Request) {
-	getPostObjects(response, request, blogGifIndex, projectGifIndex)
-}
-
-func getPostVideo(response http.ResponseWriter, request *http.Request) {
-	getPostObjects(response, request, blogVideoIndex, projectVideoIndex)
 }

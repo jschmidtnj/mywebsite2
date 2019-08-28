@@ -292,7 +292,7 @@ func rootQuery() *graphql.Object {
 						}
 					}
 					var postElasticIndex string
-					if thetype == "blog" {
+					if thetype == blogType {
 						postElasticIndex = blogElasticIndex
 					} else {
 						postElasticIndex = projectElasticIndex
@@ -390,7 +390,7 @@ func rootQuery() *graphql.Object {
 					var mongoCollection *mongo.Collection
 					var postElasticIndex string
 					var postElasticType string
-					if thetype == "blog" {
+					if thetype == blogType {
 						mongoCollection = blogCollection
 						postElasticIndex = blogElasticIndex
 						postElasticType = blogElasticType
@@ -490,42 +490,6 @@ func rootQuery() *graphql.Object {
 							}
 							postData["heroimage"] = primitiveHeroImage.Map()
 						}
-						imageArray, ok := postData["images"].(primitive.A)
-						if !ok {
-							return nil, errors.New("cannot cast images to array")
-						}
-						for i, image := range imageArray {
-							primativeImage, ok := image.(primitive.D)
-							if !ok {
-								return nil, errors.New("cannot cast image to primitive D")
-							}
-							imageArray[i] = primativeImage.Map()
-						}
-						postData["images"] = imageArray
-						gifArray, ok := postData["gifs"].(primitive.A)
-						if !ok {
-							return nil, errors.New("cannot cast gifs to array")
-						}
-						for i, gif := range gifArray {
-							primativeGif, ok := gif.(primitive.D)
-							if !ok {
-								return nil, errors.New("cannot cast gif to primitive D")
-							}
-							gifArray[i] = primativeGif.Map()
-						}
-						postData["gifs"] = gifArray
-						videoArray, ok := postData["videos"].(primitive.A)
-						if !ok {
-							return nil, errors.New("cannot cast videos to array")
-						}
-						for i, video := range videoArray {
-							primativeVideo, ok := video.(primitive.D)
-							if !ok {
-								return nil, errors.New("cannot cast video to primitive D")
-							}
-							videoArray[i] = primativeVideo.Map()
-						}
-						postData["videos"] = videoArray
 						fileArray, ok := postData["files"].(primitive.A)
 						if !ok {
 							return nil, errors.New("cannot cast files to array")
