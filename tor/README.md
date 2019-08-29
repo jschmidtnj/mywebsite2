@@ -5,36 +5,36 @@ Easily run a hidden service inside the Tor network with this container
 Generate the skeleton configuration for you hidden service, replace pattern
 for your hidden service pattern name. Example, if you want to your hidden
 service contain the word 'boss', just use this word as argument. You can use
-regular expressions, like ```^boss```, will generate an address wich will start
+regular expressions, like ```^boss```, will generate an address which will start
 with 'boss'. Be aware that bigger the pattern, more time it will take to
 generate it.
 
 ```sh
 sudo dockerd
 sudo docker system prune -a
-sudo docker rmi -f jschmidtnj/mywebsite2_tor:v0.0.2
+sudo docker rmi -f jschmidtnj/mywebsite2_tor:v0.0.0
 sudo docker stop /hiddensite
 sudo docker rm /hiddensite
-sudo docker build -t jschmidtnj/mywebsite2_tor:v0.0.2 .
+sudo docker build -t jschmidtnj/mywebsite2_tor:v0.0.0 .
 rm -rf web
 mkdir web
 sudo chown -R "$USER":666 web
-sudo docker run -d --restart=always --name hiddensite -v $(pwd)/web:/web jschmidtnj/mywebsite2_tor:v0.0.2 ^josh
+sudo docker run -d --restart=always --env-file .env --name hiddensite -v $(pwd)/web:/web jschmidtnj/mywebsite2_tor:v0.0.0 ^josh
 # after a long time
 sudo chmod 755 web
 sudo docker login
-sudo docker push jschmidtnj/mywebsite2_tor:v0.0.2
+sudo docker push jschmidtnj/mywebsite2_tor:v0.0.0
 ```
 
-add to compute engine: `docker.io/jschmidtnj/mywebsite2_tor:v0.0.2`
+add to compute engine: `docker.io/jschmidtnj/mywebsite2_tor:v0.0.0`
 
 in the cloud:
 ```sh
 rm -rf web
-mkdir web
-sudo chown -R "$USER":666 web
-docker run -d --restart=always --name hiddensite -v $(pwd)/web:/web jschmidtnj/mywebsite2_tor:v0.0.2 ^josh
+vim .env
+docker run -d --restart=always --env-file .env --name hiddensite -v $(pwd)/web:/web jschmidtnj/mywebsite2_tor:v0.0.0 ^josh
 # after a long time
+sudo chown -R "$USER":666 web
 sudo chmod 755 web
 ```
 

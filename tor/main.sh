@@ -1,10 +1,5 @@
 #!/bin/bash
 
-if [ -f /web/private_key ]
-then
-    echo '[-] You already have an private key, delete it if you want to generate a new key'
-    exit -1
-fi
 if [ -z "$1" ]
 then
     echo '[-] You dont provided any mask, please inform an mask to generate your address'
@@ -27,21 +22,22 @@ echo '  server_name '$address';' >> /web/site.conf
 echo '}' >> /web/site.conf
 
 echo '[+] Creating www folder'
-mkdir /web/www
-chmod 755 /web/
 echo '[+] Generating website'
-if [ -f /web/src ]
+if [ -f /web/src ] && [ -f /web/nuxt ] && [ -f /web/dist ]
 then
+    echo '[+] src directory found for website'
+else
     git clone https://github.com/jschmidtnj/mywebsite2 /web/src
     cd /web/src/nuxt
     yarn
     yarn predeploy
-    mv /web/src/nuxt/dist /web/www
-    chmod 755 /web/www
+    cd /
 fi
-chown hidden:hidden -R /web/www
-chown "$USER":666 /web/www
+rm -rf /web/www
 chmod 755 /web/
+chmod 755 /web/www
+cp -ar /web/src/nuxt/dist /web/www
+chown hidden:hidden -R /web/www
 
 echo '[+] Initializing local clock'
 ntpdate -B -q 0.debian.pool.ntp.org

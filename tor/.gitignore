@@ -1,2 +1,5 @@
 # ignore web output
 web/
+
+# ignore config file
+.env
