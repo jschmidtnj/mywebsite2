@@ -1,12 +1,19 @@
 FROM debian:jessie
 
-LABEL maintainer "opsxcq@strm.sh"
+LABEL maintainer "joshua@joshuaschmidt.tech"
 
 # Base packages
 RUN apt-get update && \
     apt-get -y install \
     nginx \
     tor torsocks ntpdate
+
+# yarn and node install
+RUN curl -sL https://deb.nodesource.com/setup_11.x | bash - && \
+    apt-get install -y nodejs && \
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - && \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list && \
+    sudo apt-get update && sudo apt-get install yarn
 
 # Compile shallot
 ADD ./shallot /shallot
@@ -44,4 +51,3 @@ WORKDIR /web
 
 ENTRYPOINT ["/main.sh"]
 CMD ["serve"]
-
