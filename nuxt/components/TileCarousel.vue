@@ -75,7 +75,7 @@
                   class="tile-img"
                 />
                 <b-container>
-                  <b-card-title title-tag="h5">
+                  <b-card-title title-tag="h6" class="pt-2">
                     {{ postval.caption }}
                   </b-card-title>
                 </b-container>
@@ -340,6 +340,7 @@ export default Vue.extend({
   text-align: center;
   max-width: 250px;
   min-width: 150px;
+  border: 0 !important;
 }
 .zoom:hover {
   transform: scale(1.05);

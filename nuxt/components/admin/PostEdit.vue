@@ -601,6 +601,7 @@ const originalHero = {
   height: null
 }
 const originalTile = Object.assign({}, originalHero)
+originalTile.id = uuid()
 originalTile.name = 'tile'
 export default Vue.extend({
   name: 'Posts',
@@ -1135,6 +1136,14 @@ export default Vue.extend({
                   if (typeof thepost[key] === 'string')
                     thepost[key] = decodeURIComponent(thepost[key]);
                 })
+                for (let i = 0; i < thepost.files.length; i++) {
+                  Object.keys(thepost.files[i]).forEach(key => {
+                    if (typeof thepost.files[i][key] === 'string')
+                      thepost.files[i][key] = decodeURIComponent(thepost.files[i][key]);
+                  })
+                }
+                thepost.tags = thepost.tags.map(tag => decodeURIComponent(tag))
+                thepost.categories = thepost.categories.map(category => decodeURIComponent(category))
                 getimages(thepost)
               } else if (res.data.errors) {
                 this.$toasted.global.error({

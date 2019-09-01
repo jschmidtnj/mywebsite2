@@ -32,7 +32,7 @@
             </b-col>
           </b-row>
         </b-container>
-        <b-container v-if="post">
+        <b-container v-if="post" id="header-container">
           <h1>{{ post.title }}</h1>
           <p>{{ post.author }}</p>
           <p v-if="post.id">
@@ -42,8 +42,10 @@
           <a :href="`${shortlinkurl}/${post.shortlink}`">{{
             `${shortlinkurl}/${post.shortlink}`
           }}</a>
-          <p class="orange-text">{{ post.categories.join(' | ') }}</p>
+          <p class="orange-text">{{ post.categories.map(category => decodeURIComponent(category)).join(' | ') }}</p>
           <hr />
+        </b-container>
+        <b-container v-if="post" id="content-container">
           <vue-markdown
             :source="post.content"
             class="markdown"
@@ -255,8 +257,13 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-.orange-text {
-  color: orange;
+#content-container {
+  padding-left: 0;
+  padding-right: 0;
+}
+#content-container p, h1, h2, h3, h4, h5, h6 {
+  padding-right: 15px;
+  padding-left: 15px;
 }
 #post-data {
   display: flex;

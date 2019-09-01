@@ -222,7 +222,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-.tile-img img {
+.tile-img {
   object-fit: cover;
   width: 100%;
   height: 200px;

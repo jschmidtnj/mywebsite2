@@ -41,3 +41,22 @@
   padding: 0;
   font: inherit;
 }
+
+/* global classes for post styling */
+.orange-text {
+  color: orange;
+}
+
+.grey-background {
+  background-color: #EDEDED;
+}
+
+.lightblue-background {
+  background-color: #C9F8FA;
+}
+
+.center-vertical {
+  position:relative;
+  top: 50%;
+  transform: translateY(-50%);
+}
