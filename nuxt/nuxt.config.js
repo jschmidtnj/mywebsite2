@@ -17,7 +17,8 @@ module.exports = {
     apiurl: apiurl,
     ampurl: ampurl,
     shortlinkurl: process.env.SHORTLINKURL,
-    recaptchasitekey: recaptchasitekey
+    recaptchasitekey: recaptchasitekey,
+    pdf: process.env.PDF
   },
 
   /*
@@ -127,7 +128,8 @@ module.exports = {
     { src: '~/plugins/toast', ssr: false },
     { src: '~/plugins/select', ssr: false },
     { src: '~/plugins/recaptcha', ssr: false },
-    { src: '~/plugins/scroll-reveal', ssr: false }
+    { src: '~/plugins/scroll-reveal', ssr: false },
+    { src: '~/plugins/pdf', ssr: false }
   ],
 
   /*
@@ -228,6 +230,7 @@ module.exports = {
      ** You can extend webpack config here
      */
     extend(config, ctx) {
+      config.output.globalObject = 'this'
       // Run ESLint on save
       if (ctx.isDev && ctx.isClient) {
         config.module.rules.push({

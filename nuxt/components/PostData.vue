@@ -42,7 +42,13 @@
           <a :href="`${shortlinkurl}/${post.shortlink}`">{{
             `${shortlinkurl}/${post.shortlink}`
           }}</a>
-          <p class="orange-text">{{ post.categories.map(category => decodeURIComponent(category)).join(' | ') }}</p>
+          <p class="orange-text">
+            {{
+              post.categories
+                .map(category => decodeURIComponent(category))
+                .join(' | ')
+            }}
+          </p>
           <hr />
         </b-container>
         <b-container v-if="post" id="content-container">

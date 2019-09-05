@@ -4,9 +4,10 @@
     <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
     <b-collapse id="nav-collapse" is-nav>
       <b-navbar-nav>
-        <b-nav-item href="/about">About</b-nav-item>
         <b-nav-item href="/blogs">Blogs</b-nav-item>
         <b-nav-item href="/projects">Projects</b-nav-item>
+        <b-nav-item href="/resume">Resume</b-nav-item>
+        <b-nav-item href="/about">About</b-nav-item>
         <b-nav-item href="/downloads">Downloads</b-nav-item>
         <b-nav-item v-if="!loggedin" href="/signup">Signup</b-nav-item>
         <b-nav-item v-if="!loggedin" href="/login">Login</b-nav-item>

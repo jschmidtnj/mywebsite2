@@ -61,6 +61,7 @@
     "vanilla-lazyload": "^12.0.0",
     "vue-color": "^2.7.0",
     "vue-markdown": "^2.2.4",
+    "vue-pdf": "^4.0.7",
     "vue-recaptcha-v3": "^1.5.0",
     "vue-scroll-reveal": "^1.0.11",
     "vue-select": "^3.1.0",
