@@ -6,6 +6,7 @@
 
 <script lang="ts">
 import Vue from 'vue'
+// @ts-ignore
 const seo = JSON.parse(process.env.seoconfig)
 const pdf = process.env.pdf
 export default Vue.extend({
