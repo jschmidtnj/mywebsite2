@@ -1,9 +1,9 @@
 # redirects for netlify
-/sitemap.xml             https://api.joshuaschmidt.tech/sitemap.xml
-/sitemap.xml.gz          https://api.joshuaschmidt.tech/sitemap.xml.gz
-/sitemap-blogs.xml       https://api.joshuaschmidt.tech/sitemap-blogs.xml
-/sitemap-blogs.xml.gz    https://api.joshuaschmidt.tech/sitemap-blogs.xml.gz
-/sitemap-projects.xml    https://api.joshuaschmidt.tech/sitemap-projects.xml
-/sitemap-projects.xml.gz https://api.joshuaschmidt.tech/sitemap-projects.xml.gz
-/blog/*                  /404     200!
-/project/*               /404     200!
+/sitemap.xml             https://api.joshuaschmidt.tech/sitemap.xml             200
+/sitemap.xml.gz          https://api.joshuaschmidt.tech/sitemap.xml.gz          200
+/sitemap-blogs.xml       https://api.joshuaschmidt.tech/sitemap-blogs.xml       200
+/sitemap-blogs.xml.gz    https://api.joshuaschmidt.tech/sitemap-blogs.xml.gz    200
+/sitemap-projects.xml    https://api.joshuaschmidt.tech/sitemap-projects.xml    200
+/sitemap-projects.xml.gz https://api.joshuaschmidt.tech/sitemap-projects.xml.gz 200
+/blog/*                  /404                                                   200
+/project/*               /404                                                   200

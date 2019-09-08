@@ -143,33 +143,39 @@ export default Vue.extend({
                 // update title for spa
                 document.title = this.post.title
               } else if (res.data.errors) {
-                this.$toasted.global.error({
-                  message: `found errors: ${JSON.stringify(res.data.errors)}`
+                console.error(`found errors: ${JSON.stringify(res.data.errors)}`)
+                this.$router.push({
+                  path: '/404'
                 })
               } else {
-                this.$toasted.global.error({
-                  message: 'could not find data or errors'
+                console.error('could not find data or errors')
+                this.$router.push({
+                  path: '/404'
                 })
               }
             } else {
-              this.$toasted.global.error({
-                message: 'could not get data'
+              console.error('could not get data')
+              this.$router.push({
+                path: '/404'
               })
             }
           } else {
-            this.$toasted.global.error({
-              message: `status code of ${res.status}`
+            console.error(`status code of ${res.status}`)
+            this.$router.push({
+              path: '/404'
             })
           }
         })
         .catch(err => {
-          this.$toasted.global.error({
-            message: `got error: ${err}`
+          console.error(`got error: ${err}`)
+          this.$router.push({
+            path: '/404'
           })
         })
     } else {
-      this.$toasted.global.error({
-        message: 'could not find id in params'
+      console.error('could not find id in params')
+      this.$router.push({
+        path: '/404'
       })
     }
   },
