@@ -5,3 +5,5 @@
 /sitemap-blogs.xml.gz    https://api.joshuaschmidt.tech/sitemap-blogs.xml.gz
 /sitemap-projects.xml    https://api.joshuaschmidt.tech/sitemap-projects.xml
 /sitemap-projects.xml.gz https://api.joshuaschmidt.tech/sitemap-projects.xml.gz
+/blog/*                  200!
+/project/*               200!
