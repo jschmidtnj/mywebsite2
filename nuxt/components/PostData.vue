@@ -39,9 +39,9 @@
             {{ formatDate(mongoidToDate(post.id), 'M/D/YYYY') }}
           </p>
           <p>{{ post.views }}</p>
-          <a :href="`${shortlinkurl}/${post.shortlink}`">{{
-            `${shortlinkurl}/${post.shortlink}`
-          }}</a>
+          <a :href="`${shortlinkurl}/${post.shortlink}`">
+            {{ `${shortlinkurl}/${post.shortlink}` }}
+          </a>
           <p class="orange-text">
             {{
               post.categories
@@ -137,69 +137,69 @@ export default Vue.extend({
                 const post = res.data.data.post
                 Object.keys(post).forEach(key => {
                   if (typeof post[key] === 'string')
-                    post[key] = decodeURIComponent(post[key]);
+                    post[key] = decodeURIComponent(post[key])
                 })
                 this.post = post
                 // update title for spa
                 document.title = this.post.title
               } else if (res.data.errors) {
-                console.error(`found errors: ${JSON.stringify(res.data.errors)}`)
-                this.$router.push({
-                  path: '/404'
+                this.$nuxt.error({
+                  statusCode: 404,
+                  message: `found errors: ${JSON.stringify(res.data.errors)}`
                 })
               } else {
-                console.error('could not find data or errors')
-                this.$router.push({
-                  path: '/404'
+                this.$nuxt.error({
+                  statusCode: 404,
+                  message: 'could not find data or errors'
                 })
               }
             } else {
-              console.error('could not get data')
-              this.$router.push({
-                path: '/404'
+              this.$nuxt.error({
+                statusCode: 404,
+                message: 'could not get data'
               })
             }
           } else {
-            console.error(`status code of ${res.status}`)
-            this.$router.push({
-              path: '/404'
+            this.$nuxt.error({
+              statusCode: 404,
+              message: `status code of ${res.status}`
             })
           }
         })
         .catch(err => {
-          console.error(`got error: ${err}`)
-          this.$router.push({
-            path: '/404'
+          this.$nuxt.error({
+            statusCode: 404,
+            message: `got error: ${err}`
           })
         })
     } else {
-      console.error('could not find id in params')
-      this.$router.push({
-        path: '/404'
+      this.$nuxt.error({
+        statusCode: 404,
+        message: 'could not find id in params'
       })
     }
   },
   // @ts-ignore
   head() {
-    const title = this.post
-      ? this.post.title
-      : this.type
+    const title = this.post ? this.post.title : this.type
     const description = this.post ? this.post.caption : this.type
     const meta: any = [
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { name: 'twitter:title', content: title },
-        {
-          name: 'twitter:description',
-          content: description
-        },
-        { hid: 'description', name: 'description', content: description }
-      ]
+      { property: 'og:title', content: title },
+      { property: 'og:description', content: description },
+      { name: 'twitter:title', content: title },
+      {
+        name: 'twitter:description',
+        content: description
+      },
+      { hid: 'description', name: 'description', content: description }
+    ]
     const script: any = []
     if (this.post) {
       const image = `${cloudStorageURLs.posts}/${
-                      this.type === 'blog' ? this.staticstorageindexes.blogfiles : this.staticstorageindexes.projectfiles
-                    }/${this.post.id}/${this.post.tileimage.id + this.paths.original}`
+        this.type === 'blog'
+          ? this.staticstorageindexes.blogfiles
+          : this.staticstorageindexes.projectfiles
+      }/${this.post.id}/${this.post.tileimage.id + this.paths.original}`
       meta.push({
         property: 'og:image',
         content: image
@@ -208,15 +208,18 @@ export default Vue.extend({
         name: 'twitter:image',
         content: image
       })
-      const date = this.formatDate(this.mongoidToDate(this.post.id), 'YYYY-MM-DD')
+      const date = this.formatDate(
+        this.mongoidToDate(this.post.id),
+        'YYYY-MM-DD'
+      )
       script.push({
-        innerHTML: JSON.stringify({ 
-          '@context': 'https://schema.org', 
+        innerHTML: JSON.stringify({
+          '@context': 'https://schema.org',
           '@type': 'BlogPosting',
           headline: this.post.title,
           alternativeHeadline: this.post.caption,
           image: image,
-          editor: this.post.author, 
+          editor: this.post.author,
           genre: this.post.categories.join(' '),
           keywords: this.post.tags.join(' '),
           wordcount: this.post.content.length,
@@ -273,7 +276,13 @@ export default Vue.extend({
   padding-left: 0;
   padding-right: 0;
 }
-#content-container p, h1, h2, h3, h4, h5, h6 {
+#content-container p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   padding-right: 15px;
   padding-left: 15px;
 }
@@ -286,7 +295,7 @@ export default Vue.extend({
   flex: 1;
 }
 @media (min-width: 1200px) {
-  .container{
+  .container {
     max-width: 1400px;
   }
 }

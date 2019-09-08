@@ -389,7 +389,7 @@
 <script>
 export default {
   name: 'Error',
-  layout: 'notemplate',
+  layout: 'nothing',
   props: {
     error: {
       type: Object,
@@ -540,7 +540,7 @@ export default {
 <style lang="scss">
 @import url('https://fonts.googleapis.com/css?family=Dosis:300,400,700,800');
 
-/** Styles for the 403 Page **/
+/** Styles for the error Page **/
 
 .particle-error,
 .permission_denied,
@@ -549,6 +549,10 @@ export default {
   height: 100%;
   position: absolute;
   margin: 0px !important;
+}
+
+.particles-js-canvas-el[style] {
+  height: 99% !important;
 }
 
 #particles-js {
