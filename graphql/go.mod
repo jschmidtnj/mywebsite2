@@ -19,7 +19,6 @@ require (
 	github.com/dlclark/regexp2 v1.2.0 // indirect
 	github.com/fatih/gomodifytags v1.0.0 // indirect
 	github.com/go-redis/redis v6.15.2+incompatible
-	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/google/pprof v0.0.0-20190723021845-34ac40c74b70 // indirect
@@ -28,7 +27,7 @@ require (
 	github.com/graphql-go/graphql v0.7.8
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/haya14busa/goplay v1.0.0 // indirect
-	github.com/ikeikeikeike/go-sitemap-generator/v2 v2.0.2 // indirect
+	github.com/ikeikeikeike/go-sitemap-generator/v2 v2.0.2
 	github.com/joho/godotenv v1.3.0
 	github.com/josharian/impl v0.0.0-20190715203526-f0d59e96e372 // indirect
 	github.com/karrick/godirwalk v1.10.12 // indirect
@@ -41,10 +40,10 @@ require (
 	github.com/nicksnyder/go-i18n v2.0.2+incompatible // indirect
 	github.com/nicksnyder/go-i18n/v2 v2.0.2 // indirect
 	github.com/nkovacs/streamquote v1.0.0 // indirect
-	github.com/olivere/elastic/v7 v7.0.5 // indirect
+	github.com/olivere/elastic/v7 v7.0.5
 	github.com/ramya-rao-a/go-outline v0.0.0-20181122025142-7182a932836a // indirect
 	github.com/rogpeppe/godef v1.1.1 // indirect
-	github.com/rs/cors v1.7.0 // indirect
+	github.com/rs/cors v1.7.0
 	github.com/rs/xid v1.2.1
 	github.com/sendgrid/rest v2.4.1+incompatible
 	github.com/sendgrid/sendgrid-go v3.5.0+incompatible
