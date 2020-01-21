@@ -32,9 +32,7 @@ export const mutations = {
       if (!schema[elem]) schema[elem] = {}
       schema = schema[elem]
     }
-    if (
-      payload.value && payload.value === 'DELETE'
-    ) {
+    if (payload.value && payload.value === 'DELETE') {
       delete schema[pList[len - 1]]
     } else {
       schema[pList[len - 1]] = payload.value
@@ -51,7 +49,7 @@ export const mutations = {
 }
 
 export const actions = {
-  checkLoggedIn({state, commit}) {
+  checkLoggedIn({ state, commit }) {
     let res = true
     try {
       const decoded = jwt.decode(state.token, {
@@ -69,32 +67,39 @@ export const actions = {
   async getUser({ state, commit }) {
     return new Promise((resolve, reject) => {
       if (!state.token) {
-        reject('no token found for user')
+        reject(new Error('no token found for user'))
       } else {
-        this.$axios.get('/graphql', {
-          params: {
-            query: '{account{id email type emailverified shortlinks}}'
-          }
-        }).then(res => {
-          if (res.status === 200) {
-            if (res.data) {
-              if (res.data.data && res.data.data.account) {
-                commit('setUser', res.data.data.account)
-                resolve('found user account data')
-              } else if (res.data.errors) {
-                reject(`found errors: ${JSON.stringify(res.data.errors)}`)
+        this.$axios
+          .get('/graphql', {
+            params: {
+              query: '{account{id email type emailverified shortlinks}}'
+            }
+          })
+          .then(res => {
+            if (res.status === 200) {
+              if (res.data) {
+                if (res.data.data && res.data.data.account) {
+                  commit('setUser', res.data.data.account)
+                  resolve('found user account data')
+                } else if (res.data.errors) {
+                  reject(
+                    new Error(
+                      `found errors: ${JSON.stringify(res.data.errors)}`
+                    )
+                  )
+                } else {
+                  reject(new Error('could not find data or errors'))
+                }
               } else {
-                reject('could not find data or errors')
+                reject(new Error('could not get data'))
               }
             } else {
-              reject('could not get data')
+              reject(new Error(`status code of ${res.status}`))
             }
-          } else {
-            reject(`status code of ${res.status}`)
-          }
-        }).catch(err => {
-          reject(err)
-        })
+          })
+          .catch(err => {
+            reject(err)
+          })
       }
     })
   }

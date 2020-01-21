@@ -13,8 +13,8 @@
                     <span>
                       <b-form-textarea
                         v-model="post.content"
-                        type="text"
                         :state="!$v.post.content.$invalid"
+                        type="text"
                         class="form-control"
                         aria-describedby="contentfeedback"
                         placeholder="Enter content..."
@@ -186,8 +186,8 @@
                   </b-form-group>
                   <b-img
                     v-if="post.heroimage.file && post.heroimage.src"
-                    class="sampleimage"
                     :src="post.heroimage.src"
+                    class="sampleimage"
                   ></b-img>
                   <b-form-group>
                     <label class="form-required">Hero Image</label>
@@ -196,14 +196,14 @@
                         v-model="post.heroimage.file"
                         :accept="validimages.join(', ')"
                         :state="!$v.post.heroimage.$invalid"
-                        class="mb-2 form-control"
-                        aria-describedby="heroimagefeedback"
-                        placeholder="Choose an image..."
-                        drop-placeholder="Drop image here..."
                         @input="
                           post.heroimage.uploaded = false
                           updateFileSrc(post.heroimage)
                         "
+                        class="mb-2 form-control"
+                        aria-describedby="heroimagefeedback"
+                        placeholder="Choose an image..."
+                        drop-placeholder="Drop image here..."
                       />
                     </span>
                     <b-form-invalid-feedback
@@ -217,8 +217,8 @@
                   </b-form-group>
                   <b-img
                     v-if="post.tileimage.file && post.tileimage.src"
-                    class="sampleimage"
                     :src="post.tileimage.src"
+                    class="sampleimage"
                   ></b-img>
                   <b-form-group>
                     <label class="form-required">Tile Image</label>
@@ -227,14 +227,14 @@
                         v-model="post.tileimage.file"
                         :accept="validimages.join(', ')"
                         :state="!$v.post.tileimage.$invalid"
-                        class="mb-2 form-control"
-                        aria-describedby="tileimagefeedback"
-                        placeholder="Choose an image..."
-                        drop-placeholder="Drop image here..."
                         @input="
                           post.tileimage.uploaded = false
                           updateFileSrc(post.tileimage)
                         "
+                        class="mb-2 form-control"
+                        aria-describedby="tileimagefeedback"
+                        placeholder="Choose an image..."
+                        drop-placeholder="Drop image here..."
                       />
                     </span>
                     <b-form-invalid-feedback
@@ -257,8 +257,8 @@
                           post.files[index].type &&
                           checkImageType(post.files[index].type)
                       "
-                      class="sampleimage"
                       :src="post.files[index].src"
+                      class="sampleimage"
                     ></b-img>
                     <video
                       v-else-if="
@@ -268,12 +268,12 @@
                           checkVideoType(post.files[index].type)
                       "
                       :ref="`video-source-${post.files[index].id}`"
+                      :type="post.files[index].type"
+                      :src="post.files[index].src"
                       controls
                       autoplay
                       class="sampleimage"
-                      :type="post.files[index].type"
                       allowfullscreen
-                      :src="post.files[index].src"
                     ></video>
                     <br />
                     <code
@@ -329,10 +329,10 @@
                         <b-form-input
                           v-model="post.files[index].name"
                           :state="!filevalue.name.$invalid"
+                          @input="post.files[index].uploaded = false"
                           type="text"
                           class="form-control"
                           placeholder="name"
-                          @input="post.files[index].uploaded = false"
                         />
                       </span>
                       <b-form-invalid-feedback
@@ -354,13 +354,13 @@
                           v-model="post.files[index].file"
                           :accept="validfiles.join(', ')"
                           :state="!filevalue.file.$invalid"
-                          class="mb-2 form-control"
-                          placeholder="Choose a file..."
-                          drop-placeholder="Drop file here..."
                           @input="
                             post.files[index].uploaded = false
                             updateFileSrc(post.files[index])
                           "
+                          class="mb-2 form-control"
+                          placeholder="Choose a file..."
+                          drop-placeholder="Drop file here..."
                         />
                       </span>
                       <b-form-invalid-feedback
@@ -376,8 +376,6 @@
                     <b-row>
                       <b-col>
                         <b-btn
-                          variant="primary"
-                          class="mr-2"
                           @click="
                             post.files.push({
                               name: '',
@@ -390,6 +388,8 @@
                               type: null
                             })
                           "
+                          variant="primary"
+                          class="mr-2"
                         >
                           <no-ssr>
                             <font-awesome-icon
@@ -399,10 +399,10 @@
                           >Add
                         </b-btn>
                         <b-btn
-                          variant="primary"
-                          class="mr-2"
                           :disabled="post.files.length === 0"
                           @click="removeFile"
+                          variant="primary"
+                          class="mr-2"
                         >
                           <no-ssr>
                             <font-awesome-icon
@@ -418,9 +418,9 @@
                     <b-row>
                       <b-col>
                         <b-btn
+                          :disabled="$v.post.$invalid || submitting"
                           variant="primary"
                           type="submit"
-                          :disabled="$v.post.$invalid || submitting"
                         >
                           <no-ssr>
                             <font-awesome-icon
@@ -451,15 +451,15 @@
               <b-form @submit="searchposts" @reset="clearsearch">
                 <span class="card-text">
                   <div
-                    v-if="post.content !== ''"
                     id="content-rendered"
+                    v-if="post.content !== ''"
                     class="mb-4"
                   >
                     <h2 class="mb-4">Content</h2>
                     <vue-markdown
                       :source="post.content"
-                      class="mb-4 markdown"
                       @rendered="updateMarkdown"
+                      class="mb-4 markdown"
                     />
                   </div>
                   <h2 class="mb-4">Search</h2>
@@ -468,8 +468,8 @@
                     <span>
                       <b-form-input
                         v-model="search"
-                        type="text"
                         :state="!$v.search.$invalid"
+                        type="text"
                         class="form-control mb-2"
                         aria-describedby="searchfeedback"
                         placeholder="search..."
@@ -487,10 +487,10 @@
                     </b-form-invalid-feedback>
                   </b-form-group>
                   <b-btn
+                    :disabled="$v.search.$invalid"
                     variant="primary"
                     type="submit"
                     class="mr-4"
-                    :disabled="$v.search.$invalid"
                   >
                     <no-ssr>
                       <font-awesome-icon
@@ -512,12 +512,12 @@
                 </span>
               </b-form>
               <b-table
-                show-empty
-                stacked="md"
                 :items="searchresults"
                 :fields="fields"
                 :current-page="currentpage"
                 :per-page="numperpage"
+                show-empty
+                stacked="md"
               >
                 <template slot="name" slot-scope="row">{{
                   row.value
@@ -529,10 +529,10 @@
                   <a :href="`/${type}/${row.value}`">{{ row.value }}</a>
                 </template>
                 <template slot="actions" slot-scope="row">
-                  <b-button size="sm" class="mr-1" @click="editPost(row.item)"
+                  <b-button @click="editPost(row.item)" size="sm" class="mr-1"
                     >Edit</b-button
                   >
-                  <b-button size="sm" @click="deletePost(row.item)"
+                  <b-button @click="deletePost(row.item)" size="sm"
                     >Del</b-button
                   >
                 </template>
@@ -555,7 +555,7 @@
   </div>
 </template>
 
-<script lang="ts">
+<script lang="js">
 import Vue from 'vue'
 import { validationMixin } from 'vuelidate'
 import { required, minLength } from 'vuelidate/lib/validators'
@@ -1130,7 +1130,7 @@ export default Vue.extend({
           if (res.status === 200) {
             if (res.data) {
               if (res.data.data && res.data.data.post) {
-                const thepost: any = res.data.data.post
+                const thepost = res.data.data.post
                 console.log(res.data.data)
                 Object.keys(thepost).forEach(key => {
                   if (typeof thepost[key] === 'string')

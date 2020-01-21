@@ -1,17 +1,17 @@
 <template>
   <b-card>
     <b-table
-      striped
-      hover
       :items="shortlinks"
       :fields="fields"
       :show-empty="true"
+      striped
+      hover
       empty-text="no links found"
     ></b-table>
   </b-card>
 </template>
 
-<script lang="ts">
+<script lang="js">
 import Vue from 'vue'
 export default Vue.extend({
   name: 'Account',
@@ -52,7 +52,7 @@ export default Vue.extend({
           if (res.status === 200) {
             if (res.data) {
               if (res.data.data && res.data.data.shortlinks) {
-                const shortlinks: any = []
+                const shortlinks = []
                 for (let i = 0; i < res.data.data.shortlinks.length; i++) {
                   shortlinks.push({
                     id: this.$store.state.auth.user.shortlinks[i],

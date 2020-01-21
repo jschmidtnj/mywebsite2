@@ -16,7 +16,7 @@
   </div>
 </template>
 
-<script lang="ts">
+<script lang="js">
 import Vue from 'vue'
 const githuburl = process.env.githuburl
 export default Vue.extend({

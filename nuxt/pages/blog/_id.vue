@@ -2,7 +2,7 @@
   <post-data type="blog" />
 </template>
 
-<script lang="ts">
+<script lang="js">
 import Vue from 'vue'
 import PostData from '~/components/PostData.vue'
 export default Vue.extend({

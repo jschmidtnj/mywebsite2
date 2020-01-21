@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="post" id="post-data">
+    <div id="post-data" v-if="post">
       <div id="post-content">
         <b-container class="hero-body">
           <b-row>
@@ -32,7 +32,7 @@
             </b-col>
           </b-row>
         </b-container>
-        <b-container v-if="post" id="header-container">
+        <b-container id="header-container" v-if="post">
           <h1>{{ post.title }}</h1>
           <p>{{ post.author }}</p>
           <p v-if="post.id">
@@ -51,23 +51,23 @@
           </p>
           <hr />
         </b-container>
-        <b-container v-if="post" id="content-container">
+        <b-container id="content-container" v-if="post">
           <vue-markdown
             :source="post.content"
-            class="markdown"
             @rendered="updateMarkdown"
+            class="markdown"
           />
         </b-container>
       </div>
       <b-container>
-        <tile-carousel class="mt-5 mb-2" :type="type" />
+        <tile-carousel :type="type" class="mt-5 mb-2" />
       </b-container>
     </div>
     <loading v-else />
   </div>
 </template>
 
-<script lang="ts">
+<script lang="js">
 import Vue from 'vue'
 import { format } from 'date-fns'
 import VueMarkdown from 'vue-markdown'
@@ -183,7 +183,7 @@ export default Vue.extend({
   head() {
     const title = this.post ? this.post.title : this.type
     const description = this.post ? this.post.caption : this.type
-    const meta: any = [
+    const meta = [
       { property: 'og:title', content: title },
       { property: 'og:description', content: description },
       { name: 'twitter:title', content: title },
@@ -193,7 +193,7 @@ export default Vue.extend({
       },
       { hid: 'description', name: 'description', content: description }
     ]
-    const script: any = []
+    const script = []
     if (this.post) {
       const image = `${cloudStorageURLs.posts}/${
         this.type === 'blog'

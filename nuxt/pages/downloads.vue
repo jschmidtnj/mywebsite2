@@ -26,7 +26,7 @@
   </b-card>
 </template>
 
-<script lang="ts">
+<script lang="js">
 import Vue from 'vue'
 import { androidAppURL, cloudStorageURLs } from '~/assets/config'
 // @ts-ignore

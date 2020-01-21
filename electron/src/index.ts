@@ -3,7 +3,7 @@ import { Storage } from '@google-cloud/storage'
 import * as archiver from 'archiver'
 import config from './config'
 
-const options: any = {
+const options = {
   name: config.name,
   targetUrl: config.url,
   version: '1.0.0',

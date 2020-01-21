@@ -66,8 +66,7 @@ export const actions = {
             tags: state.tags.join(',tags='),
             categories: state.categories.join(',categories='),
             cache: !(
-              rootState.auth.user &&
-              rootState.auth.user.type === 'admin'
+              rootState.auth.user && rootState.auth.user.type === 'admin'
             )
           }
         })
@@ -81,13 +80,13 @@ export const actions = {
                 })
                 resolve(`count updated successfully to ${res.data.count}`)
               } else {
-                reject('could not find count data')
+                reject(new Error('could not find count data'))
               }
             } else {
-              reject('could not get data')
+              reject(new Error('could not get data'))
             }
           } else {
-            reject(`status code of ${res.status}`)
+            reject(new Error(`status code of ${res.status}`))
           }
         })
         .catch(err => {
@@ -95,7 +94,7 @@ export const actions = {
           if (err.response && err.response.data) {
             message = err.response.data.message
           }
-          reject(message)
+          reject(new Error(message))
         })
     })
   },
@@ -121,22 +120,15 @@ export const actions = {
           params: {
             query: `{posts(type:"${encodeURIComponent(
               payload.type
-            )}",perpage:${encodeURIComponent(
-              state.perpage
-            )},page:${
+            )}",perpage:${encodeURIComponent(state.perpage)},page:${
               payload.page
-              },searchterm:"",sort:"${encodeURIComponent(
-                state.sortBy
-              )}",ascending:${
-              !state.sortDesc
-              },tags:${
-              JSON.stringify(state.tags)
-              },categories:${
-              JSON.stringify(state.categories)
-              },cache:${(!(
-                rootState.auth.user &&
-                rootState.auth.user.type === 'admin'
-              )).toString()}){tileimage{id} id title caption color}}`
+            },searchterm:"",sort:"${encodeURIComponent(
+              state.sortBy
+            )}",ascending:${!state.sortDesc},tags:${JSON.stringify(
+              state.tags
+            )},categories:${JSON.stringify(state.categories)},cache:${(!(
+              rootState.auth.user && rootState.auth.user.type === 'admin'
+            )).toString()}){tileimage{id} id title caption color}}`
           }
         })
         .then(res => {
@@ -150,15 +142,17 @@ export const actions = {
                 })
                 resolve('found posts')
               } else if (res.data.errors) {
-                reject(`found errors: ${JSON.stringify(res.data.errors)}`)
+                reject(
+                  new Error(`found errors: ${JSON.stringify(res.data.errors)}`)
+                )
               } else {
-                reject('could not find data or errors')
+                reject(new Error('could not find data or errors'))
               }
             } else {
-              reject('could not get data')
+              reject(new Error('could not get data'))
             }
           } else {
-            reject(`status code of ${res.status}`)
+            reject(new Error(`status code of ${res.status}`))
           }
         })
         .catch(err => {
@@ -166,7 +160,7 @@ export const actions = {
           if (err.response && err.response.data) {
             message = err.response.data.message
           }
-          reject(message)
+          reject(new Error(message))
         })
     })
   }

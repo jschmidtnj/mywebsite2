@@ -16,7 +16,7 @@
   </section>
 </template>
 
-<script lang="ts">
+<script lang="js">
 import Vue from 'vue'
 import TileRows from '~/components/TileRows.vue'
 // @ts-ignore

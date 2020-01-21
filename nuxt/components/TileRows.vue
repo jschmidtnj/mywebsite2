@@ -11,7 +11,6 @@
           <a v-if="postval" :href="`/${type}/${postval.id}`">
             <b-card class="tile rounded-0" text-variant="white" no-body>
               <b-card-body
-                class="tile-body zoom"
                 @mouseenter="
                   selected[rowindex * shownPosts[0].length + colindex] = true
                   $forceUpdate()
@@ -20,6 +19,7 @@
                   selected[rowindex * shownPosts[0].length + colindex] = false
                   $forceUpdate()
                 "
+                class="tile-body zoom"
               >
                 <b-card-img-lazy
                   :src="
@@ -64,7 +64,7 @@
   </div>
 </template>
 
-<script lang="ts">
+<script lang="js">
 import Vue from 'vue'
 import Loading from '~/components/ComponentLoading.vue'
 import {
@@ -146,12 +146,12 @@ export default Vue.extend({
           await this.addPosts(i)
         }
       }
-      let newShownPosts: any = []
+      let newShownPosts = []
       newShownPosts.push([])
       let currentIndex = 0
       for (let i = 0; i < this.allPosts.length; i++) {
         for (let j = 0; j < this.allPosts[i].length; j++) {
-          const newPost: any = this.allPosts[i][j]
+          const newPost = this.allPosts[i][j]
           Object.keys(newPost).forEach(key => {
             if (typeof newPost[key] === 'string')
               newPost[key] = decodeURIComponent(newPost[key]);

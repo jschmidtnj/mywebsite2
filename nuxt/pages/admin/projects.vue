@@ -2,7 +2,7 @@
   <admin-post-edit type="project" />
 </template>
 
-<script lang="ts">
+<script lang="js">
 import Vue from 'vue'
 import AdminPostEdit from '~/components/admin/PostEdit.vue'
 export default Vue.extend({

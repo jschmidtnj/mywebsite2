@@ -6,7 +6,7 @@
   </div>
 </template>
 
-<script lang="ts">
+<script lang="js">
 import Vue from 'vue'
 import Navbar from '~/components/Navbar.vue'
 import MainFooter from '~/components/Footer.vue'
@@ -20,8 +20,8 @@ export default Vue.extend({
   head() {
     // @ts-ignore
     const seo = JSON.parse(process.env.seoconfig)
-    const links: any = []
-    const meta: any = []
+    const links = []
+    const meta = []
     if (seo) {
       const canonical = `${seo.url}/${this.$route.path}`
       links.push({

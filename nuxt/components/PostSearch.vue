@@ -6,7 +6,6 @@
           <b-input-group>
             <b-form-input
               v-model="search"
-              placeholder="Type to Search"
               @keyup.enter.native="
                 evt => {
                   evt.preventDefault()
@@ -14,6 +13,7 @@
                   searchPosts()
                 }
               "
+              placeholder="Type to Search"
             ></b-form-input>
             <b-input-group-append>
               <b-button
@@ -71,12 +71,12 @@
       </b-col>
     </b-row>
     <b-table
-      show-empty
-      stacked="md"
       :items="items"
       :fields="fields"
       :no-local-sorting="true"
       @sort-changed="sort"
+      show-empty
+      stacked="md"
     >
       <template slot="title" slot-scope="row">{{ row.value }}</template>
       <template slot="author" slot-scope="row">{{ row.value }}</template>
@@ -85,7 +85,7 @@
       }}</template>
       <template slot="views" slot-scope="row">{{ row.value }}</template>
       <template slot="read" slot-scope="row">
-        <a class="btn btn-primary btn-sm" :href="`/blog/${row.item.id}`"
+        <a :href="`/blog/${row.item.id}`" class="btn btn-primary btn-sm"
           >Read</a
         >
       </template>
@@ -96,20 +96,20 @@
           v-model="currentPage"
           :total-rows="totalRows"
           :per-page="perPage"
-          class="my-0"
           @change="
             newpage => {
               currentPage = newpage
               searchPosts()
             }
           "
+          class="my-0"
         ></b-pagination>
       </b-col>
     </b-row>
   </b-container>
 </template>
 
-<script lang="ts">
+<script lang="js">
 import Vue from 'vue'
 import { format } from 'date-fns'
 import { validTypes } from '~/assets/config'

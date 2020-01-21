@@ -5,7 +5,7 @@ set -e
 
 npm run precommit --prefix nuxt
 gofmt -w graphql
-flutter format flutter
+# flutter format flutter
 npm run precommit --prefix amp
 npm run precommit --prefix electron
 npm run precommit --prefix init

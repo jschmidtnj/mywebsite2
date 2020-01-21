@@ -10,8 +10,8 @@
         <b-form-input
           id="link"
           v-model="form.link"
-          type="text"
           :state="!$v.form.link.$invalid"
+          type="text"
           placeholder="Enter url"
           aria-describedby="linkfeedback"
         ></b-form-input>
@@ -25,10 +25,10 @@
       </b-form-group>
       <br />
       <b-button
+        :disabled="$v.form.$invalid"
         variant="primary"
         type="submit"
         class="mt-4"
-        :disabled="$v.form.$invalid"
         >Submit</b-button
       >
     </b-form>
@@ -43,7 +43,7 @@
   </b-card>
 </template>
 
-<script lang="ts">
+<script lang="js">
 import Vue from 'vue'
 import { validationMixin } from 'vuelidate'
 import { required, url } from 'vuelidate/lib/validators'

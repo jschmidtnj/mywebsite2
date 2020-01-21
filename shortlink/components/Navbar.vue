@@ -10,7 +10,7 @@
       </b-navbar-nav>
       <b-navbar-nav v-if="loggedin" class="ml-auto">
         <b-nav-item-dropdown right>
-          <b-dropdown-item href="#" @click="logout">
+          <b-dropdown-item @click="logout" href="#">
             Sign Out
           </b-dropdown-item>
         </b-nav-item-dropdown>
@@ -19,7 +19,7 @@
   </b-navbar>
 </template>
 
-<script lang="ts">
+<script lang="js">
 import Vue from 'vue'
 export default Vue.extend({
   name: 'Navbar',

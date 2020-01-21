@@ -1,9 +1,8 @@
 <template>
   <div :id="`tile-carousel-${type}`">
-    <div v-if="!loading" id="tile-data">
-      <div v-if="count > perpage" id="navigation-buttons" class="mb-3">
+    <div id="tile-data" v-if="!loading">
+      <div id="navigation-buttons" v-if="count > perpage" class="mb-3">
         <button
-          class="button-link"
           :disabled="count <= perpage"
           @click="
             evt => {
@@ -11,6 +10,7 @@
               changePage(false)
             }
           "
+          class="button-link"
         >
           <no-ssr>
             <font-awesome-icon
@@ -20,7 +20,6 @@
           </no-ssr>
         </button>
         <button
-          class="button-link"
           :disabled="count <= perpage"
           @click="
             evt => {
@@ -28,6 +27,7 @@
               changePage(true)
             }
           "
+          class="button-link"
         >
           <no-ssr>
             <font-awesome-icon
@@ -46,13 +46,13 @@
           <button
             v-for="(postval, index) in shownPosts"
             :key="`tile-${index}`"
-            class="button-link"
             @click="
               evt => {
                 evt.preventDefault()
                 navigate(postval.id)
               }
             "
+            class="button-link"
           >
             <b-card class="tile m-2" no-body>
               <b-card-body class="tile zoom p-0">
@@ -84,8 +84,8 @@
           </button>
         </no-ssr>
       </b-card-group>
-      <div v-if="window.width < count * 200" id="scroll-buttons" class="mt-3">
-        <button class="button-link" @click="swipeLeft">
+      <div id="scroll-buttons" v-if="window.width < count * 200" class="mt-3">
+        <button @click="swipeLeft" class="button-link">
           <no-ssr>
             <font-awesome-icon
               class="mr-2 arrow-size-carousel"
@@ -93,7 +93,7 @@
             />
           </no-ssr>
         </button>
-        <button class="button-link" @click="swipeRight">
+        <button @click="swipeRight" class="button-link">
           <no-ssr>
             <font-awesome-icon
               class="mr-2 arrow-size-carousel"
@@ -110,7 +110,7 @@
   </div>
 </template>
 
-<script lang="ts">
+<script lang="js">
 import Vue from 'vue'
 import Loading from '~/components/ComponentLoading.vue'
 import {
@@ -259,12 +259,12 @@ export default Vue.extend({
       const allPostsLen = Math.ceil(this.count / this.$store.state.tiles.perpage)
       const allPostsIndexLen = this.count < this.$store.state.tiles.perpage ? this.count : this.$store.state.tiles.perpage
       const shownPostsLen = this.count < this.perpage ? this.count : this.perpage
-      const newShownPosts: any = []
+      const newShownPosts = []
       for (let i = startpage; i < endpage; i++) {
         let start = i === startpage ? startpageindex : 0
         await this.addPosts(i % allPostsLen)
         for (let j = start; (j < allPostsIndexLen || (i === endpage - 1 && j < allPostsIndexLen * 2)) && newShownPosts.length < shownPostsLen; j++) {
-          const newPost: any = this.allPosts[i % allPostsLen][j % allPostsIndexLen]
+          const newPost = this.allPosts[i % allPostsLen][j % allPostsIndexLen]
           Object.keys(newPost).forEach(key => {
             if (typeof newPost[key] === 'string')
               newPost[key] = decodeURIComponent(newPost[key]);

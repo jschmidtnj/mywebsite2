@@ -17,7 +17,7 @@ yarn upgrade
 cd ../shortlink
 yarn upgrade
 cd ../graphql
-go get -u -m
+go get -u
 cd ../flutter/android
 bundle update
 cd ../ios

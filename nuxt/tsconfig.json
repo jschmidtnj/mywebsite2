@@ -1,21 +1,21 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "es2018",
+    "module": "esnext",
+    "moduleResolution": "node",
     "lib": [
-      "dom",
-      "es2015",
+      "esnext",
+      "esnext.asynciterable",
       "dom"
     ],
-    "module": "es2015",
-    "moduleResolution": "node",
-    "experimentalDecorators": true,
     "noImplicitAny": false,
     "noImplicitThis": false,
-    "strictNullChecks": true,
-    "removeComments": true,
-    "suppressImplicitAnyIndexErrors": true,
-    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
     "allowJs": true,
+    "sourceMap": true,
+    "strict": true,
+    "noEmit": true,
     "baseUrl": ".",
     "paths": {
       "~/*": [
@@ -25,13 +25,17 @@
         "./*"
       ]
     },
-    "esModuleInterop": true,
-    "sourceMap": true,
-    "strict": true,
-    "noEmit": true,
     "types": [
       "@types/node",
-      "@nuxt/vue-app"
+      "@nuxt/types",
+      "@nuxt/vue-app",
+      "@nuxtjs/axios"
     ]
-  }
+  },
+  "exclude": [
+    "node_modules"
+  ],
+  "files": [
+    "./vue-shim.d.ts"
+  ]
 }

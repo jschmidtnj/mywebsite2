@@ -4,7 +4,7 @@
   </b-card>
 </template>
 
-<script lang="ts">
+<script lang="js">
 import Vue from 'vue'
 import PostSearch from '~/components/PostSearch.vue'
 export default Vue.extend({

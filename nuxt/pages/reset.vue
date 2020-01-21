@@ -12,9 +12,9 @@
           <b-form-input
             id="email-address"
             v-model="emailform.email"
+            :state="!$v.emailform.email.$invalid"
             type="text"
             autocomplete="off"
-            :state="!$v.emailform.email.$invalid"
             placeholder="Enter email"
             aria-describedby="emailfeedback"
           ></b-form-input>
@@ -29,10 +29,10 @@
           </b-form-invalid-feedback>
         </b-form-group>
         <b-button
+          :disabled="$v.emailform.$invalid"
           variant="primary"
           type="submit"
           class="mt-4"
-          :disabled="$v.emailform.$invalid"
           >Submit</b-button
         >
       </b-form>
@@ -46,8 +46,8 @@
           <b-form-input
             id="password"
             v-model="passwordform.password"
-            type="password"
             :state="!$v.passwordform.password.$invalid"
+            type="password"
             placeholder="Enter password"
             aria-describedby="passwordfeedback"
           ></b-form-input>
@@ -64,10 +64,10 @@
           </b-form-invalid-feedback>
         </b-form-group>
         <b-button
+          :disabled="$v.passwordform.$invalid"
           variant="primary"
           type="submit"
           class="mt-4"
-          :disabled="$v.passwordform.$invalid"
           >Submit</b-button
         >
       </b-form>
@@ -82,7 +82,7 @@
   </div>
 </template>
 
-<script lang="ts">
+<script lang="js">
 import Vue from 'vue'
 import { validationMixin } from 'vuelidate'
 import { required, email } from 'vuelidate/lib/validators'

@@ -11,8 +11,8 @@
           <b-form-input
             id="email-address"
             v-model="form.email"
-            type="text"
             :state="!$v.form.email.$invalid"
+            type="text"
             placeholder="Enter email"
             aria-describedby="emailfeedback"
           ></b-form-input>
@@ -33,8 +33,8 @@
           <b-form-input
             id="password"
             v-model="form.password"
-            type="password"
             :state="!$v.form.password.$invalid"
+            type="password"
             placeholder="Enter password"
             aria-describedby="passwordfeedback"
           ></b-form-input>
@@ -51,10 +51,10 @@
         <b-link href="/reset" class="card-link">reset password</b-link>
         <br />
         <b-button
+          :disabled="$v.form.$invalid"
           variant="primary"
           type="submit"
           class="mt-4"
-          :disabled="$v.form.$invalid"
           >Submit</b-button
         >
       </b-form>
@@ -69,7 +69,7 @@
   </div>
 </template>
 
-<script lang="ts">
+<script lang="js">
 import Vue from 'vue'
 import { validationMixin } from 'vuelidate'
 import { required, email } from 'vuelidate/lib/validators'
