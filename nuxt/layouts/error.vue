@@ -3,6 +3,7 @@
     <div id="particles-js"></div>
     <div class="denied__wrapper">
       <h1>{{ error.statusCode }}</h1>
+      <div>{{ error }}</div>
       <div v-if="error.statusCode === 404">
         <h3>
           LOST IN SPACE? Hmm, looks like that page doesn't exist.
