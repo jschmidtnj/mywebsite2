@@ -78,14 +78,14 @@
       show-empty
       stacked="md"
     >
-      <template slot="title" slot-scope="row">{{ row.value }}</template>
-      <template slot="author" slot-scope="row">{{ row.value }}</template>
-      <template slot="date" slot-scope="row">{{
-        formatDate(row.value, 'M/D/YYYY')
+      <template v-slot:cell(title)="data">{{ data.value }}</template>
+      <template v-slot:cell(author)="data">{{ data.value }}</template>
+      <template v-slot:cell(date)="data">{{
+        formatDate(data.value, 'M/D/YYYY')
       }}</template>
-      <template slot="views" slot-scope="row">{{ row.value }}</template>
-      <template slot="read" slot-scope="row">
-        <a :href="`/blog/${row.item.id}`" class="btn btn-primary btn-sm"
+      <template v-slot:cell(views)="data">{{ data.value }}</template>
+      <template v-slot:cell(read)="data">
+        <a :href="`/blog/${data.item.id}`" class="btn btn-primary btn-sm"
           >Read</a
         >
       </template>

@@ -519,20 +519,18 @@
                 show-empty
                 stacked="md"
               >
-                <template slot="name" slot-scope="row">{{
-                  row.value
+                <template v-slot:cell(name)="data">{{ data.value }}</template>
+                <template v-slot:cell(date)="data">{{
+                  formatDate(data.value, 'M/D/YYYY')
                 }}</template>
-                <template slot="date" slot-scope="row">{{
-                  formatDate(row.value, 'M/D/YYYY')
-                }}</template>
-                <template slot="id" slot-scope="row">
-                  <a :href="`/${type}/${row.value}`">{{ row.value }}</a>
+                <template v-slot:cell(id)="data">
+                  <a :href="`/${type}/${data.value}`">{{ data.value }}</a>
                 </template>
-                <template slot="actions" slot-scope="row">
-                  <b-button @click="editPost(row.item)" size="sm" class="mr-1"
+                <template v-slot:cell(actions)="data">
+                  <b-button @click="editPost(data.item)" size="sm" class="mr-1"
                     >Edit</b-button
                   >
-                  <b-button @click="deletePost(row.item)" size="sm"
+                  <b-button @click="deletePost(data.item)" size="sm"
                     >Del</b-button
                   >
                 </template>
