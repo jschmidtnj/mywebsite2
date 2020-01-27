@@ -1,19 +1,19 @@
 <template>
-  <section class="container">
+  <b-container class="my-4">
     <div>
-      <b-jumbotron
+      <!--b-jumbotron
         header="Joshua Schmidt"
         lead="Programmer, Computer Engineer, Developer"
         class="mt-4"
       >
         <b-button variant="primary" href="/about">About</b-button>
-      </b-jumbotron>
+      </b-jumbotron-->
       <h3>Blogs</h3>
       <tile-rows type="blog" />
       <h3>Projects</h3>
       <tile-rows type="project" />
     </div>
-  </section>
+  </b-container>
 </template>
 
 <script lang="js">
