@@ -85,8 +85,8 @@
       }}</template>
       <template v-slot:cell(views)="data">{{ data.value }}</template>
       <template v-slot:cell(read)="data">
-        <a :href="`/blog/${data.item.id}`" class="btn btn-primary btn-sm"
-          >Read</a
+        <nuxt-link :to="`/blog/${data.item.id}`" class="btn btn-primary btn-sm"
+          >Read</nuxt-link
         >
       </template>
     </b-table>

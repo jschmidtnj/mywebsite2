@@ -19,7 +19,7 @@
                   selected[rowindex * shownPosts[0].length + colindex] = false
                   $forceUpdate()
                 "
-                class="tile-body zoom"
+                class="tile-body zoom p-0"
               >
                 <b-card-img-lazy
                   :src="

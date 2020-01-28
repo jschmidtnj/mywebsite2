@@ -38,10 +38,10 @@
           <p v-if="post.id">
             {{ formatDate(mongoidToDate(post.id), 'M/D/YYYY') }}
           </p>
-          <p>{{ post.views }}</p>
-          <a :href="`${shortlinkurl}/${post.shortlink}`">
+          <p>views: {{ post.views }}</p>
+          <nuxt-link :to="`${shortlinkurl}/${post.shortlink}`">
             {{ `${shortlinkurl}/${post.shortlink}` }}
-          </a>
+          </nuxt-link>
           <p class="orange-text">
             {{
               post.categories
@@ -51,7 +51,7 @@
           </p>
           <hr />
         </b-container>
-        <b-container id="content-container" v-if="post">
+        <b-container id="content-container" v-if="post" class="mt-4">
           <vue-markdown
             :source="post.content"
             @rendered="updateMarkdown"

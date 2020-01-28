@@ -524,7 +524,9 @@
                   formatDate(data.value, 'M/D/YYYY')
                 }}</template>
                 <template v-slot:cell(id)="data">
-                  <a :href="`/${type}/${data.value}`">{{ data.value }}</a>
+                  <nuxt-link :to="`/${type}/${data.value}`">{{
+                    data.value
+                  }}</nuxt-link>
                 </template>
                 <template v-slot:cell(actions)="data">
                   <b-button @click="editPost(data.item)" size="sm" class="mr-1"

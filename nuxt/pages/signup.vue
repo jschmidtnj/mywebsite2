@@ -61,8 +61,8 @@
     </b-form>
     <p slot="footer">
       By clicking submit you aggree to the
-      <a href="/privacy">privacy policy</a>. This site is protected by reCAPTCHA
-      and the Google
+      <nuxt-link to="/privacy">privacy policy</nuxt-link>. This site is
+      protected by reCAPTCHA and the Google
       <a href="https://policies.google.com/privacy">Privacy Policy</a> and
       <a href="https://policies.google.com/terms">Terms of Service</a> apply.
     </p>

@@ -5,7 +5,7 @@
         <p>&copy; Joshua Schmidt 2019</p>
         <ul class="list-inline">
           <li class="list-inline-item">
-            <a href="/privacy">Privacy</a>
+            <nuxt-link to="/privacy">Privacy</nuxt-link>
           </li>
           <li class="list-inline-item">
             <a :href="githuburl">Github</a>

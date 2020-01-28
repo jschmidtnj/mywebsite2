@@ -4,13 +4,27 @@
     <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
     <b-collapse id="nav-collapse" is-nav>
       <b-navbar-nav>
-        <b-nav-item href="/blogs">Blogs</b-nav-item>
-        <b-nav-item href="/projects">Projects</b-nav-item>
-        <b-nav-item href="/resume">Resume</b-nav-item>
-        <b-nav-item href="/about">About</b-nav-item>
-        <b-nav-item href="/downloads">Downloads</b-nav-item>
-        <b-nav-item v-if="!loggedin" href="/signup">Signup</b-nav-item>
-        <b-nav-item v-if="!loggedin" href="/login">Login</b-nav-item>
+        <nuxt-link to="/blogs" class="no-underline">
+          <b-nav-item href="/blogs">Blogs</b-nav-item>
+        </nuxt-link>
+        <nuxt-link to="/projects" class="no-underline">
+          <b-nav-item href="/projects">Projects</b-nav-item>
+        </nuxt-link>
+        <nuxt-link to="/resume" class="no-underline">
+          <b-nav-item href="/resume">Resume</b-nav-item>
+        </nuxt-link>
+        <nuxt-link to="/about" class="no-underline">
+          <b-nav-item href="/about">About</b-nav-item>
+        </nuxt-link>
+        <nuxt-link to="/downloads" class="no-underline">
+          <b-nav-item href="/downloads">Downloads</b-nav-item>
+        </nuxt-link>
+        <nuxt-link v-if="!loggedin" to="/signup" class="no-underline">
+          <b-nav-item href="/signup">Signup</b-nav-item>
+        </nuxt-link>
+        <nuxt-link v-if="!loggedin" to="/login" class="no-underline">
+          <b-nav-item href="/login">Login</b-nav-item>
+        </nuxt-link>
       </b-navbar-nav>
       <b-navbar-nav v-if="loggedin" class="ml-auto">
         <b-nav-item-dropdown right>

@@ -8,6 +8,11 @@
   --font-family-main: 'Roboto', sans-serif;
 }
 
+/* remove underline */
+.no-underline {
+  text-decoration: none !important;
+}
+
 /* set fonts */
 * {
   font-family: var(--font-family-main);

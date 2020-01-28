@@ -379,9 +379,9 @@
           />
         </g>
       </svg>
-      <a href="/">
+      <nuxt-link to="/">
         <button class="denied__link">Go Home</button>
-      </a>
+      </nuxt-link>
     </div>
   </div>
 </template>
