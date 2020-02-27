@@ -39,9 +39,9 @@
             {{ formatDate(mongoidToDate(post.id), 'M/D/YYYY') }}
           </p>
           <p>views: {{ post.views }}</p>
-          <nuxt-link :to="`${shortlinkurl}/${post.shortlink}`">
+          <a :href="`${shortlinkurl}/${post.shortlink}`" target="_blank">
             {{ `${shortlinkurl}/${post.shortlink}` }}
-          </nuxt-link>
+          </a>
           <p class="orange-text">
             {{
               post.categories

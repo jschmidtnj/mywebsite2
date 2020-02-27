@@ -815,7 +815,7 @@ export default Vue.extend({
     getFileTag(file) {
       return `<a href="${cloudStorageURLs.posts}/${
         this.type === 'blog' ? staticstorageindexes.blogfiles : staticstorageindexes.projectfiles
-      }/${this.postid}/${file.id}" target="_blank">download</a>`
+      }/${this.postid}/${file.id}/original" target="_blank">download</a>`
     },
     updateFileSrc(file) {
       if (file.file) {
