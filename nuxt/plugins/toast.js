@@ -3,7 +3,7 @@ import Toasted from 'vue-toasted'
 import { toasts } from '~/assets/config'
 
 Vue.use(Toasted, {
-  iconPack: 'fontawesome'
+  iconPack: 'fontawesome',
 })
 
 const erroroptions = {
@@ -13,8 +13,8 @@ const erroroptions = {
     text: 'Close',
     onClick: (e, toastObject) => {
       toastObject.goAway(0)
-    }
-  }
+    },
+  },
 }
 
 for (const key in toasts) {
@@ -23,7 +23,7 @@ for (const key in toasts) {
 
 Vue.toasted.register(
   'error',
-  payload => {
+  (payload) => {
     if (!payload.message) {
       return 'Oops.. Something Went Wrong..'
     }
@@ -39,8 +39,8 @@ const successoptions = {
     text: 'Close',
     onClick: (e, toastObject) => {
       toastObject.goAway(0)
-    }
-  }
+    },
+  },
 }
 
 for (const key in toasts) {
@@ -49,7 +49,7 @@ for (const key in toasts) {
 
 Vue.toasted.register(
   'success',
-  payload => {
+  (payload) => {
     if (!payload.message) {
       return 'Success!'
     }

@@ -36,8 +36,8 @@ export default Vue.extend({
       })
     }
     return {
-      links: links,
-      meta: meta
+      links,
+      meta
     }
   }
 })

@@ -14,11 +14,11 @@ module.exports = {
     seoconfig: process.env.SEOCONFIG,
     githuburl: pkg.repository.url,
     authconfig: process.env.AUTHCONFIG,
-    apiurl: apiurl,
-    ampurl: ampurl,
+    apiurl,
+    ampurl,
     shortlinkurl: process.env.SHORTLINKURL,
-    recaptchasitekey: recaptchasitekey,
-    pdf: process.env.PDF
+    recaptchasitekey,
+    pdf: process.env.PDF,
   },
 
   /*
@@ -37,9 +37,9 @@ module.exports = {
       { name: 'twitter:card', content: 'summary_large_image' },
       {
         name: 'twitter:site',
-        content: `@${seodata.twitterhandle}`
+        content: `@${seodata.twitterhandle}`,
       },
-      { name: 'twitter:creator', content: `@${seodata.twitterhandle}` }
+      { name: 'twitter:creator', content: `@${seodata.twitterhandle}` },
     ],
     link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
     __dangerouslyDisableSanitizers: ['script'],
@@ -55,16 +55,16 @@ module.exports = {
             '@type': 'ContactPoint',
             email: seodata.email,
             contactType: 'technical support',
-            url: `${seodata.url}/about`
+            url: `${seodata.url}/about`,
           },
           sameAs: [
             `https://twitter.com/${seodata.twitterhandle}`,
             seodata.facebook,
             seodata.linkedin,
-            seodata.github
-          ]
+            seodata.github,
+          ],
         }),
-        type: 'application/ld+json'
+        type: 'application/ld+json',
       },
       {
         innerHTML: JSON.stringify({
@@ -81,10 +81,10 @@ module.exports = {
             `https://twitter.com/${seodata.twitterhandle}`,
             seodata.facebook,
             seodata.linkedin,
-            seodata.github
-          ]
+            seodata.github,
+          ],
         }),
-        type: 'application/ld+json'
+        type: 'application/ld+json',
       },
       {
         innerHTML: JSON.stringify({
@@ -94,12 +94,12 @@ module.exports = {
           potentialAction: {
             '@type': 'SearchAction',
             target: `${seodata.url}/blogs?phrase={query}`,
-            'query-input': 'required name=query'
-          }
+            'query-input': 'required name=query',
+          },
         }),
-        type: 'application/ld+json'
-      }
-    ]
+        type: 'application/ld+json',
+      },
+    ],
   },
 
   /*
@@ -129,7 +129,7 @@ module.exports = {
     { src: '~/plugins/select', ssr: false },
     { src: '~/plugins/recaptcha', ssr: false },
     { src: '~/plugins/scroll-reveal', ssr: false },
-    { src: '~/plugins/pdf', ssr: false }
+    { src: '~/plugins/pdf', ssr: false },
   ],
 
   /*
@@ -145,28 +145,28 @@ module.exports = {
     '@nuxtjs/dotenv',
     '@nuxtjs/sitemap',
     'nuxt-webfontloader',
-    '@nuxtjs/google-analytics'
+    '@nuxtjs/google-analytics',
   ],
 
   /*
    ** google analytics config
    */
   googleAnalytics: {
-    id: seodata.googleanalyticstrackingid
+    id: seodata.googleanalyticstrackingid,
   },
 
   /*
    ** generate config
    */
   generate: {
-    fallback: '404.html'
+    fallback: '404.html',
   },
 
   /*
    ** scss global config
    */
   styleResources: {
-    scss: ['~assets/styles/global.scss']
+    scss: ['~assets/styles/global.scss'],
   },
 
   /*
@@ -174,8 +174,8 @@ module.exports = {
    */
   webfontloader: {
     google: {
-      families: ['Roboto']
-    }
+      families: ['Roboto'],
+    },
   },
 
   /*
@@ -183,7 +183,7 @@ module.exports = {
    */
   axios: {
     // See https://github.com/nuxt-community/axios-module#options
-    baseURL: apiurl
+    baseURL: apiurl,
   },
 
   /*
@@ -196,10 +196,10 @@ module.exports = {
         'transform-runtime',
         {
           polyfill: true,
-          regenerator: true
-        }
-      ]
-    ]
+          regenerator: true,
+        },
+      ],
+    ],
   },
 
   /*
@@ -214,8 +214,8 @@ module.exports = {
       changefreq: 'daily',
       priority: 1,
       lastmod: new Date(),
-      lastmodrealtime: true
-    }
+      lastmodrealtime: true,
+    },
   },
 
   extensions: ['js', 'ts'],
@@ -237,9 +237,9 @@ module.exports = {
           enforce: 'pre',
           test: /\.(js|vue)$/,
           loader: 'eslint-loader',
-          exclude: /(node_modules)/
+          exclude: /(node_modules)/,
         })
       }
-    }
-  }
+    },
+  },
 }

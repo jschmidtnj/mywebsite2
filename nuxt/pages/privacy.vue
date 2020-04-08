@@ -213,7 +213,7 @@ export default Vue.extend({
     const description = 'privacy policy and terms of service'
     const image = `${seo.url}/icon.png`
     return {
-      title: title,
+      title,
       meta: [
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },

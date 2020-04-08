@@ -91,46 +91,6 @@ export default Vue.extend({
       }
     }
   },
-  // @ts-ignore
-  head() {
-    const title = 'Login'
-    const description = 'login to your account'
-    const image = `${seo.url}/icon.png`
-    return {
-      title: title,
-      meta: [
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        {
-          property: 'og:image',
-          content: image
-        },
-        { name: 'twitter:title', content: title },
-        {
-          name: 'twitter:description',
-          content: description
-        },
-        {
-          name: 'twitter:image',
-          content: image
-        },
-        { hid: 'description', name: 'description', content: description }
-      ]
-    }
-  },
-  // @ts-ignore
-  validations: {
-    form: {
-      email: {
-        required,
-        email
-      },
-      password: {
-        required,
-        validPassword
-      }
-    }
-  },
   mounted() {
     if (
       this.$route.query &&
@@ -149,7 +109,7 @@ export default Vue.extend({
                 message = res.data.message
               }
               this.$toasted.global.success({
-                message: message
+                message
               })
             } else {
               this.$toasted.global.error({
@@ -172,7 +132,7 @@ export default Vue.extend({
             message = err.response.data.message
           }
           this.$toasted.global.error({
-            message: message
+            message
           })
         })
     }
@@ -232,6 +192,46 @@ export default Vue.extend({
             message: `got error with recaptcha ${err}`
           })
         })
+    }
+  },
+  // @ts-ignore
+  head() {
+    const title = 'Login'
+    const description = 'login to your account'
+    const image = `${seo.url}/icon.png`
+    return {
+      title: title,
+      meta: [
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        {
+          property: 'og:image',
+          content: image
+        },
+        { name: 'twitter:title', content: title },
+        {
+          name: 'twitter:description',
+          content: description
+        },
+        {
+          name: 'twitter:image',
+          content: image
+        },
+        { hid: 'description', name: 'description', content: description }
+      ]
+    }
+  },
+  // @ts-ignore
+  validations: {
+    form: {
+      email: {
+        required,
+        email
+      },
+      password: {
+        required,
+        validPassword
+      }
     }
   }
 })

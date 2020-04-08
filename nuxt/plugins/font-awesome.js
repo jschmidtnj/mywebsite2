@@ -8,7 +8,7 @@ import {
   faArrowLeft,
   faArrowRight,
   faChevronRight,
-  faChevronLeft
+  faChevronLeft,
 } from '@fortawesome/free-solid-svg-icons'
 
 import { faStackOverflow } from '@fortawesome/free-brands-svg-icons'

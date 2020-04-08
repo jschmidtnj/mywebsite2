@@ -1,7 +1,7 @@
 <template>
   <div>
     <p>Admin Page</p>
-    <b-btn @click="logout" block>Logout</b-btn>
+    <b-btn block @click="logout">Logout</b-btn>
   </div>
 </template>
 
@@ -12,13 +12,22 @@ const seo = JSON.parse(process.env.seoconfig)
 export default Vue.extend({
   // @ts-ignore
   layout: 'admin',
+  methods: {
+    logout(evt) {
+      evt.preventDefault()
+      this.$store.commit('auth/logout')
+      this.$router.push({
+        path: '/login'
+      })
+    }
+  },
   // @ts-ignore
   head() {
     const title = 'Admin Home'
     const description = 'main admin dashboard'
     const image = `${seo.url}/icon.png`
     return {
-      title: title,
+      title,
       meta: [
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },
@@ -37,15 +46,6 @@ export default Vue.extend({
         },
         { hid: 'description', name: 'description', content: description }
       ]
-    }
-  },
-  methods: {
-    logout(evt) {
-      evt.preventDefault()
-      this.$store.commit('auth/logout')
-      this.$router.push({
-        path: '/login'
-      })
     }
   }
 })

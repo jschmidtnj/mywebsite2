@@ -11,13 +11,18 @@ const seo = JSON.parse(process.env.seoconfig)
 const pdf = process.env.pdf
 export default Vue.extend({
   name: 'Resume',
+  data() {
+    return {
+      pdf
+    }
+  },
   // @ts-ignore
   head() {
     const title = 'Resume'
     const description = 'view my resume'
     const image = `${seo.url}/icon.png`
     return {
-      title: title,
+      title,
       meta: [
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },
@@ -36,11 +41,6 @@ export default Vue.extend({
         },
         { hid: 'description', name: 'description', content: description }
       ]
-    }
-  },
-  data() {
-    return {
-      pdf: pdf
     }
   }
 })

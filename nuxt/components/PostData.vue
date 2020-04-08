@@ -1,26 +1,22 @@
 <template>
   <div>
-    <div id="post-data" v-if="post">
+    <div v-if="post" id="post-data">
       <div id="post-content">
         <b-container class="hero-body">
           <b-row>
             <b-col>
               <b-img-lazy
                 v-if="post.heroimage"
-                :blank-src="
-                  `${postCdn}/${
-                    type === 'blog'
-                      ? staticstorageindexes.blogfiles
-                      : staticstorageindexes.projectfiles
-                  }/${post.id}/${post.heroimage.id + paths.blur}`
-                "
-                :src="
-                  `${postCdn}/${
-                    type === 'blog'
-                      ? staticstorageindexes.blogfiles
-                      : staticstorageindexes.projectfiles
-                  }/${post.id}/${post.heroimage.id + paths.original}`
-                "
+                :blank-src="`${postCdn}/${
+                  type === 'blog'
+                    ? staticstorageindexes.blogfiles
+                    : staticstorageindexes.projectfiles
+                }/${post.id}/${post.heroimage.id + paths.blur}`"
+                :src="`${postCdn}/${
+                  type === 'blog'
+                    ? staticstorageindexes.blogfiles
+                    : staticstorageindexes.projectfiles
+                }/${post.id}/${post.heroimage.id + paths.original}`"
                 :alt="post.heroimage.name"
                 class="hero-img m-0"
               ></b-img-lazy>
@@ -32,7 +28,7 @@
             </b-col>
           </b-row>
         </b-container>
-        <b-container id="header-container" v-if="post">
+        <b-container v-if="post" id="header-container">
           <h1>{{ post.title }}</h1>
           <p>{{ post.author }}</p>
           <p v-if="post.id">
@@ -45,17 +41,17 @@
           <p class="orange-text">
             {{
               post.categories
-                .map(category => decodeURIComponent(category))
+                .map((category) => decodeURIComponent(category))
                 .join(' | ')
             }}
           </p>
           <hr />
         </b-container>
-        <b-container id="content-container" v-if="post" class="mt-4">
+        <b-container v-if="post" id="content-container" class="mt-4">
           <vue-markdown
             :source="post.content"
-            @rendered="updateMarkdown"
             class="markdown"
+            @rendered="updateMarkdown"
           />
         </b-container>
       </div>
@@ -109,10 +105,10 @@ export default Vue.extend({
     return {
       id: null,
       post: null,
-      shortlinkurl: shortlinkurl,
+      shortlinkurl,
       postCdn: cloudStorageURLs.posts,
-      staticstorageindexes: staticstorageindexes,
-      paths: paths
+      staticstorageindexes,
+      paths
     }
   },
   /* eslint-disable */
@@ -272,6 +268,12 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
+#header-container h1 {
+  padding-left: 0;
+  padding-right: 0;
+  margin-top: 2rem;
+  margin-bottom: 2.5rem;
+}
 #content-container {
   padding-left: 0;
   padding-right: 0;

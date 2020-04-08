@@ -32,7 +32,7 @@
             <em>User</em>
           </template>
           <b-dropdown-item href="/account">Profile</b-dropdown-item>
-          <b-dropdown-item @click="logout" href="#">
+          <b-dropdown-item href="#" @click="logout">
             Sign Out
           </b-dropdown-item>
         </b-nav-item-dropdown>

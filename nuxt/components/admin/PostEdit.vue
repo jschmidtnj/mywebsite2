@@ -196,14 +196,14 @@
                         v-model="post.heroimage.file"
                         :accept="validimages.join(', ')"
                         :state="!$v.post.heroimage.$invalid"
-                        @input="
-                          post.heroimage.uploaded = false
-                          updateFileSrc(post.heroimage)
-                        "
                         class="mb-2 form-control"
                         aria-describedby="heroimagefeedback"
                         placeholder="Choose an image..."
                         drop-placeholder="Drop image here..."
+                        @input="
+                          post.heroimage.uploaded = false
+                          updateFileSrc(post.heroimage)
+                        "
                       />
                     </span>
                     <b-form-invalid-feedback
@@ -227,14 +227,14 @@
                         v-model="post.tileimage.file"
                         :accept="validimages.join(', ')"
                         :state="!$v.post.tileimage.$invalid"
-                        @input="
-                          post.tileimage.uploaded = false
-                          updateFileSrc(post.tileimage)
-                        "
                         class="mb-2 form-control"
                         aria-describedby="tileimagefeedback"
                         placeholder="Choose an image..."
                         drop-placeholder="Drop image here..."
+                        @input="
+                          post.tileimage.uploaded = false
+                          updateFileSrc(post.tileimage)
+                        "
                       />
                     </span>
                     <b-form-invalid-feedback
@@ -254,8 +254,8 @@
                     <b-img
                       v-if="
                         post.files[index].src &&
-                          post.files[index].type &&
-                          checkImageType(post.files[index].type)
+                        post.files[index].type &&
+                        checkImageType(post.files[index].type)
                       "
                       :src="post.files[index].src"
                       class="sampleimage"
@@ -263,9 +263,9 @@
                     <video
                       v-else-if="
                         post.files[index].src &&
-                          post.files[index].id &&
-                          post.files[index].type &&
-                          checkVideoType(post.files[index].type)
+                        post.files[index].id &&
+                        post.files[index].type &&
+                        checkVideoType(post.files[index].type)
                       "
                       :ref="`video-source-${post.files[index].id}`"
                       :type="post.files[index].type"
@@ -279,24 +279,24 @@
                     <code
                       v-if="
                         post.files[index].type === 'image/gif' &&
-                          (post.files[index].file ||
-                            post.files[index].uploaded) &&
-                          post.files[index].name &&
-                          post.files[index].width &&
-                          post.files[index].height &&
-                          post.files[index].id
+                        (post.files[index].file ||
+                          post.files[index].uploaded) &&
+                        post.files[index].name &&
+                        post.files[index].width &&
+                        post.files[index].height &&
+                        post.files[index].id
                       "
                       >{{ getGifTag(post.files[index]) }}</code
                     >
                     <code
                       v-else-if="
                         post.files[index].file &&
-                          post.files[index].type &&
-                          checkImageType(post.files[index].type) &&
-                          post.files[index].name &&
-                          post.files[index].width &&
-                          post.files[index].height &&
-                          post.files[index].id
+                        post.files[index].type &&
+                        checkImageType(post.files[index].type) &&
+                        post.files[index].name &&
+                        post.files[index].width &&
+                        post.files[index].height &&
+                        post.files[index].id
                       "
                       >{{ getImageTag(post.files[index]) }}</code
                     >
@@ -304,13 +304,13 @@
                       v-else-if="
                         (post.files[index].file ||
                           post.files[index].uploaded) &&
-                          post.files[index].type &&
-                          checkVideoType(post.files[index].type) &&
-                          post.files[index].name &&
-                          post.files[index].width &&
-                          post.files[index].height &&
-                          post.files[index].id &&
-                          post.files[index].type
+                        post.files[index].type &&
+                        checkVideoType(post.files[index].type) &&
+                        post.files[index].name &&
+                        post.files[index].width &&
+                        post.files[index].height &&
+                        post.files[index].id &&
+                        post.files[index].type
                       "
                       >{{ getVideoTag(post.files[index]) }}</code
                     >
@@ -318,8 +318,8 @@
                       v-else-if="
                         (post.files[index].file ||
                           post.files[index].uploaded) &&
-                          post.files[index].name &&
-                          post.files[index].id
+                        post.files[index].name &&
+                        post.files[index].id
                       "
                       >{{ getFileTag(post.files[index]) }}</code
                     >
@@ -329,10 +329,10 @@
                         <b-form-input
                           v-model="post.files[index].name"
                           :state="!filevalue.name.$invalid"
-                          @input="post.files[index].uploaded = false"
                           type="text"
                           class="form-control"
                           placeholder="name"
+                          @input="post.files[index].uploaded = false"
                         />
                       </span>
                       <b-form-invalid-feedback
@@ -354,13 +354,13 @@
                           v-model="post.files[index].file"
                           :accept="validfiles.join(', ')"
                           :state="!filevalue.file.$invalid"
+                          class="mb-2 form-control"
+                          placeholder="Choose a file..."
+                          drop-placeholder="Drop file here..."
                           @input="
                             post.files[index].uploaded = false
                             updateFileSrc(post.files[index])
                           "
-                          class="mb-2 form-control"
-                          placeholder="Choose a file..."
-                          drop-placeholder="Drop file here..."
                         />
                       </span>
                       <b-form-invalid-feedback
@@ -376,6 +376,8 @@
                     <b-row>
                       <b-col>
                         <b-btn
+                          variant="primary"
+                          class="mr-2"
                           @click="
                             post.files.push({
                               name: '',
@@ -385,11 +387,9 @@
                               src: null,
                               width: null,
                               height: null,
-                              type: null
+                              type: null,
                             })
                           "
-                          variant="primary"
-                          class="mr-2"
                         >
                           <no-ssr>
                             <font-awesome-icon
@@ -400,9 +400,9 @@
                         </b-btn>
                         <b-btn
                           :disabled="post.files.length === 0"
-                          @click="removeFile"
                           variant="primary"
                           class="mr-2"
+                          @click="removeFile"
                         >
                           <no-ssr>
                             <font-awesome-icon
@@ -451,15 +451,15 @@
               <b-form @submit="searchposts" @reset="clearsearch">
                 <span class="card-text">
                   <div
-                    id="content-rendered"
                     v-if="post.content !== ''"
+                    id="content-rendered"
                     class="mb-4"
                   >
                     <h2 class="mb-4">Content</h2>
                     <vue-markdown
                       :source="post.content"
-                      @rendered="updateMarkdown"
                       class="mb-4 markdown"
+                      @rendered="updateMarkdown"
                     />
                   </div>
                   <h2 class="mb-4">Search</h2>
@@ -529,10 +529,10 @@
                   }}</nuxt-link>
                 </template>
                 <template v-slot:cell(actions)="data">
-                  <b-button @click="editPost(data.item)" size="sm" class="mr-1"
+                  <b-button size="sm" class="mr-1" @click="editPost(data.item)"
                     >Edit</b-button
                   >
-                  <b-button @click="deletePost(data.item)" size="sm"
+                  <b-button size="sm" @click="deletePost(data.item)"
                     >Del</b-button
                   >
                 </template>
@@ -624,7 +624,7 @@ export default Vue.extend({
   data() {
     return {
       submitting: false,
-      modetypes: modetypes,
+      modetypes,
       mode: modetypes.add,
       postid: new ObjectID().toString(),
       search: '',
@@ -633,9 +633,9 @@ export default Vue.extend({
       numperpage: 10,
       categoryOptions: options.categoryOptions,
       tagOptions: options.tagOptions,
-      validimages: validimages,
-      validfiles: validfiles,
-      paths: paths,
+      validimages,
+      validfiles,
+      paths,
       fields: [
         {
           key: 'title',
@@ -735,7 +735,7 @@ export default Vue.extend({
     const description = `admin page for editing ${this.type}s`
     const image = `${seo.url}/icon.png`
     return {
-      title: title,
+      title,
       meta: [
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },

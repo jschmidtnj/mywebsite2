@@ -7,20 +7,20 @@ export default ({ store, redirect, query }) => {
     } else {
       store
         .dispatch('auth/checkLoggedIn')
-        .then(loggedin => {
+        .then((loggedin) => {
           if (!loggedin) {
             resolve()
           } else if (!store.state.auth.user) {
             store
               .dispatch('auth/getUser')
-              .then(res => {
+              .then((res) => {
                 if (!query.redirect_uri) {
                   redirect('/account')
                 } else {
                   resolve()
                 }
               })
-              .catch(err => {
+              .catch((err) => {
                 resolve()
               })
           } else if (!query.redirect_uri) {
@@ -29,7 +29,7 @@ export default ({ store, redirect, query }) => {
             resolve()
           }
         })
-        .catch(err => {
+        .catch((err) => {
           resolve()
         })
     }

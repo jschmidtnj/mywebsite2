@@ -13,15 +13,15 @@ export const state = () => ({
   sortBy: 'date',
   sortDesc: true,
   tags: [],
-  categories: []
+  categories: [],
 })
 
 export const getters = {
-  projects: state => state.projects,
-  blogs: state => state.blogs,
-  perpage: state => state.perpage,
-  sortBy: state => state.sortBy,
-  sortDesc: state => state.sortDesc
+  projects: (state) => state.projects,
+  blogs: (state) => state.blogs,
+  perpage: (state) => state.perpage,
+  sortBy: (state) => state.sortBy,
+  sortDesc: (state) => state.sortDesc,
 }
 
 export const mutations = {
@@ -52,7 +52,7 @@ export const mutations = {
     } else {
       state.projectindex = payload.index
     }
-  }
+  },
 }
 
 export const actions = {
@@ -67,16 +67,16 @@ export const actions = {
             categories: state.categories.join(',categories='),
             cache: !(
               rootState.auth.user && rootState.auth.user.type === 'admin'
-            )
-          }
+            ),
+          },
         })
-        .then(res => {
+        .then((res) => {
           if (res.status === 200) {
             if (res.data) {
               if (res.data.count !== null) {
                 commit('setCount', {
                   type: payload.type,
-                  count: res.data.count
+                  count: res.data.count,
                 })
                 resolve(`count updated successfully to ${res.data.count}`)
               } else {
@@ -89,7 +89,7 @@ export const actions = {
             reject(new Error(`status code of ${res.status}`))
           }
         })
-        .catch(err => {
+        .catch((err) => {
           let message = `got error: ${err}`
           if (err.response && err.response.data) {
             message = err.response.data.message
@@ -103,13 +103,13 @@ export const actions = {
       const numPages = Math.ceil(state.blogcount / state.perpage)
       commit('setPosts', {
         type: 'blog',
-        posts: Array.apply(null, Array(numPages))
+        posts: Array.apply(null, Array(numPages)),
       })
     } else {
       const numPages = Math.ceil(state.projectcount / state.perpage)
       commit('setPosts', {
         type: 'project',
-        posts: Array.apply(null, Array(numPages))
+        posts: Array.apply(null, Array(numPages)),
       })
     }
   },
@@ -128,17 +128,17 @@ export const actions = {
               state.tags
             )},categories:${JSON.stringify(state.categories)},cache:${(!(
               rootState.auth.user && rootState.auth.user.type === 'admin'
-            )).toString()}){tileimage{id} id title caption color}}`
-          }
+            )).toString()}){tileimage{id} id title caption color}}`,
+          },
         })
-        .then(res => {
+        .then((res) => {
           if (res.status === 200) {
             if (res.data) {
               if (res.data.data && res.data.data.posts) {
                 commit('addPosts', {
                   type: payload.type,
                   index: payload.page,
-                  posts: res.data.data.posts
+                  posts: res.data.data.posts,
                 })
                 resolve('found posts')
               } else if (res.data.errors) {
@@ -155,7 +155,7 @@ export const actions = {
             reject(new Error(`status code of ${res.status}`))
           }
         })
-        .catch(err => {
+        .catch((err) => {
           let message = `got error: ${err}`
           if (err.response && err.response.data) {
             message = err.response.data.message
@@ -163,5 +163,5 @@ export const actions = {
           reject(new Error(message))
         })
     })
-  }
+  },
 }

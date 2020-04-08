@@ -7,12 +7,12 @@ import * as jwt from 'jsonwebtoken'
 export const state = () => ({
   token: null,
   user: null,
-  loggedIn: false
+  loggedIn: false,
 })
 
 export const getters = {
-  token: state => state.token,
-  user: state => state.user
+  token: (state) => state.token,
+  user: (state) => state.user,
 }
 
 export const mutations = {
@@ -30,7 +30,7 @@ export const mutations = {
     state.token = null
     state.user = null
     state.loggedIn = false
-  }
+  },
 }
 
 export const actions = {
@@ -53,9 +53,9 @@ export const actions = {
         .put('/loginEmailPassword', {
           email: payload.email,
           password: payload.password,
-          recaptcha: payload.recaptcha
+          recaptcha: payload.recaptcha,
         })
-        .then(res => {
+        .then((res) => {
           if (res.status === 200) {
             if (res.data) {
               if (res.data.token) {
@@ -70,7 +70,7 @@ export const actions = {
             reject(new Error(`status code of ${res.status}`))
           }
         })
-        .catch(err => {
+        .catch((err) => {
           let message = `got error: ${err}`
           if (err.response && err.response.data) {
             message = err.response.data.message
@@ -87,10 +87,10 @@ export const actions = {
         this.$axios
           .get('/graphql', {
             params: {
-              query: '{account{id email type emailverified shortlinks}}'
-            }
+              query: '{account{id email type emailverified shortlinks}}',
+            },
           })
-          .then(res => {
+          .then((res) => {
             if (res.status === 200) {
               if (res.data) {
                 if (res.data.data && res.data.data.account) {
@@ -112,10 +112,10 @@ export const actions = {
               reject(new Error(`status code of ${res.status}`))
             }
           })
-          .catch(err => {
+          .catch((err) => {
             reject(err)
           })
       }
     })
-  }
+  },
 }

@@ -11,6 +11,7 @@
           <a v-if="postval" :href="`/${type}/${postval.id}`">
             <b-card class="tile rounded-0" text-variant="white" no-body>
               <b-card-body
+                class="tile-body zoom p-0"
                 @mouseenter="
                   selected[rowindex * shownPosts[0].length + colindex] = true
                   $forceUpdate()
@@ -19,23 +20,18 @@
                   selected[rowindex * shownPosts[0].length + colindex] = false
                   $forceUpdate()
                 "
-                class="tile-body zoom p-0"
               >
                 <b-card-img-lazy
-                  :src="
-                    `${imgUrl}/${
-                      type === 'blog'
-                        ? staticstorageindexes.blogfiles
-                        : staticstorageindexes.projectfiles
-                    }/${postval.id}/${postval.tileimage.id + paths.original}`
-                  "
-                  :blank-src="
-                    `${imgUrl}/${
-                      type === 'blog'
-                        ? staticstorageindexes.blogfiles
-                        : staticstorageindexes.projectfiles
-                    }/${postval.id}/${postval.tileimage.id + paths.blur}`
-                  "
+                  :src="`${imgUrl}/${
+                    type === 'blog'
+                      ? staticstorageindexes.blogfiles
+                      : staticstorageindexes.projectfiles
+                  }/${postval.id}/${postval.tileimage.id + paths.original}`"
+                  :blank-src="`${imgUrl}/${
+                    type === 'blog'
+                      ? staticstorageindexes.blogfiles
+                      : staticstorageindexes.projectfiles
+                  }/${postval.id}/${postval.tileimage.id + paths.blur}`"
                   :alt="postval.title"
                   class="tile-img rounded-0"
                 />
@@ -97,8 +93,8 @@ export default Vue.extend({
       shownPosts: [],
       loading: true,
       selected: [],
-      staticstorageindexes: staticstorageindexes,
-      paths: paths
+      staticstorageindexes,
+      paths
     }
   },
   async mounted() {

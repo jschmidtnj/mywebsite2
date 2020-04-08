@@ -23,7 +23,7 @@ export default Vue.extend({
   name: 'Footer',
   data() {
     return {
-      githuburl: githuburl
+      githuburl
     }
   }
 })

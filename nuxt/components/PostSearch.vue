@@ -6,14 +6,14 @@
           <b-input-group>
             <b-form-input
               v-model="search"
+              placeholder="Type to Search"
               @keyup.enter.native="
-                evt => {
+                (evt) => {
                   evt.preventDefault()
                   currentPage = 1
                   searchPosts()
                 }
               "
-              placeholder="Type to Search"
             ></b-form-input>
             <b-input-group-append>
               <b-button
@@ -74,9 +74,9 @@
       :items="items"
       :fields="fields"
       :no-local-sorting="true"
-      @sort-changed="sort"
       show-empty
       stacked="md"
+      @sort-changed="sort"
     >
       <template v-slot:cell(title)="data">{{ data.value }}</template>
       <template v-slot:cell(author)="data">{{ data.value }}</template>
@@ -96,13 +96,13 @@
           v-model="currentPage"
           :total-rows="totalRows"
           :per-page="perPage"
+          class="my-0"
           @change="
-            newpage => {
+            (newpage) => {
               currentPage = newpage
               searchPosts()
             }
           "
-          class="my-0"
         ></b-pagination>
       </b-col>
     </b-row>
@@ -176,33 +176,6 @@ export default Vue.extend({
         })
     }
   },
-  // @ts-ignore
-  head() {
-    const title = `Search ${this.type}`
-    const description = `search for ${this.type}s, by name, views, etc`
-    const image = `${seo.url}/icon.png`
-    return {
-      title: title,
-      meta: [
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        {
-          property: 'og:image',
-          content: image
-        },
-        { name: 'twitter:title', content: title },
-        {
-          name: 'twitter:description',
-          content: description
-        },
-        {
-          name: 'twitter:image',
-          content: image
-        },
-        { hid: 'description', name: 'description', content: description }
-      ]
-    }
-  },
   mounted() {
     if (this.$route.query) {
       if (this.$route.query.phrase) this.search = this.$route.query.phrase
@@ -264,7 +237,7 @@ export default Vue.extend({
             message = err.response.data.message
           }
           this.$toasted.global.error({
-            message: message
+            message
           })
         })
     },
@@ -325,12 +298,39 @@ export default Vue.extend({
             message = err.response.data.message
           }
           this.$toasted.global.error({
-            message: message
+            message
           })
         })
     },
     formatDate(dateUTC, formatStr) {
       return format(dateUTC, formatStr)
+    }
+  },
+  // @ts-ignore
+  head() {
+    const title = `Search ${this.type}`
+    const description = `search for ${this.type}s, by name, views, etc`
+    const image = `${seo.url}/icon.png`
+    return {
+      title,
+      meta: [
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        {
+          property: 'og:image',
+          content: image
+        },
+        { name: 'twitter:title', content: title },
+        {
+          name: 'twitter:description',
+          content: description
+        },
+        {
+          name: 'twitter:image',
+          content: image
+        },
+        { hid: 'description', name: 'description', content: description }
+      ]
     }
   }
 })

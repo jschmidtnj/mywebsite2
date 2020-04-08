@@ -1,16 +1,16 @@
 <template>
   <div :id="`tile-carousel-${type}`">
-    <div id="tile-data" v-if="!loading">
-      <div id="navigation-buttons" v-if="count > perpage" class="mb-3">
+    <div v-if="!loading" id="tile-data">
+      <div v-if="count > perpage" id="navigation-buttons" class="mb-3">
         <button
           :disabled="count <= perpage"
+          class="button-link"
           @click="
-            evt => {
+            (evt) => {
               evt.preventDefault()
               changePage(false)
             }
           "
-          class="button-link"
         >
           <no-ssr>
             <font-awesome-icon
@@ -21,13 +21,13 @@
         </button>
         <button
           :disabled="count <= perpage"
+          class="button-link"
           @click="
-            evt => {
+            (evt) => {
               evt.preventDefault()
               changePage(true)
             }
           "
-          class="button-link"
         >
           <no-ssr>
             <font-awesome-icon
@@ -46,31 +46,27 @@
           <button
             v-for="(postval, index) in shownPosts"
             :key="`tile-${index}`"
+            class="button-link"
             @click="
-              evt => {
+              (evt) => {
                 evt.preventDefault()
                 navigate(postval.id)
               }
             "
-            class="button-link"
           >
             <b-card class="tile m-2" no-body>
               <b-card-body class="tile zoom p-0">
                 <b-card-img-lazy
-                  :src="
-                    `${imgUrl}/${
-                      type === 'blog'
-                        ? staticstorageindexes.blogfiles
-                        : staticstorageindexes.projectfiles
-                    }/${postval.id}/${postval.tileimage.id + paths.original}`
-                  "
-                  :blank-src="
-                    `${imgUrl}/${
-                      type === 'blog'
-                        ? staticstorageindexes.blogfiles
-                        : staticstorageindexes.projectfiles
-                    }/${postval.id}/${postval.tileimage.id + paths.blur}`
-                  "
+                  :src="`${imgUrl}/${
+                    type === 'blog'
+                      ? staticstorageindexes.blogfiles
+                      : staticstorageindexes.projectfiles
+                  }/${postval.id}/${postval.tileimage.id + paths.original}`"
+                  :blank-src="`${imgUrl}/${
+                    type === 'blog'
+                      ? staticstorageindexes.blogfiles
+                      : staticstorageindexes.projectfiles
+                  }/${postval.id}/${postval.tileimage.id + paths.blur}`"
                   :alt="postval.title"
                   class="tile-img"
                 />
@@ -84,8 +80,8 @@
           </button>
         </no-ssr>
       </b-card-group>
-      <div id="scroll-buttons" v-if="window.width < count * 200" class="mt-3">
-        <button @click="swipeLeft" class="button-link">
+      <div v-if="window.width < count * 200" id="scroll-buttons" class="mt-3">
+        <button class="button-link" @click="swipeLeft">
           <no-ssr>
             <font-awesome-icon
               class="mr-2 arrow-size-carousel"
@@ -93,7 +89,7 @@
             />
           </no-ssr>
         </button>
-        <button @click="swipeRight" class="button-link">
+        <button class="button-link" @click="swipeRight">
           <no-ssr>
             <font-awesome-icon
               class="mr-2 arrow-size-carousel"
@@ -142,8 +138,8 @@ export default Vue.extend({
         width: 0,
         height: 0
       },
-      staticstorageindexes: staticstorageindexes,
-      paths: paths
+      staticstorageindexes,
+      paths
     }
   },
   destroyed() {

@@ -28,6 +28,7 @@ export default Vue.extend({
   data() {
     return {}
   },
+  mounted() {},
   // @ts-ignore
   head() {
     const title = 'Home'
@@ -35,7 +36,7 @@ export default Vue.extend({
       'custom blog and project descriptions for anything in tech and beyond'
     const image = `${seo.url}/icon.png`
     return {
-      title: title,
+      title,
       meta: [
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },
@@ -61,14 +62,13 @@ export default Vue.extend({
             '@context': 'http://schema.org',
             '@type': 'WebPage',
             name: title,
-            description: description
+            description
           }),
           type: 'application/ld+json'
         }
       ]
     }
-  },
-  mounted() {}
+  }
 })
 </script>
 

@@ -124,33 +124,6 @@ export default Vue.extend({
       }
     }
   },
-  // @ts-ignore
-  head() {
-    const title = 'Reset'
-    const description = 'reset your account password'
-    const image = `${seo.url}/icon.png`
-    return {
-      title: title,
-      meta: [
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        {
-          property: 'og:image',
-          content: image
-        },
-        { name: 'twitter:title', content: title },
-        {
-          name: 'twitter:description',
-          content: description
-        },
-        {
-          name: 'twitter:image',
-          content: image
-        },
-        { hid: 'description', name: 'description', content: description }
-      ]
-    }
-  },
   mounted() {
     if (
       this.$route.query &&
@@ -177,7 +150,7 @@ export default Vue.extend({
                 message = res.data.message
               }
               this.$toasted.global.success({
-                message: message
+                message
               })
               this.$router.push({
                 path: '/login'
@@ -259,6 +232,33 @@ export default Vue.extend({
           message: `got error with recaptcha ${err}`
         })
       })
+    }
+  },
+  // @ts-ignore
+  head() {
+    const title = 'Reset'
+    const description = 'reset your account password'
+    const image = `${seo.url}/icon.png`
+    return {
+      title: title,
+      meta: [
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        {
+          property: 'og:image',
+          content: image
+        },
+        { name: 'twitter:title', content: title },
+        {
+          name: 'twitter:description',
+          content: description
+        },
+        {
+          name: 'twitter:image',
+          content: image
+        },
+        { hid: 'description', name: 'description', content: description }
+      ]
     }
   }
 })

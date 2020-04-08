@@ -393,23 +393,14 @@ export default {
   props: {
     error: {
       type: Object,
-      default: new Error()
-    }
+      default: new Error(),
+    },
   },
   mounted() {
     require('particles.js')
     this.$nextTick(() => {
       this.initParticlesJS()
     })
-  },
-  // @ts-ignore
-  head() {
-    const title = `Error ${this.error.statusCode}`
-    const description = 'Error code found when loading page'
-    return {
-      title: title,
-      meta: [{ hid: 'description', name: 'description', content: description }]
-    }
   },
   methods: {
     initParticlesJS() {
@@ -532,8 +523,17 @@ export default {
           /* eslint-enable */
         }
       )
+    },
+  },
+  // @ts-ignore
+  head() {
+    const title = `Error ${this.error.statusCode}`
+    const description = 'Error code found when loading page'
+    return {
+      title,
+      meta: [{ hid: 'description', name: 'description', content: description }],
     }
-  }
+  },
 }
 </script>
 
