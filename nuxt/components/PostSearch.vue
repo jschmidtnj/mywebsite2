@@ -81,7 +81,7 @@
       <template v-slot:cell(title)="data">{{ data.value }}</template>
       <template v-slot:cell(author)="data">{{ data.value }}</template>
       <template v-slot:cell(date)="data">{{
-        formatDate(data.value, 'M/D/YYYY')
+        formatDate(Date.parse(data.value), 'yyyy-M-d')
       }}</template>
       <template v-slot:cell(views)="data">{{ data.value }}</template>
       <template v-slot:cell(read)="data">

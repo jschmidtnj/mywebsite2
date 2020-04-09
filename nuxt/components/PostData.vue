@@ -32,7 +32,7 @@
           <h1>{{ post.title }}</h1>
           <p>{{ post.author }}</p>
           <p v-if="post.id">
-            {{ formatDate(mongoidToDate(post.id), 'M/D/YYYY') }}
+            {{ formatDate(mongoidToDate(post.id), 'M/d/yyyy') }}
           </p>
           <p>views: {{ post.views }}</p>
           <a :href="`${shortlinkurl}/${post.shortlink}`" target="_blank">
@@ -206,7 +206,7 @@ export default Vue.extend({
       })
       const date = this.formatDate(
         this.mongoidToDate(this.post.id),
-        'YYYY-MM-DD'
+        'yyyy-M-d'
       )
       script.push({
         innerHTML: JSON.stringify({

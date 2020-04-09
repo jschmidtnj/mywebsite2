@@ -521,7 +521,7 @@
               >
                 <template v-slot:cell(name)="data">{{ data.value }}</template>
                 <template v-slot:cell(date)="data">{{
-                  formatDate(data.value, 'M/D/YYYY')
+                  formatDate(data.value, 'M/d/yyyy')
                 }}</template>
                 <template v-slot:cell(id)="data">
                   <nuxt-link :to="`/${type}/${data.value}`">{{
