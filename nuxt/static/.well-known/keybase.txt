@@ -1,0 +1,56 @@
+==================================================================
+https://keybase.io/joshuaschmidt
+--------------------------------------------------------------------
+
+I hereby claim:
+
+  * I am an admin of https://joshuaschmidt.tech
+  * I am joshuaschmidt (https://keybase.io/joshuaschmidt) on keybase.
+  * I have a public key ASCsC2FFS7LJzDL1AHE2Seuj1uoV7X2yu7TbS4G3np9sQwo
+
+To do so, I am signing this object:
+
+{
+  "body": {
+    "key": {
+      "eldest_kid": "0120ac0b61454bb2c9cc32f500713649eba3d6ea15ed7db2bbb4db4b81b79e9f6c430a",
+      "host": "keybase.io",
+      "kid": "0120ac0b61454bb2c9cc32f500713649eba3d6ea15ed7db2bbb4db4b81b79e9f6c430a",
+      "uid": "66a9b60036a683753c4f037452270c19",
+      "username": "joshuaschmidt"
+    },
+    "merkle_root": {
+      "ctime": 1587049526,
+      "hash": "3139b3ae1d7edb6e7456dada67c15ee49645342b1179aa3e855ea3c079f3518506661d4d6ec29fac8b55c73c7db6c28b357cc6fe1ebd76c23f9eb3b671773114",
+      "hash_meta": "105ad61d3cd5f62dbf283db369e50275044cb87bd75f80e169396d6e4913efcf",
+      "seqno": 15942766
+    },
+    "service": {
+      "entropy": "qowldcaiZUwXq3LAuV9PhDfb",
+      "hostname": "joshuaschmidt.tech",
+      "protocol": "https:"
+    },
+    "type": "web_service_binding",
+    "version": 2
+  },
+  "client": {
+    "name": "keybase.io go client",
+    "version": "5.3.1"
+  },
+  "ctime": 1587049538,
+  "expire_in": 504576000,
+  "prev": "ebc5a344ce570ce4c9eda494019035731697f167c53b5ffb7aedca6e555b6482",
+  "seqno": 7,
+  "tag": "signature"
+}
+
+which yields the signature:
+
+hKRib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgrAthRUuyycwy9QBxNknro9bqFe19sru020uBt56fbEMKp3BheWxvYWTESpcCB8Qg68WjRM5XDOTJ7aSUAZA1cxaX8WfFO1/7eu3KblVbZILEILS6tSsi8ki5I1tbUvit5VgyMs/jIIRn5NmaQ8efgUS0AgHCo3NpZ8RAMJfVihL8cLm0xPpu8an9IWB6X5M4ue+xzvXFzEICgMf76PUaflvS0dLwarQbWa3c6IwnFSJcOTuQAizO0RaWBqhzaWdfdHlwZSCkaGFzaIKkdHlwZQildmFsdWXEIHueaavGituEY4Qpfhgkyhzj5tLi7mk4B6r0t1sqhl8Ao3RhZ80CAqd2ZXJzaW9uAQ==
+
+And finally, I am proving ownership of this host by posting or
+appending to this document.
+
+View my publicly-auditable identity here: https://keybase.io/joshuaschmidt
+
+==================================================================
