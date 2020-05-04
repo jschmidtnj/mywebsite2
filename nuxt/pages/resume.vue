@@ -1,6 +1,6 @@
 <template>
   <b-container>
-    <v-pdf :src="pdf" class="pdf"></v-pdf>
+    <v-pdf :src="pdf" :resize="true" :annotation="true"></v-pdf>
   </b-container>
 </template>
 
@@ -46,9 +46,4 @@ export default Vue.extend({
 })
 </script>
 
-<style lang="scss">
-.pdf {
-  display: inline-block;
-  width: 100%;
-}
-</style>
+<style lang="scss"></style>

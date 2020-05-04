@@ -1,7 +1,9 @@
 <template>
-  <b-card title="Projects">
-    <post-search type="project" />
-  </b-card>
+  <b-container class="mt-4">
+    <b-card title="Projects">
+      <post-search type="project" />
+    </b-card>
+  </b-container>
 </template>
 
 <script lang="js">

@@ -1,5 +1,5 @@
 <template>
-  <b-container fluid>
+  <b-container class="main-container" fluid>
     <b-row>
       <b-col md="6" class="my-1">
         <b-form-group label-cols-sm="3" label="search" class="mb-0">
@@ -90,8 +90,8 @@
         >
       </template>
     </b-table>
-    <b-row>
-      <b-col md="6" class="my-1">
+    <b-row class="send-bottom">
+      <b-col md="6" class="my-4">
         <b-pagination
           v-model="currentPage"
           :total-rows="totalRows"
@@ -336,4 +336,12 @@ export default Vue.extend({
 })
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+.main-container {
+  min-height: 70vh;
+}
+.send-bottom {
+  position: absolute;
+  bottom: 0;
+}
+</style>

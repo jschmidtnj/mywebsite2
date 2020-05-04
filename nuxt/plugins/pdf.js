@@ -1,3 +1,3 @@
 import Vue from 'vue'
-import vPdf from 'vue-pdf'
-Vue.component('v-pdf', vPdf)
+import pdf from 'pdfvuer'
+Vue.component('v-pdf', pdf)

@@ -1,29 +1,31 @@
 <template>
-  <b-card title="Downloads">
-    <br />
-    <b-list-group>
-      <b-list-group-item>
-        <b-link :href="androidAppUrl" class="card-link"
-          >Download Android App</b-link
-        >
-      </b-list-group-item>
-      <b-list-group-item>
-        <b-link :href="windowsAppUrl" class="card-link"
-          >Download Windows App</b-link
-        >
-      </b-list-group-item>
-      <b-list-group-item>
-        <b-link :href="macosAppUrl" class="card-link"
-          >Download MacOS App</b-link
-        >
-      </b-list-group-item>
-      <b-list-group-item>
-        <b-link :href="linuxAppUrl" class="card-link"
-          >Download Linux App</b-link
-        >
-      </b-list-group-item>
-    </b-list-group>
-  </b-card>
+  <b-container class="mt-4">
+    <b-card title="Downloads">
+      <br />
+      <b-list-group>
+        <b-list-group-item>
+          <b-link :href="androidAppUrl" class="card-link"
+            >Download Android App</b-link
+          >
+        </b-list-group-item>
+        <b-list-group-item>
+          <b-link :href="windowsAppUrl" class="card-link"
+            >Download Windows App</b-link
+          >
+        </b-list-group-item>
+        <b-list-group-item>
+          <b-link :href="macosAppUrl" class="card-link"
+            >Download MacOS App</b-link
+          >
+        </b-list-group-item>
+        <b-list-group-item>
+          <b-link :href="linuxAppUrl" class="card-link"
+            >Download Linux App</b-link
+          >
+        </b-list-group-item>
+      </b-list-group>
+    </b-card>
+  </b-container>
 </template>
 
 <script lang="js">
