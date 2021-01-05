@@ -38,7 +38,7 @@
     "@nuxtjs/pwa": "^2.6.0",
     "@nuxtjs/sitemap": "^2.2.0",
     "@nuxtjs/style-resources": "^1.0.0",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "bootstrap": "^4.4.1",
     "bootstrap-vue": "^2.10.1",
     "bson": "^4.0.4",
