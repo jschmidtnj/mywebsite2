@@ -1,6 +1,7 @@
 <template>
   <b-container>
     <v-pdf :src="pdf" :resize="true" :annotation="true"></v-pdf>
+    <a :href="pdf" download="joshua_schmidt_resume" class="mt-2">Download</a>
   </b-container>
 </template>
 
